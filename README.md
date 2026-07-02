@@ -16,7 +16,7 @@ cp .env.example .env
 ```
 ### set your own LARAVEL_CONTAINER_NAME in .env file (optional)
 ```bash
-LARAVEL_CONTAINER_NAME=laravel
+LARAVEL_CONTAINER_NAME=personal-home-portal
 ```
 
 ### Run the following commands in terminal

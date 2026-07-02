@@ -1,23 +1,38 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create(User::TABLE, function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string(User::name);
+            $table->string(User::email)->unique();
+            $table->timestamp(User::email_verified_at)->nullable();
+            $table->string(User::password);
             $table->rememberToken();
+
+            // Profile columns
+            $table->string(User::firstname)->nullable();
+            $table->string(User::lastname)->nullable();
+            $table->string(User::date_of_birth)->nullable();
+            $table->string(User::place_of_birth)->nullable();
+            $table->string(User::address_street)->nullable();
+            $table->string(User::address_street_number)->nullable();
+            $table->string(User::address_zip)->nullable();
+            $table->string(User::address_city)->nullable();
+            $table->string(User::avatar)->nullable();
+            $table->string(User::phone)->nullable();
+            $table->string(User::email_private)->nullable();
+            $table->string(User::email_business)->nullable();
+
             $table->timestamps();
         });
 
@@ -42,7 +57,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists(User::TABLE);
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

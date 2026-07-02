@@ -2,26 +2,20 @@
 
 namespace App\Providers\Filament;
 
-use Filament\Http\Middleware\Authenticate;
-use Filament\Actions\Action;
+use App\Filament\Auth\Pages\EditProfile;
+use App\Filament\AvatarProviders\UserAvatarProvider;
 use Filament\Enums\DatabaseNotificationsPosition;
-use Filament\Facades\Filament;
+use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Navigation\NavigationGroup;
-use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Support\Icons\Heroicon;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\URL;
@@ -45,7 +39,8 @@ class AdminPanelProvider extends PanelProvider
             // auth
             ->login()
             ->passwordReset()
-            ->profile()
+            ->defaultAvatarProvider(UserAvatarProvider::class)
+            ->profile(EditProfile::class, false)
 
             // navigation
             ->navigationGroups($this->getNavigationGroups())

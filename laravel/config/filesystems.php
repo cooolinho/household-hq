@@ -60,6 +60,26 @@ return [
             'report' => false,
         ],
 
+        \App\AppConfig::FILESYSTEM_USER_AVATAR => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/avatar'),
+            'url' => env('APP_URL') . '/storage/avatar',
+            'visibility' => 'public',
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+
+        // dedicated disk for preview images (stored publicly under storage/app/public/documents)
+        \App\Models\Document::STORAGE_DISK => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/documents'),
+            'url' => env('APP_URL') . '/storage/documents',
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
     ],
 
     /*

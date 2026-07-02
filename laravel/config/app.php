@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'countries' => [
+        'whitelist' => ['DE', 'CH', 'AT'], // only list countries with alpha2 code
+    ]
 ];
