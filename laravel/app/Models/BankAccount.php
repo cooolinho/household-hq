@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Enums\BankAccountTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
  *
  * Relations
  * @property User $user
+ * @property Transaction[] $transactions
  */
 class BankAccount extends Model
 {
@@ -45,6 +47,7 @@ class BankAccount extends Model
     // relations
     const string user_id = 'user_id';
     const string belongs_to_user = 'user';
+    const string has_many_transactions = 'transactions';
     const string TABLE = 'bank_accounts';
 
     protected $table = self::TABLE;
@@ -68,5 +71,27 @@ class BankAccount extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, Transaction::bank_account_id);
+    }
+
+    public function updateBalance(): self
+    {
+        /** @var Transaction $lastTransaction */
+        $lastTransaction = $this->transactions()
+            ->orderBy(Transaction::date, 'desc')
+            ->get()
+            ->first();
+
+        if ($lastTransaction) {
+            $this->balance = $lastTransaction->balance;
+            $this->balance_date = $lastTransaction->date;
+            $this->save();
+        }
+
+        return $this;
     }
 }

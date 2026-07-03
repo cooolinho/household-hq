@@ -3,12 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\AppConfig;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Class User
@@ -111,5 +113,20 @@ class User extends Authenticatable
             self::password => 'hashed',
             self::date_of_birth => 'date',
         ];
+    }
+
+    public function hasAvatar(): bool
+    {
+        return !empty($this->avatar) && Storage::disk(AppConfig::FILESYSTEM_USER_AVATAR)->exists($this->avatar);
+    }
+
+    public function getAvatarUrl(): ?string
+    {
+        $disk = Storage::disk(AppConfig::FILESYSTEM_USER_AVATAR);
+        if (!empty($this->avatar) && $disk->exists($this->avatar)) {
+            return $disk->url($this->avatar);
+        }
+
+        return null;
     }
 }

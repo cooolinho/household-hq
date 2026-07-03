@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\BankAccounts\Pages\CreateBankAccount;
 use App\Filament\Admin\Resources\BankAccounts\Pages\EditBankAccount;
 use App\Filament\Admin\Resources\BankAccounts\Pages\ListBankAccounts;
 use App\Filament\Admin\Resources\BankAccounts\Pages\ViewBankAccount;
+use App\Filament\Admin\Resources\BankAccounts\RelationManagers\TransactionsRelationManager;
 use App\Filament\Admin\Resources\BankAccounts\Schemas\BankAccountForm;
 use App\Filament\Admin\Resources\BankAccounts\Schemas\BankAccountInfolist;
 use App\Filament\Admin\Resources\BankAccounts\Tables\BankAccountsTable;
@@ -46,7 +47,7 @@ class BankAccountResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            TransactionsRelationManager::class,
         ];
     }
 
