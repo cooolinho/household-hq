@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\BankAccount;
-use App\Models\Transaction;
+use App\Models\Financial\BankAccount;
+use App\Models\Financial\Transaction;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

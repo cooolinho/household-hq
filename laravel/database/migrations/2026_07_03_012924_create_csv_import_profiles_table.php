@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\CSVImportProfile;
+use App\Models\Financial\CSVImportProfile;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

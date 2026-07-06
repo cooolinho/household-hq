@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Concerns\TransactionCSVFile;
 use App\Exceptions\TransactionsImportException;
-use App\Models\CSVImportProfile;
-use App\Models\Transaction;
+use App\Models\Financial\CSVImportProfile;
+use App\Models\Financial\Transaction;
 use Illuminate\Support\Carbon;
 
 class TransactionsCSVReaderService

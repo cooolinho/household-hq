@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\BankAccount;
 use App\Models\Enums\BankAccountTypeEnum;
+use App\Models\Financial\BankAccount;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
