@@ -35,6 +35,7 @@ class AdminPanelProvider extends PanelProvider
             // theme
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors($this->getColors())
+            ->darkMode()
 
             // auth
             ->login()

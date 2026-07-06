@@ -31,6 +31,8 @@ use Illuminate\Support\Carbon;
  */
 class BankAccount extends Model
 {
+    const string TABLE = 'bank_accounts';
+
     // columns
     const string id = 'id';
     const string name = 'name';
@@ -48,7 +50,6 @@ class BankAccount extends Model
     const string user_id = 'user_id';
     const string belongs_to_user = 'user';
     const string has_many_transactions = 'transactions';
-    const string TABLE = 'bank_accounts';
 
     protected $table = self::TABLE;
     protected $fillable = [

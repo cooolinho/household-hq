@@ -5,8 +5,10 @@ namespace App\Filament\Admin\Resources\Documents\Pages;
 use App\Filament\Admin\Resources\Documents\DocumentResource;
 use App\Filament\Admin\Resources\Documents\Schemas\DocumentForm;
 use App\Filament\Admin\Resources\Insurances\RelationManagers\DocumentsRelationManager;
+use App\Filament\Admin\Resources\Inventory\Articles\RelationManagers\DocumentsRelationManager as ArticleRelationManager;
 use App\Models\Document;
 use App\Models\Insurance;
+use App\Models\Inventory\Article;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,6 +39,11 @@ class CreateDocument extends CreateRecord
             $this->addDocumentToInsurance($document, $insuranceId);
         }
 
+        if (isset($queryParams[ArticleRelationManager::QUERY_PARAM_ARTICLE_ID])) {
+            $articleId = (int)$queryParams[ArticleRelationManager::QUERY_PARAM_ARTICLE_ID];
+            $this->addDocumentToArticle($document, $articleId);
+        }
+
         return $document;
     }
 
@@ -52,5 +59,15 @@ class CreateDocument extends CreateRecord
         }
 
         $insurance->documents()->save($document);
+    }
+
+    private function addDocumentToArticle(Document $document, int $articleId): void
+    {
+        $article = Article::query()->find($articleId);
+        if (!$article instanceof Article) {
+            return;
+        }
+
+        $article->documents()->save($document);
     }
 }
