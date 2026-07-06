@@ -29,7 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Transaction extends Model
 {
-    const string TABLE = 'transactions';
+    const string TABLE = 'financial_transactions';
 
     // columns
     const string id = 'id';
@@ -49,7 +49,7 @@ class Transaction extends Model
     const string updated_at = Model::UPDATED_AT;
 
     // relations
-    const string belongs_to_bank_account = 'belongs_to_bank_account';
+    const string belongs_to_bank_account = 'bankAccount';
     const string belongs_to_user = 'user';
 
     protected $table = self::TABLE;

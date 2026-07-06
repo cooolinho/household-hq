@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  */
 class CSVImportProfile extends Model
 {
-    const string TABLE = 'csv_import_profiles';
+    const string TABLE = 'financial_csv_import_profiles';
 
     const string id = 'id';
     const string name = 'name';

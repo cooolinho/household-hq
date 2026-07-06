@@ -25,7 +25,7 @@ return new class extends Migration {
             $table->string(BankAccount::bank_name)->nullable();
             $table->decimal(BankAccount::balance, 15, 2)->nullable();
             $table->dateTime(BankAccount::balance_date)->nullable();
-            $table->enum(BankAccount::type, array_column(BankAccountTypeEnum::cases(), 'name'))->nullable();
+            $table->enum(BankAccount::type, BankAccountTypeEnum::allNames())->nullable();
 
             $table->timestamps();
         });

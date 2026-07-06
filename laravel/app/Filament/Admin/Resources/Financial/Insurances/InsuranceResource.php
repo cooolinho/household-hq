@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances;
+namespace App\Filament\Admin\Resources\Financial\Insurances;
 
-use App\Filament\Admin\Resources\Insurances\Pages\CreateInsurance;
-use App\Filament\Admin\Resources\Insurances\Pages\EditInsurance;
-use App\Filament\Admin\Resources\Insurances\Pages\ListInsurances;
-use App\Filament\Admin\Resources\Insurances\Pages\ViewInsurance;
-use App\Filament\Admin\Resources\Insurances\RelationManagers\DocumentsRelationManager;
-use App\Filament\Admin\Resources\Insurances\Schemas\InsuranceForm;
-use App\Filament\Admin\Resources\Insurances\Schemas\InsuranceInfolist;
-use App\Filament\Admin\Resources\Insurances\Tables\InsurancesTable;
-use App\Models\Insurance;
+use App\Filament\Admin\Resources\Financial\Insurances\Pages\CreateInsurance;
+use App\Filament\Admin\Resources\Financial\Insurances\Pages\EditInsurance;
+use App\Filament\Admin\Resources\Financial\Insurances\Pages\ListInsurances;
+use App\Filament\Admin\Resources\Financial\Insurances\Pages\ViewInsurance;
+use App\Filament\Admin\Resources\Financial\Insurances\RelationManagers\DocumentsRelationManager;
+use App\Filament\Admin\Resources\Financial\Insurances\Schemas\InsuranceForm;
+use App\Filament\Admin\Resources\Financial\Insurances\Schemas\InsuranceInfolist;
+use App\Filament\Admin\Resources\Financial\Insurances\Tables\InsurancesTable;
+use App\Models\Financial\Insurance;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -23,6 +23,9 @@ class InsuranceResource extends Resource
     protected static ?string $model = Insurance::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationLabel = 'Versicherungen';
+    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
+    protected static ?int $navigationSort = 50;
 
     protected static ?string $recordTitleAttribute = Insurance::name;
 

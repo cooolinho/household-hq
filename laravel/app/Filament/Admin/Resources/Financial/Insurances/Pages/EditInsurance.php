@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances\Pages;
+namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
 
-use App\Filament\Admin\Resources\Insurances\InsuranceResource;
+use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;

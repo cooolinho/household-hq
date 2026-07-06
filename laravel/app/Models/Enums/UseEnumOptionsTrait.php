@@ -11,4 +11,14 @@ trait UseEnumOptionsTrait
             array_map(fn($case) => $case->label(), self::cases())
         );
     }
+
+    public static function allNames(): array
+    {
+        return array_column(self::cases(), 'name');
+    }
+
+    public static function allValues(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
 }

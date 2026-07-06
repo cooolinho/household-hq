@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Financial;
 
+use App\Models\Document;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -24,6 +26,8 @@ use Illuminate\Support\Carbon;
  */
 class Insurance extends Model
 {
+    const string TABLE = 'financial_insurances';
+
     // columns
     const string id = 'id';
     const string name = 'name';
@@ -52,8 +56,6 @@ class Insurance extends Model
     // relation method names
     const string has_many_documents = 'documents';
     const string belongs_to_user = 'user';
-
-    const string TABLE = 'insurances';
 
     protected $table = self::TABLE;
     protected $fillable = [

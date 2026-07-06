@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances\Pages;
+namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
 
-use App\Filament\Admin\Resources\Insurances\InsuranceResource;
-use App\Models\Insurance;
+use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
+use App\Models\Financial\Insurance;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateInsurance extends CreateRecord

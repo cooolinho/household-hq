@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances\Pages;
+namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
 
-use App\Filament\Admin\Resources\Insurances\InsuranceResource;
+use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 

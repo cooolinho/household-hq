@@ -23,6 +23,7 @@ class BankAccountResource extends Resource
     protected static ?string $model = BankAccount::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationLabel = 'Bank-Konten';
     protected static string|null|\UnitEnum $navigationGroup = 'Financial';
     protected static ?int $navigationSort = 10;
 

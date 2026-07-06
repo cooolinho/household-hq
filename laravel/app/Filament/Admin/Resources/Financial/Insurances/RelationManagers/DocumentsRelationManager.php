@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances\RelationManagers;
+namespace App\Filament\Admin\Resources\Financial\Insurances\RelationManagers;
 
 use App\Filament\Admin\Resources\Documents\DocumentResource;
 use App\Filament\Admin\Resources\Documents\Tables\DocumentsTable;
-use App\Models\Insurance;
+use App\Models\Financial\Insurance;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;

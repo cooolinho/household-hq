@@ -32,7 +32,7 @@ use Illuminate\Support\Carbon;
  */
 class BankAccount extends Model
 {
-    const string TABLE = 'bank_accounts';
+    const string TABLE = 'financial_bank_accounts';
 
     // columns
     const string id = 'id';

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances\Schemas;
+namespace App\Filament\Admin\Resources\Financial\Insurances\Schemas;
 
 use App\Models\Enums\InsuranceTypeEnum;
-use App\Models\Insurance;
+use App\Models\Financial\Insurance;
 use App\Util\CountriesUtil;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;

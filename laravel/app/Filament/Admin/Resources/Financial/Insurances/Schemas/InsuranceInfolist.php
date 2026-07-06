@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances\Schemas;
+namespace App\Filament\Admin\Resources\Financial\Insurances\Schemas;
 
-use App\Models\Insurance;
+use App\Models\Financial\Insurance;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 

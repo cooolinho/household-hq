@@ -4,10 +4,10 @@ namespace App\Filament\Admin\Resources\Documents\Pages;
 
 use App\Filament\Admin\Resources\Documents\DocumentResource;
 use App\Filament\Admin\Resources\Documents\Schemas\DocumentForm;
-use App\Filament\Admin\Resources\Insurances\RelationManagers\DocumentsRelationManager;
+use App\Filament\Admin\Resources\Financial\Insurances\RelationManagers\DocumentsRelationManager;
 use App\Filament\Admin\Resources\Inventory\Articles\RelationManagers\DocumentsRelationManager as ArticleRelationManager;
 use App\Models\Document;
-use App\Models\Insurance;
+use App\Models\Financial\Insurance;
 use App\Models\Inventory\Article;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;

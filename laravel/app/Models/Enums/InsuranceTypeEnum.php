@@ -34,9 +34,9 @@ enum InsuranceTypeEnum
     case EINMALANLAGEN;
     case SONSTIGE_VERMOEGEN;
 
-    public static function options(): array
+    public static function groups(): array
     {
-        $options = [
+        return [
             'Altersvorsorge' => [
                 self::ZULAGENRENTE,
                 self::BETRIEBLICHE_ALTERSVORSORGE,
@@ -66,14 +66,17 @@ enum InsuranceTypeEnum
                 self::SONSTIGE_VERMOEGEN,
             ],
         ];
+    }
 
+    public static function options(): array
+    {
         return array_map(function ($group) {
             $groupCases = array_map(fn(InsuranceTypeEnum $type) => [$type->name, $type->label()], $group);
             return array_combine(
                 array_column($groupCases, 0),
                 array_column($groupCases, 1)
             );
-        }, $options);
+        }, self::groups());
     }
 
     public function label(): string

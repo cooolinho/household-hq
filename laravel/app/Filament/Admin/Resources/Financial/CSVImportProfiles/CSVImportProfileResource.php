@@ -19,6 +19,7 @@ class CSVImportProfileResource extends Resource
     protected static ?string $model = CSVImportProfile::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationLabel = 'CSV Import Profile';
     protected static string|null|\UnitEnum $navigationGroup = 'Financial';
     protected static ?int $navigationSort = 50;
 

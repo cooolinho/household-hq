@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Insurances\Tables;
+namespace App\Filament\Admin\Resources\Financial\Insurances\Tables;
 
-use App\Models\Insurance;
+use App\Models\Financial\Insurance;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
