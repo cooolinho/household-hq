@@ -40,7 +40,7 @@ docker restart personal-home-portal
 ## 3. Open Admin Dashboard
 http://localhost/admin/login
 ```
-E-Mmail:  admin@example.com
+E-Mail:  admin@example.com
 Password: secret
 ```
 
@@ -56,5 +56,5 @@ Password: secret
 - [MySQL](https://hub.docker.com/r/mysql/mysql-server)
 - [Redis](https://hub.docker.com/_/redis)
 - [mailpit](https://hub.docker.com/r/axllent/mailpit)
-
+- [spatie/laravel-tags](https://spatie.be/docs/laravel-tags/v4/introduction)
 Version: 1.0.0

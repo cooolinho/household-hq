@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class LocationResource extends Resource
 {
@@ -57,5 +58,19 @@ class LocationResource extends Resource
             'view' => ViewLocation::route('/{record}'),
             'edit' => EditLocation::route('/{record}/edit'),
         ];
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return self::canView($record);
+    }
+
+    public static function canView(Model $record): bool
+    {
+        if ($record instanceof Location) {
+            return $record->collection?->user_id === auth()->id();
+        }
+
+        return false;
     }
 }

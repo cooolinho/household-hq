@@ -19,7 +19,7 @@ use Spatie\Tags\HasTags;
  * @property Carbon|null $updated_at
  *
  * Relations
- * @property MeasurementDevice|null $measurementDevice
+ * @property MeasurementDevice $measurementDevice
  */
 class ReadingEntry extends Model
 {

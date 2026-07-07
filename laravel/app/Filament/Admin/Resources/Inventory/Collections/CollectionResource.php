@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class CollectionResource extends Resource
@@ -40,7 +41,10 @@ class CollectionResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return CollectionsTable::configure($table);
+        return CollectionsTable::configure($table)
+            ->modifyQueryUsing(function ($query) {
+                $query->where(Collection::user_id, auth()->id());
+            });
     }
 
     public static function getRelations(): array
@@ -58,5 +62,19 @@ class CollectionResource extends Resource
             'view' => ViewCollection::route('/{record}'),
             'edit' => EditCollection::route('/{record}/edit'),
         ];
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return self::canView($record);
+    }
+
+    public static function canView(Model $record): bool
+    {
+        if ($record instanceof Collection) {
+            return $record->user_id === auth()->id();
+        }
+
+        return false;
     }
 }

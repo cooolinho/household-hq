@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ArticleResource extends Resource
 {
@@ -57,5 +58,19 @@ class ArticleResource extends Resource
             'view' => ViewArticle::route('/{record}'),
             'edit' => EditArticle::route('/{record}/edit'),
         ];
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return self::canView($record);
+    }
+
+    public static function canView(Model $record): bool
+    {
+        if ($record instanceof Article) {
+            return $record->location?->collection?->user_id === auth()->id();
+        }
+
+        return false;
     }
 }
