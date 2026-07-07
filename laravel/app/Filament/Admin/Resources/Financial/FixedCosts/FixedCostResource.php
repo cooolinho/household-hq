@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FixedCostResource extends Resource
 {
+    const string PAGE_VIEW = 'view';
     protected static ?string $model = FixedCost::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -56,7 +57,7 @@ class FixedCostResource extends Resource
         return [
             'index' => ListFixedCosts::route('/'),
             'create' => CreateFixedCost::route('/create'),
-            'view' => ViewFixedCost::route('/{record}'),
+            self::PAGE_VIEW => ViewFixedCost::route('/{record}'),
             'edit' => EditFixedCost::route('/{record}/edit'),
         ];
     }
@@ -73,5 +74,10 @@ class FixedCostResource extends Resource
         }
 
         return false;
+    }
+
+    public static function getViewUrl(int $recordId): string
+    {
+        return self::getUrl(self::PAGE_VIEW, ['record' => $recordId]);
     }
 }

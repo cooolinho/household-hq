@@ -2,7 +2,9 @@
 
 namespace App\Filament\Admin\Resources\Financial\Transactions\Tables;
 
+use App\Filament\Admin\Resources\Financial\Transactions\Actions\CreateFixedCostAction;
 use App\Models\Financial\Transaction;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -51,8 +53,11 @@ class TransactionsTable
                 //
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    CreateFixedCostAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

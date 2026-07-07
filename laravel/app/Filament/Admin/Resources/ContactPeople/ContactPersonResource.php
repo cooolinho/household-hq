@@ -23,7 +23,8 @@ class ContactPersonResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     protected static ?string $navigationLabel = 'Ansprechpartner';
-    protected static ?int $navigationSort = 10;
+    protected static string|null|\UnitEnum $navigationGroup = 'Basis';
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $recordTitleAttribute = ContactPerson::firstname;
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ContactPeople\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\ContactPerson;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
@@ -34,6 +35,8 @@ class ContactPersonForm
                     ->disk('public')
                     ->placeholder('-'),
                 TextInput::make(ContactPerson::role),
+
+                TagResource::getMorphToManySelect($schema, ContactPerson::morph_to_many_tags)
             ]);
     }
 }

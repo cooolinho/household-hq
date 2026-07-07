@@ -24,8 +24,8 @@ class TagResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     protected static ?string $navigationLabel = 'Tags';
-    protected static string|null|\UnitEnum $navigationGroup = 'Einstellungen';
-    protected static ?int $navigationSort = 20;
+    protected static string|null|\UnitEnum $navigationGroup = 'Basis';
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = Tag::name;
 

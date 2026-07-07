@@ -2,7 +2,6 @@
 
 namespace App\Filament\Admin\Resources\Financial\FixedCosts\Schemas;
 
-use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
@@ -22,24 +21,29 @@ class FixedCostForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
-                Section::make('base')
-                    ->heading(false)
-                    ->columnSpanFull()
-                    ->schema(self::getSectionBaseSchema()),
+            ->components(self::getSchema());
+    }
 
-                Section::make('interval')
-                    ->heading(false)
-                    ->columnSpanFull()
-                    ->schema(self::getSectionIntervalSchema()),
+    public static function getSchema(): array
+    {
+        return [
+            Section::make('base')
+                ->heading(false)
+                ->columnSpanFull()
+                ->schema(self::getSectionBaseSchema()),
 
-                Section::make('ends_selection')
-                    ->heading(false)
-                    ->columnSpanFull()
-                    ->schema(self::getSectionEndingSchema()),
+            Section::make('interval')
+                ->heading(false)
+                ->columnSpanFull()
+                ->schema(self::getSectionIntervalSchema()),
 
-                TagResource::getMorphToManySelect($schema, FixedCost::morph_to_many_tags)
-            ]);
+            Section::make('ends_selection')
+                ->heading(false)
+                ->columnSpanFull()
+                ->schema(self::getSectionEndingSchema()),
+
+//            TagResource::getMorphToManySelect($schema, FixedCost::morph_to_many_tags)
+        ];
     }
 
     /**
@@ -81,8 +85,7 @@ class FixedCostForm
                             $set(FixedCost::amount, -1 * $amount);
                         }
                     }))
-                ->numeric()
-            ,
+                ->numeric(),
             Select::make(FixedCost::category)
                 ->options(FixedCostCategoryEnum::options())
                 ->default(FixedCostCategoryEnum::default())
