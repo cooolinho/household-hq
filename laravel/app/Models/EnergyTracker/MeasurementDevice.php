@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Spatie\Tags\HasTags;
 
 /**
  * Class MeasurementDevice
@@ -32,6 +33,8 @@ use Illuminate\Support\Carbon;
  */
 class MeasurementDevice extends Model
 {
+    use HasTags;
+
     const string TABLE = 'energy_tracker_measurement_devices';
 
     // columns
@@ -52,6 +55,7 @@ class MeasurementDevice extends Model
     // relations
     const string belongs_to_user = 'user';
     const string has_many_reading_entries = 'readingEntries';
+    const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
 

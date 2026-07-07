@@ -5,6 +5,7 @@ namespace App\Models\Financial;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Tags\HasTags;
 
 /**
  * Class Transaction
@@ -29,6 +30,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Transaction extends Model
 {
+    use HasTags;
+
     const string TABLE = 'financial_transactions';
 
     // columns
@@ -51,6 +54,7 @@ class Transaction extends Model
     // relations
     const string belongs_to_bank_account = 'bankAccount';
     const string belongs_to_user = 'user';
+    const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
 

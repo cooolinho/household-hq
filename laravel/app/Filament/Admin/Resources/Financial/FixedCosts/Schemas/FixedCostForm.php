@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\FixedCosts\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
@@ -36,6 +37,8 @@ class FixedCostForm
                     ->heading(false)
                     ->columnSpanFull()
                     ->schema(self::getSectionEndingSchema()),
+
+                TagResource::getMorphToManySelect($schema, FixedCost::morph_to_many_tags)
             ]);
     }
 

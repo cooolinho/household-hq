@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Spatie\Tags\HasTags;
 
 /**
  * Class FixedCost
@@ -36,6 +37,8 @@ use Illuminate\Support\Carbon;
  */
 class FixedCost extends Model
 {
+    use HasTags;
+
     const string TABLE = 'financial_fixed_costs';
 
     // columns
@@ -56,6 +59,7 @@ class FixedCost extends Model
     // relations
     const string has_many_documents = 'has_many_documents';
     const string belongs_to_user = 'user';
+    const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
 

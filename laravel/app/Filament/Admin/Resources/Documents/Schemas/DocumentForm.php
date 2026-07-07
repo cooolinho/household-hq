@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Documents\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Document;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -53,6 +54,8 @@ class DocumentForm
                     ->required()
                     ->numeric()
                     ->default(0),
+
+                TagResource::getMorphToManySelect($schema, Document::morph_to_many_tags),
             ]);
     }
 }

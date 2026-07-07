@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\EnergyTracker\ReadingEntries\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\EnergyTracker\MeasurementDevice;
 use App\Models\EnergyTracker\ReadingEntry;
 use Filament\Forms\Components\DateTimePicker;
@@ -35,6 +36,8 @@ class ReadingEntryForm
         $schemas[] = DateTimePicker::make(ReadingEntry::reading_date)
             ->default(now())
             ->required();
+
+        $schemas[] = TagResource::getMorphToManySelect($schema, ReadingEntry::morph_to_many_tags);
 
         return $schema
             ->components($schemas);

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Tags\HasTags;
 
 /**
  * Class Document
@@ -41,6 +42,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class Document extends Model
 {
+    use HasTags;
+
     const string TABLE = 'documents';
     const string STORAGE_DISK = 'documents';
 
@@ -71,6 +74,7 @@ class Document extends Model
 
     // relation methods
     const string belongs_to_user = 'user';
+    const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
 

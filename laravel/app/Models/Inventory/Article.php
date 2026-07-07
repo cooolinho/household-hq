@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
+use Spatie\Tags\HasTags;
 
 
 /**
@@ -35,6 +36,8 @@ use Illuminate\Support\Carbon;
  */
 class Article extends Model
 {
+    use HasTags;
+
     const string TABLE = 'inventory_articles';
 
     // columns
@@ -66,6 +69,7 @@ class Article extends Model
     const string belongs_to_parent = 'parent';
     const string belongs_to_location = 'location';
     const string has_many_documents = 'documents';
+    const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
     protected $fillable = [

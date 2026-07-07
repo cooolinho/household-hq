@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\BankAccounts\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Enums\BankAccountTypeEnum;
 use App\Models\Financial\BankAccount;
 use Filament\Forms\Components\Select;
@@ -40,6 +41,8 @@ class BankAccountForm
                         TextInput::make(BankAccount::bic),
                         TextInput::make(BankAccount::bank_name),
                     ]),
+
+                TagResource::getMorphToManySelect($schema, BankAccount::morph_to_many_tags)
             ]);
     }
 }

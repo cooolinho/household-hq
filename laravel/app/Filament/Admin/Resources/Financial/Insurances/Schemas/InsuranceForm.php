@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\Insurances\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Enums\InsuranceTypeEnum;
 use App\Models\Financial\Insurance;
 use App\Util\CountriesUtil;
@@ -65,6 +66,8 @@ class InsuranceForm
                         Select::make(Insurance::address_country)
                             ->options(CountriesUtil::options())
                     ]),
+
+                TagResource::getMorphToManySelect($schema, Insurance::morph_to_many_tags)
             ]);
     }
 }

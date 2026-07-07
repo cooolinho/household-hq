@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Inventory\Articles\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Inventory\Article;
 use App\Models\Inventory\Location;
 use Filament\Forms\Components\DatePicker;
@@ -50,6 +51,8 @@ class ArticleForm
                 Select::make(Article::location_id)
                     ->default($locationId)
                     ->relationship(Article::belongs_to_location, Location::name),
+
+                TagResource::getMorphToManySelect($schema, Article::morph_to_many_tags)
             ]);
     }
 }

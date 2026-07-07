@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Spatie\Tags\HasTags;
 
 /**
  * Class BankAccount
@@ -32,6 +33,8 @@ use Illuminate\Support\Carbon;
  */
 class BankAccount extends Model
 {
+    use HasTags;
+
     const string TABLE = 'financial_bank_accounts';
 
     // columns
@@ -51,6 +54,7 @@ class BankAccount extends Model
     const string user_id = 'user_id';
     const string belongs_to_user = 'user';
     const string has_many_transactions = 'transactions';
+    const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
     protected $fillable = [

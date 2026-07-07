@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\Transactions\Schemas;
 
+use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Financial\Transaction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
@@ -33,6 +34,8 @@ class TransactionForm
                     ->numeric(),
                 TextInput::make(Transaction::amount_currency)
                     ->required(),
+
+                TagResource::getMorphToManySelect($schema, Transaction::morph_to_many_tags)
             ]);
     }
 }

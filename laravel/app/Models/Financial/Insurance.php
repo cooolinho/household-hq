@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
+use Spatie\Tags\HasTags;
 
 /**
  * Class Insurance
@@ -26,6 +27,8 @@ use Illuminate\Support\Carbon;
  */
 class Insurance extends Model
 {
+    use HasTags;
+
     const string TABLE = 'financial_insurances';
 
     // columns
@@ -56,6 +59,7 @@ class Insurance extends Model
     // relation method names
     const string has_many_documents = 'documents';
     const string belongs_to_user = 'user';
+    const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
     protected $fillable = [
