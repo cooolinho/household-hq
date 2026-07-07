@@ -3,6 +3,8 @@
 namespace App\Models\Financial;
 
 use App\Models\User;
+use Database\Factories\Financial\TransactionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Tags\HasTags;
@@ -30,6 +32,8 @@ use Spatie\Tags\HasTags;
  */
 class Transaction extends Model
 {
+    /** @use HasFactory<TransactionFactory> */
+    use HasFactory;
     use HasTags;
 
     const string TABLE = 'financial_transactions';
@@ -78,6 +82,21 @@ class Transaction extends Model
         self::balance => 'float',
         self::amount => 'float',
     ];
+
+    public static function createHash(array $transactionData): string
+    {
+        return md5(sprintf(
+            '%s|%s|%s|%s|%s|%s|%s|%s',
+            $transactionData[Transaction::date],
+            $transactionData[Transaction::amount],
+            $transactionData[Transaction::value_date],
+            $transactionData[Transaction::payer] ?? '',
+            $transactionData[Transaction::description] ?? '',
+            $transactionData[Transaction::purpose] ?? '',
+            $transactionData[Transaction::balance] ?? '',
+            $transactionData[Transaction::user_id] ?? ''
+        ));
+    }
 
     public function bankAccount(): BelongsTo
     {

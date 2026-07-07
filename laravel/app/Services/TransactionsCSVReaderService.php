@@ -147,9 +147,7 @@ class TransactionsCSVReaderService
                 Transaction::user_id => auth()->id(),
             ];
 
-            $hash = $this->createTransactionHash($row);
-
-            $row[Transaction::hash] = $hash;
+            $row[Transaction::hash] = Transaction::createHash($row);
 
             $this->rows[] = $row;
         }
@@ -218,18 +216,4 @@ class TransactionsCSVReaderService
         return $line[$this->mapping[Transaction::amount_currency]] ?? null;
     }
 
-    private function createTransactionHash(array $row): string
-    {
-        return md5(sprintf(
-            '%s|%s|%s|%s|%s|%s|%s|%s',
-            $row[Transaction::date],
-            $row[Transaction::amount],
-            $row[Transaction::value_date],
-            $row[Transaction::payer] ?? '',
-            $row[Transaction::description] ?? '',
-            $row[Transaction::purpose] ?? '',
-            $row[Transaction::balance] ?? '',
-            $row[Transaction::user_id] ?? ''
-        ));
-    }
 }

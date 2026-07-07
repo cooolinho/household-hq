@@ -39,6 +39,7 @@ class BankAccount extends Model
 
     // columns
     const string id = 'id';
+    const string user_id = 'user_id';
     const string name = 'name';
     const string account_holder = 'account_holder';
     const string iban = 'iban';
@@ -51,7 +52,6 @@ class BankAccount extends Model
     const string updated_at = Model::UPDATED_AT;
 
     // relations
-    const string user_id = 'user_id';
     const string belongs_to_user = 'user';
     const string has_many_transactions = 'transactions';
     const string morph_to_many_tags = 'tags';

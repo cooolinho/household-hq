@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Database\Factories\TagFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Spatie\Tags\Tag as SpatieTag;
@@ -18,6 +20,8 @@ use Spatie\Tags\Tag as SpatieTag;
  */
 class Tag extends SpatieTag
 {
+    /** @use HasFactory<TagFactory> */
+    use HasFactory;
     const string TABLE = 'tags';
 
     // columns

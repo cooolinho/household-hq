@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Database\Factories\ContactPersonFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -37,6 +39,8 @@ use Spatie\Tags\HasTags;
  */
 class ContactPerson extends Model
 {
+    /** @use HasFactory<ContactPersonFactory> */
+    use HasFactory;
     use HasTags;
 
     const string TABLE = 'contact_people';
