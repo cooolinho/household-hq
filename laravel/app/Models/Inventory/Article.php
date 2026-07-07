@@ -35,6 +35,9 @@ use Illuminate\Support\Carbon;
  */
 class Article extends Model
 {
+    const string TABLE = 'inventory_articles';
+
+    // columns
     const string id = 'id';
     const string name = 'name';
     const string description = 'description';
@@ -63,8 +66,6 @@ class Article extends Model
     const string belongs_to_parent = 'parent';
     const string belongs_to_location = 'location';
     const string has_many_documents = 'documents';
-
-    const string TABLE = 'inventory_articles';
 
     protected $table = self::TABLE;
     protected $fillable = [
