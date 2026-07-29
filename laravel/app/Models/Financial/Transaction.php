@@ -4,9 +4,11 @@ namespace App\Models\Financial;
 
 use App\Models\User;
 use Database\Factories\Financial\TransactionFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Tags\HasTags;
 
 /**
@@ -25,10 +27,13 @@ use Spatie\Tags\HasTags;
  * @property string $amount_currency
  * @property int $bank_account_id
  * @property int $user_id
+ * @property int|null $fixed_cost_id
  *
  * // relations
  * @property User $user
  * @property BankAccount $bankAccount
+ * @property FixedCost|null $fixedCost
+ * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
  */
 class Transaction extends Model
 {
@@ -52,12 +57,15 @@ class Transaction extends Model
     const string bank_account_id = 'bank_account_id';
     const string user_id = 'user_id';
     const string hash = 'hash';
+    const string fixed_cost_id = 'fixed_cost_id';
     const string created_at = Model::CREATED_AT;
     const string updated_at = Model::UPDATED_AT;
 
     // relations
     const string belongs_to_bank_account = 'bankAccount';
     const string belongs_to_user = 'user';
+    const string belongs_to_fixed_cost = 'fixedCost';
+    const string has_many_matching_suggestions = 'matchingSuggestions';
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -74,6 +82,7 @@ class Transaction extends Model
         self::amount_currency,
         self::bank_account_id,
         self::user_id,
+        self::fixed_cost_id,
     ];
 
     protected $casts = [
@@ -101,5 +110,15 @@ class Transaction extends Model
     public function bankAccount(): BelongsTo
     {
         return $this->belongsTo(BankAccount::class, self::bank_account_id);
+    }
+
+    public function fixedCost(): BelongsTo
+    {
+        return $this->belongsTo(FixedCost::class, self::fixed_cost_id);
+    }
+
+    public function matchingSuggestions(): HasMany
+    {
+        return $this->hasMany(TransactionMatchingSuggestion::class, TransactionMatchingSuggestion::transaction_id);
     }
 }

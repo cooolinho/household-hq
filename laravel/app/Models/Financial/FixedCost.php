@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Spatie\Tags\HasTags;
 
@@ -34,8 +35,10 @@ use Spatie\Tags\HasTags;
  *
  * Relations
  * @property User $user
- * @property Collection|Document[] $has_many_documents
+ * @property Collection|Document[] $documents
  * @property Insurance|null $insurance
+ * @property Collection|Transaction[] $transactions
+ * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
  */
 class FixedCost extends Model
 {
@@ -50,7 +53,7 @@ class FixedCost extends Model
     const string amount = 'amount';
     const string category = 'category';
     const string interval = 'interval';
-    const string ends_mode = 'ends_mode'; // End- / Verlängerungsmodus (ended|extended)
+    const string ends_mode = 'ends_mode';
     const string ends_date = 'ends_date';
     const string extended_date = 'extended_date';
     const string extended_interval = 'extended_interval';
@@ -61,6 +64,8 @@ class FixedCost extends Model
 
     // relations
     const string has_many_documents = 'has_many_documents';
+    const string has_many_transactions = 'transactions';
+    const string has_many_matching_suggestions = 'matchingSuggestions';
     const string belongs_to_user = 'user';
     const string belongs_to_insurance = 'insurance';
     const string morph_to_many_tags = 'tags';
@@ -96,5 +101,15 @@ class FixedCost extends Model
     public function insurance(): BelongsTo
     {
         return $this->belongsTo(Insurance::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, Transaction::fixed_cost_id);
+    }
+
+    public function matchingSuggestions(): HasMany
+    {
+        return $this->hasMany(TransactionMatchingSuggestion::class, TransactionMatchingSuggestion::fixed_cost_id);
     }
 }

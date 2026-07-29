@@ -18,5 +18,6 @@ class DatabaseSeeder extends Seeder
         $this->call(BankAccountSeeder::class);
         $this->call(InsuranceSeeder::class);
         $this->call(FixedCostSeeder::class);
+        $this->call(TransactionSeeder::class);
     }
 }

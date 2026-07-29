@@ -16,7 +16,7 @@ class CreateFixedCostAction
     public static function make(): Action
     {
         return Action::make('createFixedCost')
-            ->label('erstelle Fixkosten')
+            ->label('Fixkosten erstellen & verknüpfen')
             ->icon(Heroicon::Plus)
             ->schema(self::schema())
             ->fillForm(self::fillForm())
@@ -29,16 +29,20 @@ class CreateFixedCostAction
     private static function action(): Closure
     {
         return function (Transaction $record, array $data) {
-            $fixedCostId = FixedCost::query()->create(array_merge($data, [
+            /** @var FixedCost $fixedCost */
+            $fixedCost = FixedCost::query()->create(array_merge($data, [
                 FixedCost::user_id => auth()->id(),
-            ]))->id;
+            ]));
+
+            // Transaktion direkt mit der neuen Fixkost verknüpfen
+            $record->update([Transaction::fixed_cost_id => $fixedCost->id]);
 
             Notification::make()
-                ->title('Fixed cost created for transaction: ' . $record->id)
+                ->title('Fixkosten erstellt und Transaktion verknüpft.')
                 ->success()
                 ->send();
 
-            redirect(FixedCostResource::getViewUrl($fixedCostId));
+            redirect(FixedCostResource::getViewUrl($fixedCost->id));
         };
     }
 

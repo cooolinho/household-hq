@@ -3,8 +3,8 @@
 namespace App\Filament\Admin\Resources\Financial\Transactions\Actions;
 
 use App\AppConfig;
-use App\Events\TransactionsImportedEvent;
 use App\Exceptions\TransactionsImportException;
+use App\Jobs\FixedCostTransactionMatchingJob;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\CSVImportProfile;
 use App\Models\Financial\Transaction;
@@ -99,6 +99,8 @@ class ImportCSVFileAction
                 ->send();
 
             $bankAccount->updateBalance();
+
+            FixedCostTransactionMatchingJob::dispatchAfterResponse();
         };
     }
 }

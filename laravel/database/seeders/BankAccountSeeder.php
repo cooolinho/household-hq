@@ -20,6 +20,13 @@ class BankAccountSeeder extends Seeder
         $this->createCSVImportProfile();
     }
 
+    public static function getMainAccount(): ?BankAccount
+    {
+        return BankAccount::query()
+            ->where(BankAccount::name, 'Main Account')
+            ->first();
+    }
+
     private function createBankAccount(): void
     {
         $user = UserSeeder::getAdminUser();

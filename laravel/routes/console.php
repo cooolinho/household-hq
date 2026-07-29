@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\FixedCostJob;
+use App\Jobs\FixedCostTransactionMatchingJob;
 use App\Jobs\SendUpcomingFixedCostsReminderJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -21,3 +22,7 @@ match ((string) config('fixed_costs.reminder_schedule', 'weekly')) {
     default => Schedule::job(new SendUpcomingFixedCostsReminderJob())->weeklyOn(1, $reminderTime),
 };
 
+if (config('fixed_costs.matching.enabled', true)) {
+    Schedule::job(new FixedCostTransactionMatchingJob())
+        ->dailyAt((string)config('fixed_costs.matching.schedule_time', '02:00'));
+}
