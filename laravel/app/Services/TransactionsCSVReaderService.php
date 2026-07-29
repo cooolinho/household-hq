@@ -169,7 +169,9 @@ class TransactionsCSVReaderService
 
     private function getAmount(array $line): ?float
     {
-        return isset($line[$this->mapping[Transaction::amount]]) ? (float)$line[$this->mapping[Transaction::amount]] : null;
+        return isset($line[$this->mapping[Transaction::amount]])
+            ? $this->parseDecimalValue($line[$this->mapping[Transaction::amount]])
+            : null;
     }
 
     private function getValueDate(array $line): ?string
@@ -203,7 +205,9 @@ class TransactionsCSVReaderService
 
     private function getBalance(array $line): ?float
     {
-        return isset($line[$this->mapping[Transaction::balance]]) ? (float)$line[$this->mapping[Transaction::balance]] : null;
+        return isset($line[$this->mapping[Transaction::balance]])
+            ? $this->parseDecimalValue($line[$this->mapping[Transaction::balance]])
+            : null;
     }
 
     private function getBalanceCurrency(array $line): ?string
@@ -239,6 +243,41 @@ class TransactionsCSVReaderService
         }
 
         return $normalized;
+    }
+
+    private function parseDecimalValue(mixed $value): ?float
+    {
+        $normalized = $this->normalizeCsvValue($value);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        $normalized = trim(str_replace(' ', '', $normalized));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        $hasComma = str_contains($normalized, ',');
+        $hasDot = str_contains($normalized, '.');
+
+        if ($hasComma && $hasDot) {
+            if (strrpos($normalized, ',') > strrpos($normalized, '.')) {
+                $normalized = str_replace('.', '', $normalized);
+                $normalized = str_replace(',', '.', $normalized);
+            } else {
+                $normalized = str_replace(',', '', $normalized);
+            }
+        } elseif ($hasComma) {
+            $normalized = str_replace(',', '.', $normalized);
+        }
+
+        if (!is_numeric($normalized)) {
+            return null;
+        }
+
+        return (float)$normalized;
     }
 
 }
