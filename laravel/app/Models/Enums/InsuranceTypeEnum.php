@@ -5,7 +5,7 @@ namespace App\Models\Enums;
 enum InsuranceTypeEnum
 {
     use UseEnumOptionsTrait;
-
+    use UseTryFromTrait;
     // Gruppe - Altersvorsorge
     case ZULAGENRENTE;
     case BETRIEBLICHE_ALTERSVORSORGE;

@@ -33,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
 
             // theme
-            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->viteTheme('resources/scss/filament/admin/theme.scss')
             ->colors($this->getColors())
             ->darkMode()
 

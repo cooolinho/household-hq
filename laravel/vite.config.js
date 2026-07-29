@@ -9,8 +9,9 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/css/filament/admin/theme.css',
+                'resources/scss/filament/admin/theme.scss',
                 'resources/js/filament/admin/fixed-cost-view.js',
+                'resources/js/filament/admin/insurance-view.js',
             ],
             refresh: true,
         }),

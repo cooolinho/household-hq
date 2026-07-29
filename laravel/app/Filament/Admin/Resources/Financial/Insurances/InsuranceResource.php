@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class InsuranceResource extends Resource
 {
+    const string PAGE_VIEW = 'view';
+
     protected static ?string $model = Insurance::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -59,7 +61,7 @@ class InsuranceResource extends Resource
         return [
             'index' => ListInsurances::route('/'),
             'create' => CreateInsurance::route('/create'),
-            'view' => ViewInsurance::route('/{record}'),
+            self::PAGE_VIEW => ViewInsurance::route('/{record}'),
             'edit' => EditInsurance::route('/{record}/edit'),
         ];
     }
@@ -76,5 +78,10 @@ class InsuranceResource extends Resource
         }
 
         return false;
+    }
+
+    public static function getViewUrl(int $recordId): string
+    {
+        return self::getUrl(self::PAGE_VIEW, ['record' => $recordId]);
     }
 }

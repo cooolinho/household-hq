@@ -1,0 +1,11 @@
+@use 'vendors';
+@use 'abstracts';
+@use 'base';
+@use 'components';
+@use 'layout';
+@use 'pages';
+@use 'themes';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+

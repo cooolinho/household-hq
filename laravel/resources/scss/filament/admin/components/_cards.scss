@@ -1,0 +1,13 @@
+@use '../abstracts/variables' as *;
+
+.ph-card {
+    border: 1px solid $ph-border-light;
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.75);
+}
+
+.dark .ph-card {
+    border-color: $ph-border-dark;
+    background: rgba(15, 23, 42, 0.65);
+}
+

@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -37,6 +38,7 @@ use Spatie\Tags\HasTags;
  * Relations
  * @property User $user
  * @property Collection|Document[] $has_many_documents
+ * @property Collection|FixedCost[] $has_many_fixed_costs
  */
 class Insurance extends Model
 {
@@ -71,6 +73,7 @@ class Insurance extends Model
 
     // relation method names
     const string has_many_documents = 'documents';
+    const string has_many_fixed_costs = 'fixedCosts';
     const string belongs_to_user = 'user';
     const string morph_to_many_tags = 'tags';
 
@@ -103,5 +106,11 @@ class Insurance extends Model
         return $this->morphMany(Document::class, Document::morph_to_documentable)
             ->orderBy(Document::sort, 'asc')
             ->orderBy(Document::id, 'asc');
+    }
+
+    public function fixedCosts(): HasMany
+    {
+        return $this->hasMany(FixedCost::class, FixedCost::insurance_id)
+            ->orderBy(FixedCost::name, 'asc');
     }
 }

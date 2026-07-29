@@ -1,0 +1,6 @@
+@mixin ph-card($border: rgba(148, 163, 184, 0.25), $bg: rgba(255, 255, 255, 0.75)) {
+    border: 1px solid $border;
+    border-radius: 0.9rem;
+    background: $bg;
+}
+

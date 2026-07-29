@@ -25,5 +25,6 @@ yarn.lock
 
 public/*/filament
 
-laravel/composer.lock
-laravel/package.lock
+composer.lock
+package.lock
+.yarn/
