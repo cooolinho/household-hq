@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Financial\FixedCosts\Pages;
 
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
+use App\Filament\Admin\Resources\Financial\FixedCosts\Widgets\FixedCostsDashboardWidget;
 use App\Jobs\SendUpcomingFixedCostsReminderJob;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -35,6 +36,13 @@ class ListFixedCosts extends ListRecords
                     }),
             ])
             ->button(),
+        ];
+    }
+
+    public function getHeaderWidgets(): array
+    {
+        return [
+            FixedCostsDashboardWidget::class,
         ];
     }
 }

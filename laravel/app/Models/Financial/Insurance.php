@@ -96,6 +96,14 @@ class Insurance extends Model
         self::address_country,
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

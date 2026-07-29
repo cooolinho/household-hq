@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Pages;
 
 use App\Filament\Admin\Resources\Financial\FixedCosts\Widgets\FixedCostsDashboardWidget;
+use App\Filament\Admin\Resources\Financial\Insurances\Widgets\InsuranceDashboardWidget;
 
 class Dashboard extends \Filament\Pages\Dashboard
 {
@@ -10,6 +11,7 @@ class Dashboard extends \Filament\Pages\Dashboard
     {
         return [
             FixedCostsDashboardWidget::class,
+            InsuranceDashboardWidget::class,
         ];
     }
 
