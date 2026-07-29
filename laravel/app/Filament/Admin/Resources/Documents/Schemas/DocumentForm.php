@@ -78,8 +78,6 @@ class DocumentForm
                 ->required()
                 ->columnSpanFull()
                 ->visible(fn($get, $record) => is_null($record)),
-            TextInput::make(Document::filename),
-            TextInput::make(Document::type),
             Textarea::make(Document::description)
                 ->columnSpanFull(),
         ];

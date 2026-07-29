@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Documents\Tables;
 use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
 use App\Models\Document;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -23,10 +24,12 @@ class DocumentsTable
             ->columns(self::getTableColumns())
             ->filters(self::getFilters())
             ->recordActions([
-                self::previewAction(),
-                self::downloadAction(),
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    self::previewAction(),
+                    self::downloadAction(),
+                    ViewAction::make(),
+                    EditAction::make(),
+                ])->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -50,35 +53,9 @@ class DocumentsTable
                 ->placeholder('Nicht verknüpft')
                 ->badge()
                 ->url(fn(Document $record): ?string => DocumentOwnerRegistry::getDocumentContextUrl($record)),
-            TextColumn::make(Document::path)
-                ->label(__('admin.resource.document.fields.path'))
-                ->searchable(),
             TextColumn::make(Document::filename)
-                ->label(__('admin.resource.document.fields.filename'))
+                ->label('Datei')
                 ->searchable(),
-            TextColumn::make(Document::file_size)
-                ->label(__('admin.resource.document.fields.file_size'))
-                ->numeric()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make(Document::mime_type)
-                ->label(__('admin.resource.document.fields.mime_type'))
-                ->searchable()
-                ->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make(Document::sort)
-                ->label(__('admin.resource.document.fields.sort'))
-                ->numeric()
-                ->sortable(),
-            TextColumn::make(Document::created_at)
-                ->label(__('admin.resource.document.fields.created_at'))
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make(Document::updated_at)
-                ->label(__('admin.resource.document.fields.updated_at'))
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
         ];
     }
 
