@@ -24,10 +24,9 @@ class FixedCostResource extends Resource
     const string PAGE_VIEW = 'view';
     protected static ?string $model = FixedCost::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-    protected static ?string $navigationLabel = 'Fixkosten';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
     protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 20;
 
     public static function form(Schema $schema): Schema
     {
@@ -82,5 +81,31 @@ class FixedCostResource extends Resource
     public static function getViewUrl(int $recordId): string
     {
         return self::getUrl(self::PAGE_VIEW, ['record' => $recordId]);
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.fixed_cost.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.fixed_cost.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.fixed_cost.plural_model_label');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::where(FixedCost::user_id, auth()->id())->count();
+        return $count > 0 ? (string)$count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'primary';
     }
 }

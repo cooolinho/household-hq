@@ -22,12 +22,37 @@ class BankAccountResource extends Resource
 {
     protected static ?string $model = BankAccount::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-    protected static ?string $navigationLabel = 'Bank-Konten';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingLibrary;
     protected static string|null|\UnitEnum $navigationGroup = 'Financial';
     protected static ?int $navigationSort = 10;
 
     protected static ?string $recordTitleAttribute = BankAccount::name;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.bank_account.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.bank_account.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.bank_account.plural_model_label');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::where(BankAccount::user_id, auth()->id())->count();
+        return $count > 0 ? (string)$count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'primary';
+    }
 
     public static function form(Schema $schema): Schema
     {

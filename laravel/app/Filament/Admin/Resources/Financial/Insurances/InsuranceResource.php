@@ -24,10 +24,9 @@ class InsuranceResource extends Resource
 
     protected static ?string $model = Insurance::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-    protected static ?string $navigationLabel = 'Versicherungen';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
     protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 30;
 
     protected static ?string $recordTitleAttribute = Insurance::name;
 
@@ -83,5 +82,31 @@ class InsuranceResource extends Resource
     public static function getViewUrl(int $recordId): string
     {
         return self::getUrl(self::PAGE_VIEW, ['record' => $recordId]);
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.insurance.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.insurance.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.insurance.plural_model_label');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::where(Insurance::user_id, auth()->id())->count();
+        return $count > 0 ? (string)$count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'primary';
     }
 }

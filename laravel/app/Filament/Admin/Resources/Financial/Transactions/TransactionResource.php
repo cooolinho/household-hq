@@ -21,10 +21,25 @@ class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
     protected static string|UnitEnum|null $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 40;
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.transaction.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.transaction.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.transaction.plural_model_label');
+    }
 
     public static function form(Schema $schema): Schema
     {

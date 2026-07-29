@@ -22,10 +22,24 @@ class MatchingSuggestionResource extends Resource
 {
     protected static ?string $model = TransactionMatchingSuggestion::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQuestionMarkCircle;
-    protected static ?string $navigationLabel = 'Matching-Vorschläge';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
     protected static string|null|\UnitEnum $navigationGroup = 'Financial';
     protected static ?int $navigationSort = 55;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.matching_suggestion.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.matching_suggestion.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.matching_suggestion.plural_model_label');
+    }
 
     public static function canCreate(): bool
     {
@@ -174,4 +188,3 @@ class MatchingSuggestionResource extends Resource
         ];
     }
 }
-

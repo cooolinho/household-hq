@@ -28,9 +28,8 @@ class DocumentResource extends Resource
 
     protected static ?string $model = Document::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
     protected static string|null|\UnitEnum $navigationGroup = 'Basis';
-    protected static ?string $navigationLabel = 'Dokumente';
     protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = Document::path;
@@ -85,5 +84,31 @@ class DocumentResource extends Resource
         }
 
         return false;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.document.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.document.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.document.plural_model_label');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::where(Document::user_id, auth()->id())->count();
+        return $count > 0 ? (string)$count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'primary';
     }
 }

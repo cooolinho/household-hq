@@ -16,9 +16,24 @@ class ReadingEntryResource extends Resource
 {
     protected static ?string $model = ReadingEntry::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
     protected static ?string $recordTitleAttribute = ReadingEntry::id;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.reading_entry.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.reading_entry.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.reading_entry.plural_model_label');
+    }
 
     public static function form(Schema $schema): Schema
     {

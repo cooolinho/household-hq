@@ -11,6 +11,8 @@ use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleForm;
 use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleInfolist;
 use App\Filament\Admin\Resources\Inventory\Articles\Tables\ArticlesTable;
 use App\Models\Inventory\Article;
+use App\Models\Inventory\Collection;
+use App\Models\Inventory\Location;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -22,11 +24,40 @@ class ArticleResource extends Resource
 {
     protected static ?string $model = Article::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
     protected static string|null|\UnitEnum $navigationGroup = 'Inventar';
     protected static ?int $navigationSort = 30;
 
     protected static ?string $recordTitleAttribute = Article::name;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.article.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.article.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.article.plural_model_label');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::whereHas(
+            Article::belongs_to_location . '.' . Location::belongs_to_collection,
+            fn($q) => $q->where(Collection::user_id, auth()->id())
+        )->count();
+        return $count > 0 ? (string)$count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'primary';
+    }
 
     public static function form(Schema $schema): Schema
     {

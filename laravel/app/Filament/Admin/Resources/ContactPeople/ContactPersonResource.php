@@ -21,12 +21,37 @@ class ContactPersonResource extends Resource
 {
     protected static ?string $model = ContactPerson::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-    protected static ?string $navigationLabel = 'Ansprechpartner';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
     protected static string|null|\UnitEnum $navigationGroup = 'Basis';
     protected static ?int $navigationSort = 4;
 
     protected static ?string $recordTitleAttribute = ContactPerson::firstname;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.resource.contact_person.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.resource.contact_person.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.resource.contact_person.plural_model_label');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::where(ContactPerson::user_id, auth()->id())->count();
+        return $count > 0 ? (string)$count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'primary';
+    }
 
     public static function form(Schema $schema): Schema
     {
