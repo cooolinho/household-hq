@@ -84,9 +84,8 @@ class MeasurementDevice extends Model
     public function lastReadingEntry(): ReadingEntry|Model|null
     {
         return $this->readingEntries()
-            ->get()
-            ->sortBy(ReadingEntry::reading_date)
-            ->last();
+            ->orderByDesc(ReadingEntry::reading_date)
+            ->first();
     }
 
     public function readingEntries(): HasMany

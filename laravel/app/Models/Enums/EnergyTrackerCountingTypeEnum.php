@@ -14,14 +14,31 @@ enum EnergyTrackerCountingTypeEnum
 
     public static function from($state)
     {
-        return match ($state) {
-            'gas' => self::GAS,
-            'heizung' => self::HEIZUNG,
-            'kaltwasser' => self::KALTWASSER,
-            'strom' => self::STROM,
-            'warmwasser' => self::WARMWASSER,
+        return match (strtoupper((string)$state)) {
+            'GAS' => self::GAS,
+            'HEIZUNG' => self::HEIZUNG,
+            'KALTWASSER' => self::KALTWASSER,
+            'STROM' => self::STROM,
+            'WARMWASSER' => self::WARMWASSER,
             default => throw new \InvalidArgumentException("Invalid state: $state"),
         };
+    }
+
+    public static function tryFromName(?string $state): ?self
+    {
+        if (blank($state)) {
+            return null;
+        }
+
+        $name = strtoupper($state);
+
+        foreach (self::cases() as $case) {
+            if ($case->name === $name) {
+                return $case;
+            }
+        }
+
+        return null;
     }
 
     public static function default(): string
@@ -48,6 +65,17 @@ enum EnergyTrackerCountingTypeEnum
             self::KALTWASSER => EnergyTrackerUnitEnum::M3,
             self::STROM => EnergyTrackerUnitEnum::KWH,
             self::WARMWASSER => EnergyTrackerUnitEnum::M3,
+        };
+    }
+
+    public function icon(): string
+    {
+        return match ($this) {
+            self::GAS => 'heroicon-o-fire',
+            self::HEIZUNG => 'heroicon-o-home-modern',
+            self::KALTWASSER => 'heroicon-o-beaker',
+            self::STROM => 'heroicon-o-bolt',
+            self::WARMWASSER => 'heroicon-o-beaker',
         };
     }
 }

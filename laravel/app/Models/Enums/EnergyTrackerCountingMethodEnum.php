@@ -15,6 +15,23 @@ enum EnergyTrackerCountingMethodEnum
         return self::ASCENDING->name;
     }
 
+    public static function tryFromName(?string $state): ?self
+    {
+        if (blank($state)) {
+            return null;
+        }
+
+        $name = strtoupper($state);
+
+        foreach (self::cases() as $case) {
+            if ($case->name === $name) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
+
     public function label(): string
     {
         return match ($this) {

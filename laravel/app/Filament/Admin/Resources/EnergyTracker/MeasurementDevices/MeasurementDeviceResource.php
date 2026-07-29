@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\CreateMeasurementDevice;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\EditMeasurementDevice;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\ListMeasurementDevices;
+use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\MeasurementDeviceReadingWizard;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\ViewMeasurementDevice;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\RelationManagers\ReadingEntriesRelationManager;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Schemas\MeasurementDeviceForm;
@@ -66,7 +67,10 @@ class MeasurementDeviceResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return MeasurementDevicesTable::configure($table);
+        return MeasurementDevicesTable::configure($table)
+            ->modifyQueryUsing(function ($query) {
+                $query->where(MeasurementDevice::user_id, auth()->id());
+            });
     }
 
     public static function getRelations(): array
@@ -80,6 +84,7 @@ class MeasurementDeviceResource extends Resource
     {
         return [
             'index' => ListMeasurementDevices::route('/'),
+            'wizard' => MeasurementDeviceReadingWizard::route('/wizard'),
             'create' => CreateMeasurementDevice::route('/create'),
             'view' => ViewMeasurementDevice::route('/{record}'),
             'edit' => EditMeasurementDevice::route('/{record}/edit'),

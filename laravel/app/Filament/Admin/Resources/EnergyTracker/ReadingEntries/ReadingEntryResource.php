@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\EnergyTracker\ReadingEntries;
 
 use App\Filament\Admin\Resources\EnergyTracker\ReadingEntries\Schemas\ReadingEntryForm;
 use App\Filament\Admin\Resources\EnergyTracker\ReadingEntries\Tables\ReadingEntriesTable;
+use App\Models\EnergyTracker\MeasurementDevice;
 use App\Models\EnergyTracker\ReadingEntry;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -42,7 +43,12 @@ class ReadingEntryResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return ReadingEntriesTable::configure($table);
+        return ReadingEntriesTable::configure($table)
+            ->modifyQueryUsing(function ($query) {
+                $query->whereHas(ReadingEntry::belongs_to_measurement_device, function ($builder) {
+                    $builder->where(MeasurementDevice::user_id, auth()->id());
+                });
+            });
     }
 
     public static function canEdit(Model $record): bool
