@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Documents\Schemas;
 
+use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
 use App\Models\Document;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
@@ -12,6 +13,9 @@ class DocumentInfolist
     {
         return $schema
             ->components([
+                TextEntry::make('documentable_context')
+                    ->label('Verknüpft mit')
+                    ->state(fn(Document $record): string => DocumentOwnerRegistry::getDocumentContextLabel($record) ?? 'Nicht verknüpft'),
                 TextEntry::make(Document::type)
                     ->label(__('admin.resource.document.fields.type'))
                     ->placeholder(__('admin.resource.document.placeholders.empty')),

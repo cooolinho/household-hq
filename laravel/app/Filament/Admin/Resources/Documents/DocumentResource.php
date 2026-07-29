@@ -2,7 +2,10 @@
 
 namespace App\Filament\Admin\Resources\Documents;
 
+use App\Filament\Admin\Resources\Documents\Pages\CreateArticleDocument;
 use App\Filament\Admin\Resources\Documents\Pages\CreateDocument;
+use App\Filament\Admin\Resources\Documents\Pages\CreateFixedCostDocument;
+use App\Filament\Admin\Resources\Documents\Pages\CreateInsuranceDocument;
 use App\Filament\Admin\Resources\Documents\Pages\EditDocument;
 use App\Filament\Admin\Resources\Documents\Pages\ListDocuments;
 use App\Filament\Admin\Resources\Documents\Pages\ViewDocument;
@@ -19,6 +22,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentResource extends Resource
 {
+    const string PAGE_CREATE_FOR_INSURANCE = 'create-insurance';
+    const string PAGE_CREATE_FOR_FIXED_COST = 'create-fixed-cost';
+    const string PAGE_CREATE_FOR_ARTICLE = 'create-article';
+
     protected static ?string $model = Document::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -58,6 +65,9 @@ class DocumentResource extends Resource
         return [
             'index' => ListDocuments::route('/'),
             'create' => CreateDocument::route('/create'),
+            self::PAGE_CREATE_FOR_INSURANCE => CreateInsuranceDocument::route('/insurances/{owner}/create'),
+            self::PAGE_CREATE_FOR_FIXED_COST => CreateFixedCostDocument::route('/fixed-costs/{owner}/create'),
+            self::PAGE_CREATE_FOR_ARTICLE => CreateArticleDocument::route('/articles/{owner}/create'),
             'view' => ViewDocument::route('/{record}'),
             'edit' => EditDocument::route('/{record}/edit'),
         ];

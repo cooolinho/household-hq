@@ -31,8 +31,8 @@
     $documents = $insurance->documents()->get();
     $fixedCosts = $insurance->fixedCosts()->get();
 
-    $documentCreateUrl = DocumentResource::getUrl('create', [
-        DocumentsRelationManager::QUERY_PARAM_INSURANCE_ID => $insurance->id,
+    $documentCreateUrl = DocumentResource::getUrl(DocumentResource::PAGE_CREATE_FOR_INSURANCE, [
+        'owner' => $insurance->id,
     ]);
 
     $fixedCostCreateUrl = FixedCostResource::getUrl('create');
@@ -114,36 +114,38 @@
             </button>
 
             <div id="iv-documents-panel" class="iv-collapsible-panel" data-insurance-panel hidden>
+                @foreach($documents as $document)
+                    @php
+                        /** @var \App\Models\Document $document */
+                        $documentViewUrl = DocumentResource::getUrl('view', ['record' => $document]);
+                    @endphp
+
+                    <article class="iv-row">
+                        <div class="iv-row-main">
+                            <h3>{{ $document->filename ?: basename($document->path ?: '-') }}</h3>
+                            <p>
+                                Typ: {{ $document->type ?: '-' }}
+                                | MIME: {{ $document->mime_type ?: '-' }}
+                                |
+                                Groesse: {{ $document->file_size ? number_format($document->file_size / 1024, 1, ',', '.') . ' KB' : '-' }}
+                            </p>
+                            <a href="{{ $documentViewUrl }}" class="iv-row-link">Details ansehen</a>
+                        </div>
+                        <div class="iv-row-side">
+                            <time datetime="{{ $document->created_at?->format('Y-m-d') }}">
+                                {{ $document->created_at?->format('d.m.Y') ?? '-' }}
+                            </time>
+                        </div>
+                    </article>
+                @endforeach
+
                 @if($documents->isEmpty())
                     <div class="iv-empty-state">
                         <p class="iv-empty">Es sind noch keine Dokumente verknuepft.</p>
                         <a href="{{ $documentCreateUrl }}" class="iv-action-link">Dokument anlegen</a>
                     </div>
                 @else
-                    @foreach($documents as $document)
-                        @php
-                            /** @var \App\Models\Document $document */
-                            $documentViewUrl = DocumentResource::getUrl('view', ['record' => $document]);
-                        @endphp
-
-                        <article class="iv-row">
-                            <div class="iv-row-main">
-                                <h3>{{ $document->filename ?: basename($document->path ?: '-') }}</h3>
-                                <p>
-                                    Typ: {{ $document->type ?: '-' }}
-                                    | MIME: {{ $document->mime_type ?: '-' }}
-                                    |
-                                    Groesse: {{ $document->file_size ? number_format($document->file_size / 1024, 1, ',', '.') . ' KB' : '-' }}
-                                </p>
-                                <a href="{{ $documentViewUrl }}" class="iv-row-link">Details ansehen</a>
-                            </div>
-                            <div class="iv-row-side">
-                                <time datetime="{{ $document->created_at?->format('Y-m-d') }}">
-                                    {{ $document->created_at?->format('d.m.Y') ?? '-' }}
-                                </time>
-                            </div>
-                        </article>
-                    @endforeach
+                    <a href="{{ $documentCreateUrl }}" class="iv-action-link">Dokument anlegen</a>
                 @endif
             </div>
         </section>

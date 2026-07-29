@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Documents\Tables;
 
+use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
 use App\Models\Document;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -43,6 +44,12 @@ class DocumentsTable
             TextColumn::make(Document::type)
                 ->label(__('admin.resource.document.fields.type'))
                 ->searchable(),
+            TextColumn::make('documentable_context')
+                ->label('Verknüpft mit')
+                ->state(fn(Document $record): ?string => DocumentOwnerRegistry::getDocumentContextLabel($record))
+                ->placeholder('Nicht verknüpft')
+                ->badge()
+                ->url(fn(Document $record): ?string => DocumentOwnerRegistry::getDocumentContextUrl($record)),
             TextColumn::make(Document::path)
                 ->label(__('admin.resource.document.fields.path'))
                 ->searchable(),
@@ -149,10 +156,10 @@ class DocumentsTable
             ->options(fn() => Document::query()
                 ->whereNotNull(Document::filename)
                 ->get()
-                ->map(fn($d) => pathinfo($d->filename, PATHINFO_EXTENSION))
+                ->map(fn(Document $document): string => pathinfo((string)$document->filename, PATHINFO_EXTENSION))
                 ->filter()
                 ->unique()
-                ->mapWithKeys(fn($ext) => [$ext => $ext])
+                ->mapWithKeys(fn(string $extension): array => [$extension => $extension])
                 ->toArray());
     }
 

@@ -1,4 +1,5 @@
 @php
+    use App\Filament\Admin\Resources\Documents\DocumentResource;
     use App\Filament\Admin\Resources\Financial\Transactions\TransactionResource;
     use App\Models\Enums\FixedCostCategoryEnum;
     use App\Models\Enums\FixedCostEndsModeEnum;
@@ -17,9 +18,14 @@
     $intervalLabel = FixedCostIntervalEnum::tryFrom((string) $fixedCost->interval)?->label() ?? (string) $fixedCost->interval;
     $endsModeLabel = FixedCostEndsModeEnum::tryFrom((string) $fixedCost->ends_mode)?->label() ?? (string) $fixedCost->ends_mode;
 
+    $documents = $fixedCost->documents()->get();
     $transactions = $fixedCost->transactions()
         ->orderByDesc(Transaction::date)
         ->get();
+
+    $documentCreateUrl = DocumentResource::getUrl(DocumentResource::PAGE_CREATE_FOR_FIXED_COST, [
+        'owner' => $fixedCost->id,
+    ]);
 @endphp
 
 <x-filament-panels::page>
@@ -63,6 +69,55 @@
                 <span>Erstellt</span>
                 <strong>{{ $fixedCost->created_at?->format('d.m.Y H:i') ?? '-' }}</strong>
             </article>
+        </section>
+
+        <section class="fc-transactions" data-fixed-cost-transactions>
+            <button
+                    class="fc-transactions-toggle"
+                    type="button"
+                    data-fixed-cost-toggle
+                    aria-controls="fc-transactions-panel"
+                    aria-expanded="false"
+            >
+                <span>Verknuepfte Dokumente ({{ $documents->count() }})</span>
+                <span class="fc-chevron" data-fixed-cost-chevron>▼</span>
+            </button>
+
+            <div id="fc-transactions-panel" class="fc-transactions-panel" data-fixed-cost-panel hidden>
+                @foreach($documents as $document)
+                    @php
+                        /** @var \App\Models\Document $document */
+                        $documentViewUrl = DocumentResource::getUrl('view', ['record' => $document]);
+                    @endphp
+
+                    <article class="fc-transaction-row">
+                        <div class="fc-transaction-main">
+                            <h3>{{ $document->filename ?: basename($document->path ?: '-') }}</h3>
+                            <p>
+                                Typ: {{ $document->type ?: '-' }}
+                                | MIME: {{ $document->mime_type ?: '-' }}
+                                |
+                                Groesse: {{ $document->file_size ? number_format($document->file_size / 1024, 1, ',', '.') . ' KB' : '-' }}
+                            </p>
+                            <a href="{{ $documentViewUrl }}" class="iv-transaction-link">Details ansehen</a>
+                        </div>
+                        <div class="fc-transaction-side">
+                            <time datetime="{{ $document->created_at?->format('Y-m-d') }}">
+                                {{ $document->created_at?->format('d.m.Y') ?? '-' }}
+                            </time>
+                        </div>
+                    </article>
+                @endforeach
+
+                @if($documents->isEmpty())
+                    <div class="iv-empty-state">
+                        <p class="fc-empty">Es sind noch keine Dokumente verknuepft.</p>
+                        <a href="{{ $documentCreateUrl }}" class="fc-transaction-link">Dokument anlegen</a>
+                    </div>
+                @else
+                    <a href="{{ $documentCreateUrl }}" class="fc-transaction-link">Dokument anlegen</a>
+                @endif
+            </div>
         </section>
 
         <section class="fc-transactions" data-fixed-cost-transactions>

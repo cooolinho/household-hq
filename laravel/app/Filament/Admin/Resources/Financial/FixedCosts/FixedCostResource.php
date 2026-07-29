@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\Financial\FixedCosts\Pages\CreateFixedCost;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Pages\EditFixedCost;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Pages\ListFixedCosts;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Pages\ViewFixedCost;
+use App\Filament\Admin\Resources\Financial\FixedCosts\RelationManagers\DocumentsRelationManager;
 use App\Filament\Admin\Resources\Financial\FixedCosts\RelationManagers\TransactionsRelationManager;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostForm;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostInfolist;
@@ -49,6 +50,7 @@ class FixedCostResource extends Resource
     public static function getRelations(): array
     {
         return [
+            DocumentsRelationManager::class,
             TransactionsRelationManager::class,
         ];
     }

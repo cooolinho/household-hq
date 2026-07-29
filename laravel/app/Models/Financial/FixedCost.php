@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Spatie\Tags\HasTags;
 
@@ -63,7 +64,7 @@ class FixedCost extends Model
     const string updated_at = Model::UPDATED_AT;
 
     // relations
-    const string has_many_documents = 'has_many_documents';
+    const string has_many_documents = 'documents';
     const string has_many_transactions = 'transactions';
     const string has_many_matching_suggestions = 'matchingSuggestions';
     const string belongs_to_user = 'user';
@@ -101,6 +102,13 @@ class FixedCost extends Model
     public function insurance(): BelongsTo
     {
         return $this->belongsTo(Insurance::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, Document::morph_to_documentable)
+            ->orderBy(Document::sort, 'asc')
+            ->orderBy(Document::id, 'asc');
     }
 
     public function transactions(): HasMany
