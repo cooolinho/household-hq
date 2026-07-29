@@ -4,6 +4,7 @@ use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
+use App\Models\Financial\Insurance;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -17,7 +18,7 @@ return new class extends Migration {
     {
         Schema::create(FixedCost::TABLE, function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)
+            $table->foreignIdFor(User::class, FixedCost::user_id)
                 ->constrained()
                 ->onDelete('cascade');
             $table->string(FixedCost::name);
@@ -28,11 +29,14 @@ return new class extends Migration {
             $table->enum(FixedCost::ends_mode, FixedCostEndsModeEnum::allNames())
                 ->default(FixedCostEndsModeEnum::default());
             $table->date(FixedCost::ends_date)->nullable();
-            $table->enum(FixedCost::ends_interval, FixedCostIntervalEnum::allNames())
-                ->default(FixedCostIntervalEnum::default());
             $table->date(FixedCost::extended_date)->nullable();
             $table->enum(FixedCost::extended_interval, FixedCostIntervalEnum::allNames())
                 ->default(FixedCostIntervalEnum::default());
+            $table->foreignIdFor(Insurance::class, FixedCost::insurance_id)
+                ->nullable()
+                ->constrained()
+                ->onDelete('set null');
+            $table->date(FixedCost::next_booking_date)->nullable();
 
             $table->timestamps();
         });

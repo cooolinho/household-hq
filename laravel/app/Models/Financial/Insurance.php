@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Spatie\Tags\HasTags;
 
 /**
@@ -15,15 +16,27 @@ use Spatie\Tags\HasTags;
  *
  * Columns
  * @property int $id
- * @property string $name
  * @property int $user_id
+ * @property string $name
+ * @property string|null $number
+ * @property string|null $type
+ * @property Carbon|null $start_date
+ * @property Carbon|null $end_date
+ * @property string|null $company
+ * @property string|null $contact_person
+ * @property string|null $phone
+ * @property string|null $email
+ * @property string|null $address_line_1
+ * @property string|null $address_line_2
+ * @property string|null $address_zip
+ * @property string|null $address_city
+ * @property string|null $address_country
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * Relations
  * @property User $user
- * @property Document[] $documents
- * @property int|null $documents_count
+ * @property Collection|Document[] $has_many_documents
  */
 class Insurance extends Model
 {

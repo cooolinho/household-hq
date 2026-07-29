@@ -5,6 +5,9 @@ namespace App\Models\Enums;
 enum FixedCostCategoryEnum
 {
     use UseEnumOptionsTrait;
+    use UseTryFromTrait;
+
+    const string GROUP_INSURANCES = 'Versicherungen';
 
     // Energy
     case ENERGY_ELECTRICITY;
@@ -170,7 +173,7 @@ enum FixedCostCategoryEnum
                 self::COMMUNICATION_CLOUD_STORAGE,
                 self::COMMUNICATION_OTHER,
             ],
-            'Versicherungen' => [
+            self::GROUP_INSURANCES => [
                 self::INSURANCE_CAR,
                 self::INSURANCE_BIKE,
                 self::INSURANCE_HEALTH,
@@ -221,5 +224,10 @@ enum FixedCostCategoryEnum
     public static function default(): string
     {
         return self::OTHER->name;
+    }
+
+    public static function getCategoriesByGroup(string $name): array
+    {
+        return self::groups()[$name] ?? [];
     }
 }

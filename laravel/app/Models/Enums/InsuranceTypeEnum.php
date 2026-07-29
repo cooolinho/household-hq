@@ -34,6 +34,8 @@ enum InsuranceTypeEnum
     case EINMALANLAGEN;
     case SONSTIGE_VERMOEGEN;
 
+    case OTHER;
+
     public static function groups(): array
     {
         return [
@@ -64,6 +66,9 @@ enum InsuranceTypeEnum
                 self::SPARPLAENE,
                 self::EINMALANLAGEN,
                 self::SONSTIGE_VERMOEGEN,
+            ],
+            'Nicht gruppiert' => [
+                self::OTHER,
             ],
         ];
     }
@@ -110,6 +115,9 @@ enum InsuranceTypeEnum
             self::SPARPLAENE => 'Sparpläne (z.B. ETF, Fonds, Aktien)',
             self::EINMALANLAGEN => 'Einmalanlagen (z.B. Festgeld, Anleihen)',
             self::SONSTIGE_VERMOEGEN => 'Sonstige Vermögensaufbau-Produkte',
+
+            // Gruppe - Sonstige
+            self::OTHER => 'Sonstige',
         };
     }
 }

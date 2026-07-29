@@ -30,8 +30,6 @@ class FixedCostsTable
                 TextColumn::make(FixedCost::ends_date)
                     ->date()
                     ->sortable(),
-                TextColumn::make(FixedCost::ends_interval)
-                    ->badge(),
                 TextColumn::make(FixedCost::extended_date)
                     ->date()
                     ->sortable(),

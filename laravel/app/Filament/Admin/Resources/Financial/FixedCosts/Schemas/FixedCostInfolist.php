@@ -24,8 +24,6 @@ class FixedCostInfolist
                 TextEntry::make(FixedCost::ends_date)
                     ->date()
                     ->placeholder('-'),
-                TextEntry::make(FixedCost::ends_interval)
-                    ->badge(),
                 TextEntry::make(FixedCost::extended_date)
                     ->date()
                     ->placeholder('-'),

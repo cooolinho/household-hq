@@ -15,10 +15,10 @@ return new class extends Migration {
     {
         Schema::create(Insurance::TABLE, function (Blueprint $table) {
             $table->id();
-            $table->string(Insurance::name);
-            $table->foreignIdFor(User::class)
+            $table->foreignIdFor(User::class, Insurance::user_id)
                 ->constrained()
                 ->onDelete('cascade');
+            $table->string(Insurance::name);
             $table->string(Insurance::number)->nullable();
             $table->date(Insurance::start_date)->nullable();
             $table->date(Insurance::end_date)->nullable();

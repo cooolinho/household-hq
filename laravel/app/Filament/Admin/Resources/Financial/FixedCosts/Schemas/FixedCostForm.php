@@ -6,7 +6,9 @@ use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
+use App\Models\Financial\Insurance;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -91,7 +93,21 @@ class FixedCostForm
                 ->default(FixedCostCategoryEnum::default())
                 ->searchable()
                 ->preload()
+                ->reactive()
                 ->required(),
+
+            Checkbox::make('assign_with_insurance')
+                ->label('Mit Versicherung verknüpfen?')
+                ->reactive(),
+
+            Select::make(FixedCost::insurance_id)
+                ->label('Versicherung')
+                ->options(Insurance::all()->pluck('name', 'id')->toArray())
+                ->searchable()
+                ->visible(function (Get $get) {
+                    return $get('assign_with_insurance') === true;
+                })
+                ->preload(),
         ];
     }
 
@@ -122,11 +138,6 @@ class FixedCostForm
             DatePicker::make(FixedCost::ends_date)
                 ->visible(fn(Get $get) => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::ENDS->name)
                 ->required(fn(Get $get) => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::ENDS->name),
-            Select::make(FixedCost::ends_interval)
-                ->visible(fn(Get $get) => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::ENDS->name)
-                ->options(FixedCostIntervalEnum::options())
-                ->default(FixedCostIntervalEnum::default())
-                ->required(),
 
             DatePicker::make(FixedCost::extended_date)
                 ->visible(fn(Get $get) => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::EXTENDED->name)

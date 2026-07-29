@@ -25,15 +25,17 @@ use Spatie\Tags\HasTags;
  * @property FixedCostIntervalEnum $interval
  * @property FixedCostEndsModeEnum $ends_mode
  * @property Carbon|null $ends_date
- * @property FixedCostIntervalEnum|null $ends_interval
  * @property Carbon|null $extended_date
  * @property FixedCostIntervalEnum|null $extended_interval
+ * @property int $insurance_id
+ * @property Carbon|null $next_booking_date
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * Relations
  * @property User $user
  * @property Collection|Document[] $has_many_documents
+ * @property Insurance|null $insurance
  */
 class FixedCost extends Model
 {
@@ -50,15 +52,17 @@ class FixedCost extends Model
     const string interval = 'interval';
     const string ends_mode = 'ends_mode'; // End- / Verlängerungsmodus (ended|extended)
     const string ends_date = 'ends_date';
-    const string ends_interval = 'ends_interval';
     const string extended_date = 'extended_date';
     const string extended_interval = 'extended_interval';
+    const string insurance_id = 'insurance_id';
+    const string next_booking_date = 'next_booking_date';
     const string created_at = Model::CREATED_AT;
     const string updated_at = Model::UPDATED_AT;
 
     // relations
     const string has_many_documents = 'has_many_documents';
     const string belongs_to_user = 'user';
+    const string belongs_to_insurance = 'insurance';
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -71,19 +75,26 @@ class FixedCost extends Model
         self::interval,
         self::ends_mode,
         self::ends_date,
-        self::ends_interval,
         self::extended_date,
         self::extended_interval,
+        self::insurance_id,
+        self::next_booking_date,
     ];
 
     protected $casts = [
         self::amount => 'decimal:2',
         self::ends_date => 'date',
         self::extended_date => 'date',
+        self::next_booking_date => 'date',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function insurance(): BelongsTo
+    {
+        return $this->belongsTo(Insurance::class);
     }
 }

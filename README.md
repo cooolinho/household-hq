@@ -47,6 +47,7 @@ Password: secret
 ## Docs
 - [Project Definition](docs/index.md)
 - [TODO's](docs/todos.md)
+- [Fixed Cost Jobs](docs/fixed-cost-jobs.md)
 
 ## References
 - [Filament 5](https://filamentphp.com/docs/5.x/)
