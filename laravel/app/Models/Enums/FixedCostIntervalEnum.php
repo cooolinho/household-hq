@@ -5,6 +5,7 @@ namespace App\Models\Enums;
 enum FixedCostIntervalEnum
 {
     use UseEnumOptionsTrait;
+    use UseTryFromTrait;
 
     case WEEKLY;
     case TWO_WEEKS;

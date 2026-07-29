@@ -29,10 +29,16 @@ class FixedCostInfolist
                     ->placeholder('-'),
                 TextEntry::make(FixedCost::extended_interval)
                     ->badge(),
+                TextEntry::make(FixedCost::next_booking_date)
+                    ->label('Nächste Buchung am')
+                    ->date()
+                    ->placeholder('-'),
                 TextEntry::make(FixedCost::created_at)
+                    ->label('Erstellt am')
                     ->dateTime()
                     ->placeholder('-'),
                 TextEntry::make(FixedCost::updated_at)
+                    ->label('Zuletzt aktualisiert am')
                     ->dateTime()
                     ->placeholder('-'),
             ]);

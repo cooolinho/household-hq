@@ -5,6 +5,7 @@ namespace App\Models\Enums;
 enum FixedCostEndsModeEnum
 {
     use UseEnumOptionsTrait;
+    use UseTryFromTrait;
 
     case NONE;
     case ENDS;

@@ -7,6 +7,7 @@ use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
@@ -120,6 +121,11 @@ class FixedCostForm
             Select::make(FixedCost::interval)
                 ->options(FixedCostIntervalEnum::options())
                 ->default(FixedCostIntervalEnum::default())
+                ->required(),
+
+            DatePicker::make(FixedCost::next_booking_date)
+                ->label('Nächste Buchung am')
+                ->default(Carbon::now()->addMonth()->startOfMonth())
                 ->required(),
         ];
     }
