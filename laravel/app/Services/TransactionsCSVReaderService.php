@@ -108,7 +108,7 @@ class TransactionsCSVReaderService
         );
 
         if (is_array($header)) {
-            $this->header = $header;
+            $this->header = array_map([$this, 'normalizeCsvValue'], $header);
         }
     }
 
@@ -188,17 +188,17 @@ class TransactionsCSVReaderService
 
     private function getPayer(array $line): ?string
     {
-        return $line[$this->mapping[Transaction::payer]] ?? null;
+        return $this->normalizeCsvValue($line[$this->mapping[Transaction::payer]] ?? null);
     }
 
     private function getDescription(array $line): ?string
     {
-        return isset($line[$this->mapping[Transaction::description]]) ? mb_convert_encoding($line[$this->mapping[Transaction::description]], 'UTF-8', 'auto') : null;
+        return $this->normalizeCsvValue($line[$this->mapping[Transaction::description]] ?? null);
     }
 
     private function getPurpose(array $line): ?string
     {
-        return $line[$this->mapping[Transaction::purpose]] ?? null;
+        return $this->normalizeCsvValue($line[$this->mapping[Transaction::purpose]] ?? null);
     }
 
     private function getBalance(array $line): ?float
@@ -208,12 +208,37 @@ class TransactionsCSVReaderService
 
     private function getBalanceCurrency(array $line): ?string
     {
-        return $line[$this->mapping[Transaction::balance_currency]] ?? null;
+        return $this->normalizeCsvValue($line[$this->mapping[Transaction::balance_currency]] ?? null);
     }
 
     private function getAmountCurrency(array $line): ?string
     {
-        return $line[$this->mapping[Transaction::amount_currency]] ?? null;
+        return $this->normalizeCsvValue($line[$this->mapping[Transaction::amount_currency]] ?? null);
+    }
+
+    private function normalizeCsvValue(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ($value === '') {
+            return '';
+        }
+
+        $stringValue = (string)$value;
+
+        if (mb_check_encoding($stringValue, 'UTF-8')) {
+            return $stringValue;
+        }
+
+        $normalized = mb_convert_encoding($stringValue, 'UTF-8', 'Windows-1252, ISO-8859-1, UTF-8');
+
+        if ($normalized === false) {
+            return $stringValue;
+        }
+
+        return $normalized;
     }
 
 }
