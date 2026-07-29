@@ -18,6 +18,7 @@ class CreateFixedCostAction
         return Action::make('createFixedCost')
             ->label('Fixkosten erstellen & verknüpfen')
             ->icon(Heroicon::Plus)
+            ->visible(fn(Transaction $record): bool => blank($record->fixed_cost_id))
             ->schema(self::schema())
             ->fillForm(self::fillForm())
             ->action(self::action());

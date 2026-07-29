@@ -10,7 +10,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -21,27 +20,23 @@ class TransactionsTable
         return $table
             ->columns([
                 TextColumn::make(Transaction::date)
-                    ->date()
-                    ->sortable(),
-                TextColumn::make(Transaction::value_date)
+                    ->label('Buchung')
                     ->date()
                     ->sortable(),
                 TextColumn::make(Transaction::payer)
-                    ->searchable(),
-                TextColumn::make(Transaction::description)
+                    ->label('Auftraggeber')
+                    ->limit(40)
                     ->searchable(),
                 TextColumn::make(Transaction::purpose)
-                    ->searchable(),
-                TextColumn::make(Transaction::balance)
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make(Transaction::balance_currency)
-                    ->searchable(),
+                    ->label('Verwendungszweck')
+                    ->searchable()
+                    ->limit(70),
                 TextColumn::make(Transaction::amount)
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make(Transaction::amount_currency)
-                    ->searchable(),
+                    ->label('Betrag')
+                    ->formatStateUsing(fn(Transaction $record): string => number_format($record->amount, 2, ',', '.') . ' ' . $record->amount_currency)
+                    ->sortable()
+                    ->alignEnd()
+                    ->color(fn(Transaction $record) => $record->amount >= 0 ? 'success' : 'danger'),
                 // Fixkosten-Verknüpfung
                 TextColumn::make(Transaction::belongs_to_fixed_cost . '.' . FixedCost::name)
                     ->label('Fixkosten')
@@ -49,13 +44,19 @@ class TransactionsTable
                     ->badge()
                     ->color('success')
                     ->searchable(),
-                IconColumn::make(Transaction::fixed_cost_id)
-                    ->label('Verknüpft')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-link')
-                    ->falseIcon('heroicon-o-x-mark')
-                    ->trueColor('success')
-                    ->falseColor('gray')
+                TextColumn::make(Transaction::value_date)
+                    ->label('Wertstellung')
+                    ->date()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make(Transaction::description)
+                    ->label('Beschreibung')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make(Transaction::balance)
+                    ->label('Kontostand')
+                    ->formatStateUsing(fn(Transaction $record): string => number_format($record->balance, 2, ',', '.') . ' ' . $record->balance_currency)
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make(Transaction::created_at)
                     ->dateTime()
@@ -69,9 +70,17 @@ class TransactionsTable
             ->filters([
                 //
             ])
+            ->recordAction('view')
             ->recordActions([
+                ViewAction::make()
+                    ->label('Details')
+                    ->modalHeading('Transaktionsdetails')
+                    ->modalSubmitAction(false)
+                    ->modalWidth('4xl')
+                    ->extraModalFooterActions([
+                        CreateFixedCostAction::make(),
+                    ]),
                 ActionGroup::make([
-                    ViewAction::make(),
                     EditAction::make(),
                     CreateFixedCostAction::make(),
                 ]),
