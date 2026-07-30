@@ -8,6 +8,7 @@ use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
 use Carbon\Carbon;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
@@ -95,7 +96,12 @@ class FixedCostForm
                             $set(FixedCost::amount, -1 * $amount);
                         }
                     }))
-                ->numeric(),
+                ->numeric()
+                ->rule(static function (string $attribute, mixed $value, Closure $fail): void {
+                    if ((float)$value === 0.0) {
+                        $fail('Der Betrag darf nicht 0 sein.');
+                    }
+                }),
             Select::make(FixedCost::category)
                 ->columnSpanFull()
                 ->options(FixedCostCategoryEnum::options())

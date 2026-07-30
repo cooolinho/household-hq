@@ -16,13 +16,4 @@ class ListBankAccounts extends ListRecords
             CreateAction::make(),
         ];
     }
-
-//    public function table(Table $table): Table
-//    {
-//        $table->modifyQueryUsing(function ($query) {
-//            $query->where(BankAccount::user_id, auth()->id());
-//        });
-//
-//        return $table;
-//    }
 }
