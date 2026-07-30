@@ -10,7 +10,12 @@ use App\Services\InsuranceMoveNotificationService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Filament\Schemas\Components\View;
+use Filament\Schemas\Components\Wizard;
+use Filament\Schemas\Components\Wizard\Step;
+use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\HtmlString;
 
 class MoveNotificationWizard extends Page
 {
@@ -54,7 +59,47 @@ class MoveNotificationWizard extends Page
      * @var array<string, array<int, string>>
      */
     public array $warnings = [];
-    protected string $view = 'filament.admin.resources.financial.insurances.pages.move-notification-wizard';
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Wizard::make([
+                    Step::make('Alte Adresse')
+                        ->description('Die neue Adresse wird aus deinem Profil verwendet.')
+                        ->beforeValidation(fn() => $this->validateStepOne())
+                        ->schema([
+                            View::make('filament.admin.resources.financial.insurances.pages.move-notification-wizard-step-1'),
+                        ]),
+                    Step::make('Versicherungen & Kanal')
+                        ->description('Waehle Versicherungen und den Versandkanal je Versicherung.')
+                        ->beforeValidation(fn() => $this->validateStepTwo())
+                        ->afterValidation(function (): void {
+                            $this->enforceChannelFallbacks();
+                            app(InsuranceMoveNotificationService::class)->prepareDrafts(
+                                insurances: $this->insurances,
+                                selectedInsuranceIds: $this->selectedInsuranceIds,
+                                channels: $this->channels,
+                                drafts: $this->drafts,
+                                oldAddress: $this->oldAddress,
+                                newAddress: $this->newAddress,
+                            );
+                        })
+                        ->schema([
+                            View::make('filament.admin.resources.financial.insurances.pages.move-notification-wizard-step-2'),
+                        ]),
+                    Step::make('Vorschau & Versand')
+                        ->description('Texte pruefen, optional bearbeiten und Versand bestaetigen.')
+                        ->schema([
+                            View::make('filament.admin.resources.financial.insurances.pages.move-notification-wizard-step-3'),
+                        ]),
+                ])
+                    ->persistStepInQueryString('moveStep')
+                    ->submitAction(new HtmlString(
+                        '<x-filament::button type="button" wire:click="submit" icon="heroicon-o-paper-airplane">Mitteilungen verarbeiten</x-filament::button>'
+                    )),
+            ]);
+    }
 
     public function mount(InsuranceMoveNotificationService $service): void
     {
@@ -68,23 +113,6 @@ class MoveNotificationWizard extends Page
             ->where(Insurance::user_id, $user->id)
             ->orderBy(Insurance::name)
             ->get();
-    }
-
-    public function nextStep(InsuranceMoveNotificationService $service): void
-    {
-        if ($this->step === 1) {
-            $this->validateStepOne();
-            $this->step = 2;
-
-            return;
-        }
-
-        if ($this->step === 2) {
-            $this->validateStepTwo();
-            $this->enforceChannelFallbacks();
-            $this->buildDrafts($service);
-            $this->step = 3;
-        }
     }
 
     private function validateStepOne(): void
@@ -132,40 +160,6 @@ class MoveNotificationWizard extends Page
         }
     }
 
-    private function buildDrafts(InsuranceMoveNotificationService $service): void
-    {
-        $selected = $this->insurances
-            ->whereIn(Insurance::id, $this->selectedInsuranceIds)
-            ->keyBy(Insurance::id);
-
-        foreach ($this->selectedInsuranceIds as $insuranceId) {
-            $insurance = $selected->get((int)$insuranceId);
-
-            if (!$insurance instanceof Insurance) {
-                continue;
-            }
-
-            $key = (string)$insurance->id;
-            if (!isset($this->channels[$key]) || $this->channels[$key] === '') {
-                $this->channels[$key] = InsuranceMoveNotificationChannelEnum::default();
-            }
-
-            $channel = (string)$this->channels[$key];
-
-            if (!isset($this->drafts[$key])) {
-                $this->drafts[$key] = $service->buildDraft($insurance, $this->oldAddress, $this->newAddress);
-            }
-
-            $this->drafts[$key]['send'] = (bool)($this->drafts[$key]['send'] ?? true);
-            $this->channels[$key] = $channel;
-        }
-    }
-
-    public function previousStep(): void
-    {
-        $this->step = max(1, $this->step - 1);
-    }
-
     public function submit(InsuranceMoveNotificationService $service): void
     {
         /** @var User|null $user */
@@ -175,6 +169,14 @@ class MoveNotificationWizard extends Page
         $this->validateStepOne();
         $this->validateStepTwo();
         $this->enforceChannelFallbacks();
+        $service->prepareDrafts(
+            insurances: $this->insurances,
+            selectedInsuranceIds: $this->selectedInsuranceIds,
+            channels: $this->channels,
+            drafts: $this->drafts,
+            oldAddress: $this->oldAddress,
+            newAddress: $this->newAddress,
+        );
 
         $result = $service->process(
             user: $user,

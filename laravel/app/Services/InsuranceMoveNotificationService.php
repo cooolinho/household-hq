@@ -17,6 +17,48 @@ use Throwable;
 class InsuranceMoveNotificationService
 {
     /**
+     * @param \Illuminate\Database\Eloquent\Collection<int, Insurance> $insurances
+     * @param array<int, int|string> $selectedInsuranceIds
+     * @param array<string, string> $channels
+     * @param array<string, array{subject?: string, body?: string, send?: bool}> $drafts
+     * @param array{line1?: string, line2?: string, zip?: string, city?: string} $oldAddress
+     * @param array{line1?: string, line2?: string, zip?: string, city?: string} $newAddress
+     */
+    public function prepareDrafts(
+        \Illuminate\Database\Eloquent\Collection $insurances,
+        array                                    &$selectedInsuranceIds,
+        array                                    &$channels,
+        array                                    &$drafts,
+        array                                    $oldAddress,
+        array                                    $newAddress,
+    ): void
+    {
+        $selected = $insurances
+            ->whereIn(Insurance::id, $selectedInsuranceIds)
+            ->keyBy(Insurance::id);
+
+        foreach ($selectedInsuranceIds as $insuranceId) {
+            $insurance = $selected->get((int)$insuranceId);
+
+            if (!$insurance instanceof Insurance) {
+                continue;
+            }
+
+            $key = (string)$insurance->id;
+
+            if (!isset($channels[$key]) || $channels[$key] === '') {
+                $channels[$key] = InsuranceMoveNotificationChannelEnum::default();
+            }
+
+            if (!isset($drafts[$key])) {
+                $drafts[$key] = $this->buildDraft($insurance, $oldAddress, $newAddress);
+            }
+
+            $drafts[$key]['send'] = (bool)($drafts[$key]['send'] ?? true);
+        }
+    }
+
+    /**
      * @param array<int, int|string> $selectedInsuranceIds
      * @param array<string, string> $channelsByInsuranceId
      * @param array<string, array{subject?: string, body?: string, send?: bool}> $draftsByInsuranceId
