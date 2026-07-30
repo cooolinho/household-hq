@@ -41,6 +41,7 @@ use Spatie\Tags\HasTags;
  * @property Insurance|null $insurance
  * @property Collection|Transaction[] $transactions
  * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
+ * @property Collection|FixedCostMatchingRule[] $matchingRules
  */
 class FixedCost extends Model
 {
@@ -69,6 +70,7 @@ class FixedCost extends Model
     const string has_many_documents = 'documents';
     const string has_many_transactions = 'transactions';
     const string has_many_matching_suggestions = 'matchingSuggestions';
+    const string has_many_matching_rules = 'matchingRules';
     const string belongs_to_user = 'user';
     const string belongs_to_insurance = 'insurance';
     const string morph_to_many_tags = 'tags';
@@ -122,5 +124,10 @@ class FixedCost extends Model
     public function matchingSuggestions(): HasMany
     {
         return $this->hasMany(TransactionMatchingSuggestion::class, TransactionMatchingSuggestion::fixed_cost_id);
+    }
+
+    public function matchingRules(): HasMany
+    {
+        return $this->hasMany(FixedCostMatchingRule::class, FixedCostMatchingRule::fixed_cost_id);
     }
 }

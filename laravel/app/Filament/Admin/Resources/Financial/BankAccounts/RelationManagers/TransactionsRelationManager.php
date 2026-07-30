@@ -7,9 +7,12 @@ use App\Filament\Admin\Resources\Financial\Transactions\Schemas\TransactionForm;
 use App\Filament\Admin\Resources\Financial\Transactions\Schemas\TransactionInfolist;
 use App\Filament\Admin\Resources\Financial\Transactions\Tables\TransactionsTable;
 use App\Jobs\FixedCostTransactionMatchingJob;
+use App\Jobs\RecurringTransactionSuggestionDetectionJob;
 use App\Models\Financial\BankAccount;
+use App\Models\Financial\Transaction;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -44,12 +47,49 @@ class TransactionsRelationManager extends RelationManager
                         ->icon('heroicon-o-link')
                         ->action(function () use ($bankAccount) {
                             FixedCostTransactionMatchingJob::dispatchAfterResponse();
+                            RecurringTransactionSuggestionDetectionJob::dispatchAfterResponse();
 
                             Notification::make()
                                 ->title('Verknüpfung von Fixkosten-Transaktionen gestartet.')
                                 ->success()
                                 ->send();
-                        })
+                        }),
+
+                    // delete all transactions with modal to set date range optionally
+                    Action::make('delete_all')
+                        ->label('Alle Transaktionen löschen')
+                        ->icon('heroicon-o-trash')
+                        ->requiresConfirmation()
+                        ->modalHeading('Alle Transaktionen löschen')
+                        ->modalDescription('Möchten Sie wirklich alle Transaktionen löschen? Sie können optional einen Datumsbereich angeben, um nur die Transaktionen in diesem Bereich zu löschen.')
+                        ->modalSubmitActionLabel('Löschen')
+                        ->schema([
+                            DatePicker::make('start_date')
+                                ->label('Startdatum (optional)')
+                                ->placeholder('Startdatum auswählen'),
+                            DatePicker::make('end_date')
+                                ->label('Enddatum (optional)')
+                                ->placeholder('Enddatum auswählen'),
+                        ])
+                        ->action(function (array $data) use ($bankAccount) {
+                            $query = $bankAccount->transactions();
+
+                            if (!empty($data['start_date'])) {
+                                $query->whereDate(Transaction::date, '>=', $data['start_date']);
+                            }
+
+                            if (!empty($data['end_date'])) {
+                                $query->whereDate(Transaction::date, '<=', $data['end_date']);
+                            }
+
+                            $count = $query->count();
+                            $query->delete();
+
+                            Notification::make()
+                                ->title("{$count} Transaktionen gelöscht.")
+                                ->success()
+                                ->send();
+                        }),
                 ])->button()
             ]);
     }

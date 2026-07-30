@@ -2,6 +2,7 @@
 
 use App\Jobs\FixedCostJob;
 use App\Jobs\FixedCostTransactionMatchingJob;
+use App\Jobs\RecurringTransactionSuggestionDetectionJob;
 use App\Jobs\SendUpcomingFixedCostsReminderJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -26,3 +27,9 @@ if (config('fixed_costs.matching.enabled', true)) {
     Schedule::job(new FixedCostTransactionMatchingJob())
         ->dailyAt((string)config('fixed_costs.matching.schedule_time', '02:00'));
 }
+
+if (config('fixed_costs.recurring.enabled', true)) {
+    Schedule::job(new RecurringTransactionSuggestionDetectionJob())
+        ->dailyAt((string)config('fixed_costs.recurring.schedule_time', '03:00'));
+}
+

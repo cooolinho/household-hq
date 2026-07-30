@@ -25,6 +25,10 @@ use Illuminate\Support\Facades\Log;
  */
 readonly class TransactionFixedCostMatchingService
 {
+    public function __construct(private FixedCostMatchingLearningService $learningService)
+    {
+    }
+
     // -------------------------------------------------------------------------
     // Public API
     // -------------------------------------------------------------------------
@@ -96,8 +100,29 @@ readonly class TransactionFixedCostMatchingService
             return 'skipped';
         }
 
+        $ruleEvidence = $this->learningService->getRuleEvidenceForTransaction($transaction, $fixedCosts);
+        $blockedIds = $ruleEvidence['blocked_fixed_cost_ids'];
+
+        $eligibleFixedCosts = [];
+        foreach ($fixedCosts as $fixedCost) {
+            if (in_array($fixedCost->id, $blockedIds, true)) {
+                continue;
+            }
+
+            $eligibleFixedCosts[] = $fixedCost;
+        }
+
+        if ($eligibleFixedCosts === []) {
+            return 'skipped';
+        }
+
+        $ruleOutcome = $this->resolveRuleOutcome($transaction, $eligibleFixedCosts, $ruleEvidence['confidences']);
+        if ($ruleOutcome !== null) {
+            return $ruleOutcome;
+        }
+
         // Scores berechnen und absteigend sortieren
-        $scored = $fixedCosts
+        $scored = collect($eligibleFixedCosts)
             ->map(fn(FixedCost $fc) => [
                 'fixedCost' => $fc,
                 'score' => $this->calculateScore($transaction, $fc),
@@ -117,7 +142,10 @@ readonly class TransactionFixedCostMatchingService
 
         if ($topMatches->count() === 1) {
             // Eindeutiger Treffer → automatisch verknüpfen
-            $transaction->update([Transaction::fixed_cost_id => $topMatches->first()['fixedCost']->id]);
+            /** @var FixedCost $fixedCost */
+            $fixedCost = $topMatches->first()['fixedCost'];
+            $transaction->update([Transaction::fixed_cost_id => $fixedCost->id]);
+            $this->learningService->learnFromAutoLink($transaction, $fixedCost, $topScore);
 
             return 'linked';
         }
@@ -198,6 +226,52 @@ readonly class TransactionFixedCostMatchingService
         $bestPercent = max($payerPercent, $purposePercent);
 
         return round($bestPercent / 100 * 30, 2);
+    }
+
+    /**
+     * @param array<int, FixedCost> $eligibleFixedCosts
+     * @param array<int, float> $confidences
+     * @return 'linked'|'suggestion_created'|null
+     */
+    private function resolveRuleOutcome(Transaction $transaction, array $eligibleFixedCosts, array $confidences): ?string
+    {
+        $ruleMinConfidence = (float)config('fixed_costs.matching.learning.rule_confidence_min', 80);
+
+        $scoredByRule = collect($eligibleFixedCosts)
+            ->map(function (FixedCost $fixedCost) use ($confidences): array {
+                return [
+                    'fixedCost' => $fixedCost,
+                    'score' => (float)($confidences[$fixedCost->id] ?? 0.0),
+                ];
+            })
+            ->filter(fn(array $entry) => (float)$entry['score'] > 0)
+            ->sortByDesc('score')
+            ->values();
+
+        if ($scoredByRule->isEmpty()) {
+            return null;
+        }
+
+        $topScore = (float)$scoredByRule->first()['score'];
+        if ($topScore < $ruleMinConfidence) {
+            return null;
+        }
+
+        $topMatches = $scoredByRule
+            ->filter(fn(array $entry) => abs((float)$entry['score'] - $topScore) < 0.001)
+            ->values();
+
+        if ($topMatches->count() === 1) {
+            /** @var FixedCost $fixedCost */
+            $fixedCost = $topMatches->first()['fixedCost'];
+            $transaction->update([Transaction::fixed_cost_id => $fixedCost->id]);
+
+            return 'linked';
+        }
+
+        $this->createSuggestions($transaction, $topMatches);
+
+        return 'suggestion_created';
     }
 
     /**

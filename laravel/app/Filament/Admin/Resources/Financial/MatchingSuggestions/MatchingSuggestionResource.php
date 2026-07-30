@@ -7,6 +7,7 @@ use App\Models\Enums\MatchingSuggestionStatusEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionMatchingSuggestion;
+use App\Services\FixedCostMatchingLearningService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -155,6 +156,12 @@ class MatchingSuggestionResource extends Resource
                                 ->update([
                                     TransactionMatchingSuggestion::status => MatchingSuggestionStatusEnum::REJECTED->name,
                                 ]);
+
+                            app(FixedCostMatchingLearningService::class)
+                                ->learnFromAcceptedSuggestion($record->fresh([
+                                    TransactionMatchingSuggestion::belongs_to_transaction,
+                                    TransactionMatchingSuggestion::belongs_to_fixed_cost,
+                                ]));
                         });
 
                         Notification::make()
@@ -172,6 +179,12 @@ class MatchingSuggestionResource extends Resource
                         $record->update([
                             TransactionMatchingSuggestion::status => MatchingSuggestionStatusEnum::REJECTED->name,
                         ]);
+
+                        app(FixedCostMatchingLearningService::class)
+                            ->learnFromRejectedSuggestion($record->fresh([
+                                TransactionMatchingSuggestion::belongs_to_transaction,
+                                TransactionMatchingSuggestion::belongs_to_fixed_cost,
+                            ]));
 
                         Notification::make()
                             ->title('Vorschlag abgelehnt.')

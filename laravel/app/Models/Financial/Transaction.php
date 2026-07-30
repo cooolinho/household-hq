@@ -34,6 +34,7 @@ use Spatie\Tags\HasTags;
  * @property BankAccount $bankAccount
  * @property FixedCost|null $fixedCost
  * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
+ * @property Collection|RecurringTransactionSuggestion[] $recurringSuggestions
  */
 class Transaction extends Model
 {
@@ -66,6 +67,7 @@ class Transaction extends Model
     const string belongs_to_user = 'user';
     const string belongs_to_fixed_cost = 'fixedCost';
     const string has_many_matching_suggestions = 'matchingSuggestions';
+    const string has_many_recurring_suggestions = 'recurringSuggestions';
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -120,5 +122,10 @@ class Transaction extends Model
     public function matchingSuggestions(): HasMany
     {
         return $this->hasMany(TransactionMatchingSuggestion::class, TransactionMatchingSuggestion::transaction_id);
+    }
+
+    public function recurringSuggestions(): HasMany
+    {
+        return $this->hasMany(RecurringTransactionSuggestion::class, RecurringTransactionSuggestion::sample_transaction_id);
     }
 }

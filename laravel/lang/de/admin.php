@@ -117,6 +117,13 @@ return [
             'plural_model_label' => 'Matching-Vorschläge',
         ],
 
+        // RecurringTransactionSuggestion / Vorschlag fuer wiederkehrende Transaktionen
+        'recurring_transaction_suggestion' => [
+            'navigation_label' => 'Wiederkehrende Buchungen',
+            'model_label' => 'Wiederkehrender Vorschlag',
+            'plural_model_label' => 'Wiederkehrende Vorschlaege',
+        ],
+
         // Transaction / Transaktion
         'transaction' => [
             'navigation_label' => 'Transaktionen',

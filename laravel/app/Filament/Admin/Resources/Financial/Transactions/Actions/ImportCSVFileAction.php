@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Financial\Transactions\Actions;
 use App\AppConfig;
 use App\Exceptions\TransactionsImportException;
 use App\Jobs\FixedCostTransactionMatchingJob;
+use App\Jobs\RecurringTransactionSuggestionDetectionJob;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\CSVImportProfile;
 use App\Models\Financial\Transaction;
@@ -101,6 +102,7 @@ class ImportCSVFileAction
             $bankAccount->updateBalance();
 
             FixedCostTransactionMatchingJob::dispatchAfterResponse();
+            RecurringTransactionSuggestionDetectionJob::dispatchAfterResponse();
         };
     }
 }
