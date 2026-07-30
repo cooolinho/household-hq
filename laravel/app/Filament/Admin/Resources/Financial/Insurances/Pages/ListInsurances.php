@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
 
 use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
 use App\Filament\Admin\Resources\Financial\Insurances\Widgets\InsuranceDashboardWidget;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
@@ -14,6 +15,11 @@ class ListInsurances extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('move_notification_wizard')
+                ->label('Umzug mitteilen')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('warning')
+                ->url(fn(): string => InsuranceResource::getUrl('wizard-move-notification')),
             CreateAction::make(),
         ];
     }

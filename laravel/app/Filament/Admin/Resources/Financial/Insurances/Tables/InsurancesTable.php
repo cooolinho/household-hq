@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\Insurances\Tables;
 
+use App\Models\Enums\InsuranceMoveNotificationStatusEnum;
 use App\Models\Financial\Insurance;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -18,6 +19,40 @@ class InsurancesTable
             ->columns([
                 TextColumn::make(Insurance::name)
                     ->searchable(),
+                TextColumn::make(Insurance::move_notification_status)
+                    ->label('Umzug-Status')
+                    ->badge()
+                    ->formatStateUsing(function (?string $state): string {
+                        if (!$state) {
+                            return '-';
+                        }
+
+                        foreach (InsuranceMoveNotificationStatusEnum::cases() as $case) {
+                            if ($case->name === $state) {
+                                return $case->label();
+                            }
+                        }
+
+                        return $state;
+                    })
+                    ->color(function (?string $state): string {
+                        if (!$state) {
+                            return 'gray';
+                        }
+
+                        foreach (InsuranceMoveNotificationStatusEnum::cases() as $case) {
+                            if ($case->name === $state) {
+                                return $case->color();
+                            }
+                        }
+
+                        return 'gray';
+                    }),
+                TextColumn::make(Insurance::move_notified_at)
+                    ->label('Zuletzt mitgeteilt')
+                    ->dateTime('d.m.Y H:i')
+                    ->placeholder('-')
+                    ->sortable(),
                 TextColumn::make(Insurance::created_at)
                     ->dateTime()
                     ->sortable()

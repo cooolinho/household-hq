@@ -6,6 +6,8 @@
     use App\Models\Enums\FixedCostCategoryEnum;
     use App\Models\Enums\FixedCostEndsModeEnum;
     use App\Models\Enums\FixedCostIntervalEnum;
+    use App\Models\Enums\InsuranceMoveNotificationChannelEnum;
+    use App\Models\Enums\InsuranceMoveNotificationStatusEnum;
     use App\Models\Enums\InsuranceTypeEnum;
     use App\Models\Financial\FixedCost;
 
@@ -27,6 +29,8 @@
     };
 
     $typeLabel = $enumLabelByName(InsuranceTypeEnum::class, $insurance->type);
+    $moveChannelLabel = $enumLabelByName(InsuranceMoveNotificationChannelEnum::class, $insurance->move_notification_channel);
+    $moveStatusLabel = $enumLabelByName(InsuranceMoveNotificationStatusEnum::class, $insurance->move_notification_status);
 
     $documents = $insurance->documents()->get();
     $fixedCosts = $insurance->fixedCosts()->get();
@@ -90,6 +94,22 @@
             <article>
                 <span>E-Mail</span>
                 <strong>{{ $insurance->email ?: '-' }}</strong>
+            </article>
+            <article>
+                <span>Umzug mitgeteilt am</span>
+                <strong>{{ $insurance->move_notified_at?->format('d.m.Y H:i') ?? '-' }}</strong>
+            </article>
+            <article>
+                <span>Umzug Kanal</span>
+                <strong>{{ $moveChannelLabel ?: '-' }}</strong>
+            </article>
+            <article>
+                <span>Umzug Status</span>
+                <strong>{{ $moveStatusLabel ?: '-' }}</strong>
+            </article>
+            <article class="iv-meta-grid-wide">
+                <span>Umzug Notiz</span>
+                <strong>{{ $insurance->move_notification_note ?: '-' }}</strong>
             </article>
             <article class="iv-meta-grid-wide">
                 <span>Adresse</span>

@@ -61,6 +61,12 @@ class Insurance extends Model
     const string phone = 'phone';
     const string email = 'email';
 
+    // move notification tracking
+    const string move_notified_at = 'move_notified_at';
+    const string move_notification_channel = 'move_notification_channel';
+    const string move_notification_status = 'move_notification_status';
+    const string move_notification_note = 'move_notification_note';
+
     // address columns
     const string address_line_1 = 'address_line_1';
     const string address_line_2 = 'address_line_2';
@@ -89,6 +95,10 @@ class Insurance extends Model
         self::contact_person,
         self::phone,
         self::email,
+        self::move_notified_at,
+        self::move_notification_channel,
+        self::move_notification_status,
+        self::move_notification_note,
         self::address_line_1,
         self::address_line_2,
         self::address_zip,
@@ -101,6 +111,7 @@ class Insurance extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            self::move_notified_at => 'datetime',
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Financial\Insurances;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\CreateInsurance;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\EditInsurance;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\ListInsurances;
+use App\Filament\Admin\Resources\Financial\Insurances\Pages\MoveNotificationWizard;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\ViewInsurance;
 use App\Filament\Admin\Resources\Financial\Insurances\RelationManagers\DocumentsRelationManager;
 use App\Filament\Admin\Resources\Financial\Insurances\Schemas\InsuranceForm;
@@ -59,6 +60,7 @@ class InsuranceResource extends Resource
     {
         return [
             'index' => ListInsurances::route('/'),
+            'wizard-move-notification' => MoveNotificationWizard::route('/wizard-move-notification'),
             'create' => CreateInsurance::route('/create'),
             self::PAGE_VIEW => ViewInsurance::route('/{record}'),
             'edit' => EditInsurance::route('/{record}/edit'),
