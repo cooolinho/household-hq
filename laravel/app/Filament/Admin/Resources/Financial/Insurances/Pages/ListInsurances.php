@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
 
+use App\Filament\Admin\Pages\Features\MoveNotificationWizard;
 use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
 use App\Filament\Admin\Resources\Financial\Insurances\Widgets\InsuranceDashboardWidget;
 use Filament\Actions\Action;
@@ -19,7 +20,7 @@ class ListInsurances extends ListRecords
                 ->label('Umzug mitteilen')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('warning')
-                ->url(fn(): string => InsuranceResource::getUrl('wizard-move-notification')),
+                ->url(fn(): string => MoveNotificationWizard::getUrl()),
             CreateAction::make(),
         ];
     }

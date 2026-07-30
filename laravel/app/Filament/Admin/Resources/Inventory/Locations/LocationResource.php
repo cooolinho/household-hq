@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Inventory\Locations\RelationManagers\ArticlesRe
 use App\Filament\Admin\Resources\Inventory\Locations\Schemas\LocationForm;
 use App\Filament\Admin\Resources\Inventory\Locations\Schemas\LocationInfolist;
 use App\Filament\Admin\Resources\Inventory\Locations\Tables\LocationsTable;
+use App\Menu\NavigationGroup;
 use App\Models\Inventory\Collection;
 use App\Models\Inventory\Location;
 use BackedEnum;
@@ -24,7 +25,7 @@ class LocationResource extends Resource
     protected static ?string $model = Location::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
-    protected static string|null|\UnitEnum $navigationGroup = 'Inventar';
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::INVENTORY;
     protected static ?int $navigationSort = 20;
 
     protected static ?string $recordTitleAttribute = Location::name;

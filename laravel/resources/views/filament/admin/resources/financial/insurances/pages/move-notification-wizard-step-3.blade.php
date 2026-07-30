@@ -37,17 +37,17 @@
             <div>
                 <label class="block text-sm">Betreff</label>
                 <input type="text" wire:model="drafts.{{ $key }}.subject"
-                       class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
+                       class="mt-1 p-4 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
             </div>
 
             <div>
                 <label class="block text-sm">Text</label>
                 <textarea wire:model="drafts.{{ $key }}.body" rows="12"
-                          class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"></textarea>
+                          class="mt-1 p-4 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"></textarea>
             </div>
 
             <label class="inline-flex items-center gap-2 text-sm">
-                <input type="checkbox" wire:model="drafts.{{ $key }}.send" class="rounded border-gray-300"/>
+                <input type="checkbox" wire:model="drafts.{{ $key }}.send" class="rounded primary"/>
                 Versenden?
             </label>
         </article>

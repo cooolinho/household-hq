@@ -29,8 +29,6 @@ class DocumentResource extends Resource
     protected static ?string $model = Document::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
-    protected static string|null|\UnitEnum $navigationGroup = 'Basis';
-    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = Document::path;
 

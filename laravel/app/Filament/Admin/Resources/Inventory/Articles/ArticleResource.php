@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Inventory\Articles\RelationManagers\DocumentsRe
 use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleForm;
 use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleInfolist;
 use App\Filament\Admin\Resources\Inventory\Articles\Tables\ArticlesTable;
+use App\Menu\NavigationGroup;
 use App\Models\Inventory\Article;
 use App\Models\Inventory\Collection;
 use App\Models\Inventory\Location;
@@ -25,7 +26,7 @@ class ArticleResource extends Resource
     protected static ?string $model = Article::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
-    protected static string|null|\UnitEnum $navigationGroup = 'Inventar';
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::INVENTORY;
     protected static ?int $navigationSort = 30;
 
     protected static ?string $recordTitleAttribute = Article::name;

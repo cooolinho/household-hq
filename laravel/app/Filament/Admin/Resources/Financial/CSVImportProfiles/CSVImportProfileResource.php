@@ -7,6 +7,7 @@ use App\Filament\Admin\Resources\Financial\CSVImportProfiles\Pages\EditCSVImport
 use App\Filament\Admin\Resources\Financial\CSVImportProfiles\Pages\ListCSVImportProfiles;
 use App\Filament\Admin\Resources\Financial\CSVImportProfiles\Schemas\CSVImportProfileForm;
 use App\Filament\Admin\Resources\Financial\CSVImportProfiles\Tables\CSVImportProfilesTable;
+use App\Menu\NavigationGroup;
 use App\Models\Financial\CSVImportProfile;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,8 +20,8 @@ class CSVImportProfileResource extends Resource
     protected static ?string $model = CSVImportProfile::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
-    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 50;
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::BANKS;
+    protected static ?int $navigationSort = 20;
 
     public static function getNavigationLabel(): string
     {

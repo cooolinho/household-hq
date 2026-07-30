@@ -11,6 +11,7 @@ use App\Filament\Admin\Resources\Financial\FixedCosts\RelationManagers\Transacti
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostForm;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostInfolist;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Tables\FixedCostsTable;
+use App\Menu\NavigationGroup;
 use App\Models\Financial\FixedCost;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -25,8 +26,8 @@ class FixedCostResource extends Resource
     protected static ?string $model = FixedCost::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
-    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 20;
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::FIXED_COSTS;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
     {

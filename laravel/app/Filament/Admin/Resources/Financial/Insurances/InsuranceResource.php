@@ -5,12 +5,12 @@ namespace App\Filament\Admin\Resources\Financial\Insurances;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\CreateInsurance;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\EditInsurance;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\ListInsurances;
-use App\Filament\Admin\Resources\Financial\Insurances\Pages\MoveNotificationWizard;
 use App\Filament\Admin\Resources\Financial\Insurances\Pages\ViewInsurance;
 use App\Filament\Admin\Resources\Financial\Insurances\RelationManagers\DocumentsRelationManager;
 use App\Filament\Admin\Resources\Financial\Insurances\Schemas\InsuranceForm;
 use App\Filament\Admin\Resources\Financial\Insurances\Schemas\InsuranceInfolist;
 use App\Filament\Admin\Resources\Financial\Insurances\Tables\InsurancesTable;
+use App\Menu\NavigationGroup;
 use App\Models\Financial\Insurance;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -22,12 +22,15 @@ use Illuminate\Database\Eloquent\Model;
 class InsuranceResource extends Resource
 {
     const string PAGE_VIEW = 'view';
+    const string PAGE_EDIT = 'edit';
+    const string PAGE_INDEX = 'index';
+
 
     protected static ?string $model = Insurance::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
-    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 30;
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::INSURANCES;
+    protected static ?int $navigationSort = 10;
 
     protected static ?string $recordTitleAttribute = Insurance::name;
 
@@ -60,7 +63,8 @@ class InsuranceResource extends Resource
     {
         return [
             'index' => ListInsurances::route('/'),
-            'wizard-move-notification' => MoveNotificationWizard::route('/wizard-move-notification'),
+//            'wizard-move-notification' => MoveNotificationWizard::route('/wizard-move-notification'),
+//            'move-notification-templates' => MoveNotificationTemplates::route('/move-notification-templates'),
             'create' => CreateInsurance::route('/create'),
             self::PAGE_VIEW => ViewInsurance::route('/{record}'),
             'edit' => EditInsurance::route('/{record}/edit'),
@@ -84,6 +88,11 @@ class InsuranceResource extends Resource
     public static function getViewUrl(int $recordId): string
     {
         return self::getUrl(self::PAGE_VIEW, ['record' => $recordId]);
+    }
+
+    public static function getEditUrl(int $recordId): string
+    {
+        return self::getUrl(self::PAGE_EDIT, ['record' => $recordId]);
     }
 
     public static function getNavigationLabel(): string

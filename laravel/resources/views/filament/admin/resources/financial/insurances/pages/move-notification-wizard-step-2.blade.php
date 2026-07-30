@@ -25,7 +25,7 @@
 
                 <div class="w-full sm:w-64">
                     <select wire:model="channels.{{ $key }}"
-                            class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+                            class="w-full p-4 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800">
                         <option value="{{ InsuranceMoveNotificationChannelEnum::EMAIL->name }}">E-Mail</option>
                         <option value="{{ InsuranceMoveNotificationChannelEnum::BRIEF->name }}">Brief</option>
                     </select>

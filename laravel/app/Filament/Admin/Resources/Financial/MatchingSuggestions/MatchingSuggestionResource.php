@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Financial\MatchingSuggestions;
 
 use App\Filament\Admin\Resources\Financial\MatchingSuggestions\Pages\ListMatchingSuggestions;
+use App\Menu\NavigationGroup;
 use App\Models\Enums\MatchingSuggestionStatusEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
@@ -24,8 +25,8 @@ class MatchingSuggestionResource extends Resource
     protected static ?string $model = TransactionMatchingSuggestion::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
-    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 55;
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::BANKS;
+    protected static ?int $navigationSort = 30;
 
     public static function getNavigationLabel(): string
     {

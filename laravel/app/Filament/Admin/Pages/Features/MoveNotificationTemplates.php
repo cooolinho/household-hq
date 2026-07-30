@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Pages;
+namespace App\Filament\Admin\Pages\Features;
 
+use App\Menu\NavigationGroup;
 use App\Services\NotificationTemplateService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -9,13 +10,10 @@ use Filament\Support\Icons\Heroicon;
 
 class MoveNotificationTemplates extends Page
 {
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
-
-    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-
-    protected static ?int $navigationSort = 31;
-
-    protected static ?string $title = 'Umzugsmitteilungs-Templates';
+    protected static ?string $title = 'Wizard';
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::FEATURES;
+    protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static ?int $navigationSort = 20;
     public string $emailSubject = '';
     public string $emailBody = '';
     public string $letterSubject = '';
@@ -28,7 +26,7 @@ class MoveNotificationTemplates extends Page
 
     public static function getNavigationLabel(): string
     {
-        return 'Mitteilungs-Templates';
+        return 'Umzugs-Mitteilungs-Templates';
     }
 
     public function mount(NotificationTemplateService $service): void

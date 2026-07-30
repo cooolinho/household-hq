@@ -98,14 +98,14 @@ return [
 
         // FixedCost / Fixkosten
         'fixed_cost' => [
-            'navigation_label' => 'Fixkosten',
+            'navigation_label' => 'Ein-/Ausgaben',
             'model_label' => 'Fixkosten',
             'plural_model_label' => 'Fixkosten',
         ],
 
         // Insurance / Versicherung
         'insurance' => [
-            'navigation_label' => 'Versicherungen',
+            'navigation_label' => 'Übersicht',
             'model_label' => 'Versicherung',
             'plural_model_label' => 'Versicherungen',
         ],

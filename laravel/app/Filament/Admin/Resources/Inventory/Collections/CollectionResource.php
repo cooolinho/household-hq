@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Inventory\Collections\RelationManagers\Location
 use App\Filament\Admin\Resources\Inventory\Collections\Schemas\CollectionForm;
 use App\Filament\Admin\Resources\Inventory\Collections\Schemas\CollectionInfolist;
 use App\Filament\Admin\Resources\Inventory\Collections\Tables\CollectionsTable;
+use App\Menu\NavigationGroup;
 use App\Models\Inventory\Collection;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -24,7 +25,7 @@ class CollectionResource extends Resource
     protected static ?string $model = Collection::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
-    protected static string|UnitEnum|null $navigationGroup = 'Inventar';
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::INVENTORY;
     protected static ?int $navigationSort = 10;
 
     protected static ?string $recordTitleAttribute = Collection::name;

@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Auth\Pages\EditProfile;
 use App\Filament\AvatarProviders\UserAvatarProvider;
+use App\Menu\NavigationGroup;
 use Filament\Enums\DatabaseNotificationsPosition;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -43,8 +44,10 @@ class AdminPanelProvider extends PanelProvider
             ->profile(EditProfile::class, false)
 
             // navigation
-            ->navigationGroups($this->getNavigationGroups())
+            ->navigationGroups(NavigationGroup::class)
             ->userMenuItems($this->getUserMenuItems())
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarFullyCollapsibleOnDesktop()
 
             // Auto Discover
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\Filament\Admin\Resources')
@@ -75,14 +78,6 @@ class AdminPanelProvider extends PanelProvider
                 request()->server->set('HTTPS', 'on');
             }
         }
-    }
-
-    /**
-     * @return array
-     */
-    private function getNavigationGroups(): array
-    {
-        return [];
     }
 
     /**

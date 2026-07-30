@@ -2,28 +2,28 @@
     <div class="md:col-span-2">
         <label class="block text-sm">Strasse und Hausnummer (alt)</label>
         <input type="text" wire:model="oldAddress.line1"
-               class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
+               class="mt-1 p-4 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
         @error('oldAddress.line1') <p class="mt-1 text-xs text-danger-600">{{ $message }}</p> @enderror
     </div>
 
     <div class="md:col-span-2">
         <label class="block text-sm">Adresszusatz (alt)</label>
         <input type="text" wire:model="oldAddress.line2"
-               class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
+               class="mt-1 p-4 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
         @error('oldAddress.line2') <p class="mt-1 text-xs text-danger-600">{{ $message }}</p> @enderror
     </div>
 
     <div>
         <label class="block text-sm">PLZ (alt)</label>
         <input type="text" wire:model="oldAddress.zip"
-               class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
+               class="mt-1 p-4 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
         @error('oldAddress.zip') <p class="mt-1 text-xs text-danger-600">{{ $message }}</p> @enderror
     </div>
 
     <div>
         <label class="block text-sm">Stadt (alt)</label>
         <input type="text" wire:model="oldAddress.city"
-               class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
+               class="mt-1 p-4 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"/>
         @error('oldAddress.city') <p class="mt-1 text-xs text-danger-600">{{ $message }}</p> @enderror
     </div>
 

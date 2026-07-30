@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Financial\BankAccounts\RelationManagers\Transac
 use App\Filament\Admin\Resources\Financial\BankAccounts\Schemas\BankAccountForm;
 use App\Filament\Admin\Resources\Financial\BankAccounts\Schemas\BankAccountInfolist;
 use App\Filament\Admin\Resources\Financial\BankAccounts\Tables\BankAccountsTable;
+use App\Menu\NavigationGroup;
 use App\Models\Financial\BankAccount;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -23,7 +24,7 @@ class BankAccountResource extends Resource
     protected static ?string $model = BankAccount::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingLibrary;
-    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::BANKS;
     protected static ?int $navigationSort = 10;
 
     protected static ?string $recordTitleAttribute = BankAccount::name;

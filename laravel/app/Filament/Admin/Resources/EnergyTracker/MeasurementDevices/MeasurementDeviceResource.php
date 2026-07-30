@@ -11,6 +11,7 @@ use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\RelationManage
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Schemas\MeasurementDeviceForm;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Schemas\MeasurementDeviceInfolist;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Tables\MeasurementDevicesTable;
+use App\Menu\NavigationGroup;
 use App\Models\EnergyTracker\MeasurementDevice;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -23,11 +24,9 @@ use UnitEnum;
 class MeasurementDeviceResource extends Resource
 {
     protected static ?string $model = MeasurementDevice::class;
-
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCpuChip;
-    protected static string|UnitEnum|null $navigationGroup = 'Energy Tracker';
-    protected static ?int $navigationSort = 1;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::ENERGY_TRACKER;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationLabel(): string
     {

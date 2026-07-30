@@ -1,26 +1,31 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
+namespace App\Filament\Admin\Pages\Features;
 
-use App\Filament\Admin\Pages\MoveNotificationTemplates;
 use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
+use App\Menu\NavigationGroup;
 use App\Models\Enums\InsuranceMoveNotificationChannelEnum;
 use App\Models\Financial\Insurance;
 use App\Models\User;
 use App\Services\InsuranceMoveNotificationService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\Page;
+use Filament\Pages\Page;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\HtmlString;
 
 class MoveNotificationWizard extends Page
 {
-    protected static string $resource = InsuranceResource::class;
+    protected static ?string $title = 'Wizard';
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::FEATURES;
+    protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static ?int $navigationSort = 10;
+    protected static ?string $navigationLabel = 'Umzugs-Wizard';
+
     public int $step = 1;
     /**
      * @var Collection<int, Insurance>
@@ -96,9 +101,14 @@ class MoveNotificationWizard extends Page
                         ]),
                 ])
                     ->persistStepInQueryString('moveStep')
-                    ->submitAction(new HtmlString(
-                        '<x-filament::button type="button" wire:click="submit" icon="heroicon-o-paper-airplane">Mitteilungen verarbeiten</x-filament::button>'
-                    )),
+                    ->submitAction(
+                        Action::make('submit')
+                            ->label('Mitteilungen verarbeiten')
+                            ->icon(Heroicon::PaperAirplane)
+                            ->color('primary')
+                            ->button()
+                            ->action('submit')
+                    ),
             ]);
     }
 

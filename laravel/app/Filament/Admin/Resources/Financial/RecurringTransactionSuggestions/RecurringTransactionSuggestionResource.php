@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Financial\RecurringTransactionSuggestions
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostForm;
 use App\Filament\Admin\Resources\Financial\RecurringTransactionSuggestions\Pages\ListRecurringTransactionSuggestions;
+use App\Menu\NavigationGroup;
 use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
@@ -29,8 +30,8 @@ class RecurringTransactionSuggestionResource extends Resource
     protected static ?string $model = RecurringTransactionSuggestion::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ArrowPathRoundedSquare;
-    protected static string|null|\UnitEnum $navigationGroup = 'Financial';
-    protected static ?int $navigationSort = 56;
+    protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::FIXED_COSTS;
+    protected static ?int $navigationSort = 20;
 
     public static function getNavigationLabel(): string
     {
