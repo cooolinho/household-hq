@@ -113,6 +113,14 @@ class NotificationTemplateService
     {
         return [
             'user_name',
+            'user_firstname',
+            'user_lastname',
+            'user_date_of_birth',
+            'user_place_of_birth',
+            'user_email',
+            'user_email_business',
+            'user_email_private',
+            'user_phone',
             'insurance_name',
             'insurance_company',
             'insurance_number',

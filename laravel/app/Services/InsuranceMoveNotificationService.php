@@ -239,6 +239,7 @@ readonly class InsuranceMoveNotificationService
     }
 
     /**
+     * @param Insurance $insurance
      * @param array{line1?: string, line2?: string, zip?: string, city?: string} $oldAddress
      * @param array{line1?: string, line2?: string, zip?: string, city?: string} $newAddress
      * @param string $channel
@@ -248,8 +249,17 @@ readonly class InsuranceMoveNotificationService
     {
         $template = $this->templateService->getDraftTemplateForChannel($channel);
 
+        $user = auth()->user();
         $placeholders = [
-            'user_name' => (string)auth()->user()?->name,
+            'user_name' => (string)$user?->name,
+            'user_firstname' => (string)$user?->firstname,
+            'user_lastname' => (string)$user?->lastname,
+            'user_date_of_birth' => (string)$user?->date_of_birth,
+            'user_place_of_birth' => (string)$user?->place_of_birth,
+            'user_email' => (string)$user?->email,
+            'user_email_business' => (string)$user?->email_business,
+            'user_email_private' => (string)$user?->email_private,
+            'user_phone' => (string)$user?->phone,
             'insurance_name' => (string)($insurance->{Insurance::name} ?? ''),
             'insurance_company' => (string)($insurance->{Insurance::company} ?? ''),
             'insurance_number' => (string)($insurance->{Insurance::number} ?? '-'),
