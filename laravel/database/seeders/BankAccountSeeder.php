@@ -87,6 +87,7 @@ class BankAccountSeeder extends Seeder
                 CSVImportProfile::delimiter => ';',
                 CSVImportProfile::enclosure => '"',
                 CSVImportProfile::escape => '\\',
+                CSVImportProfile::amount_format => 'de_de',
                 CSVImportProfile::mapping => [
                     Transaction::date => 0,
                     Transaction::value_date => 1,

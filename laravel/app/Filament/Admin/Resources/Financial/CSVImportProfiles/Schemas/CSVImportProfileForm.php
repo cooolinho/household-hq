@@ -36,6 +36,16 @@ class CSVImportProfileForm
                     ->default('\\')
                     ->required(),
 
+                Select::make(CSVImportProfile::amount_format)
+                    ->label('Betragsformat')
+                    ->options([
+                        'de_de' => 'Deutsch (1.890,70)',
+                        'en_us' => 'Englisch (1,890.70)',
+                    ])
+                    ->default('de_de')
+                    ->helperText('Wählt das Zahlenformat der Beträge in der CSV-Datei.')
+                    ->required(),
+
                 TextInput::make(CSVImportProfile::offset_header)
                     ->numeric()
                     ->default(0)

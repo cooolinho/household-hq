@@ -43,8 +43,25 @@ class TransactionsCSVReaderServiceTest extends TestCase
         $service = new TransactionsCSVReaderService();
         $method = $this->getMethod('parseDecimalValue');
 
+        $this->setAmountFormat($service, 'de_de');
+
         self::assertSame(1234.56, $method->invoke($service, '1.234,56'));
+        self::assertSame(1890.70, $method->invoke($service, '1.890,70'));
+        self::assertSame(1913.50, $method->invoke($service, '1.913,50'));
+        self::assertNull($method->invoke($service, '1,234.56'));
+        self::assertNull($method->invoke($service, 'ABC'));
+    }
+
+    public function test_parse_decimal_value_supports_english_preset(): void
+    {
+        $service = new TransactionsCSVReaderService();
+        $method = $this->getMethod('parseDecimalValue');
+
+        $this->setAmountFormat($service, 'en_us');
+
         self::assertSame(1234.56, $method->invoke($service, '1,234.56'));
+        self::assertSame(1890.70, $method->invoke($service, '1,890.70'));
+        self::assertNull($method->invoke($service, '1.234,56'));
         self::assertNull($method->invoke($service, 'ABC'));
     }
 
@@ -53,6 +70,12 @@ class TransactionsCSVReaderServiceTest extends TestCase
         $method = new ReflectionMethod(TransactionsCSVReaderService::class, $methodName);
 
         return $method;
+    }
+
+    private function setAmountFormat(TransactionsCSVReaderService $service, string $amountFormat): void
+    {
+        $property = new \ReflectionProperty(TransactionsCSVReaderService::class, 'amountFormat');
+        $property->setValue($service, $amountFormat);
     }
 }
 

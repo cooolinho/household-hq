@@ -10,11 +10,15 @@ use Illuminate\Support\Carbon;
 
 class TransactionsCSVReaderService
 {
+    private const string AMOUNT_FORMAT_GERMAN = 'de_de';
+    private const string AMOUNT_FORMAT_ENGLISH = 'en_us';
+
     private string $delimiter = ';';
     private string $enclosure = '"';
     private string $escape = '\\';
     private ?string $filePath = null;
     private int $offsetHeader = 0;
+    private string $amountFormat = self::AMOUNT_FORMAT_GERMAN;
     private array $mapping = [
         Transaction::date => 0,
         Transaction::value_date => 1,
@@ -39,6 +43,7 @@ class TransactionsCSVReaderService
         string            $sortDirection = 'asc'
     ): TransactionCSVFile
     {
+        $this->resetState();
         $this->filePath = $filePath;
 
         if ($profile) {
@@ -73,6 +78,10 @@ class TransactionsCSVReaderService
 
         if (!empty($profile->offset_header)) {
             $this->offsetHeader = $profile->offset_header;
+        }
+
+        if (!empty($profile->amount_format)) {
+            $this->amountFormat = $profile->amount_format;
         }
 
         if (!empty($profile->mapping)) {
@@ -259,25 +268,64 @@ class TransactionsCSVReaderService
             return null;
         }
 
-        $hasComma = str_contains($normalized, ',');
-        $hasDot = str_contains($normalized, '.');
-
-        if ($hasComma && $hasDot) {
-            if (strrpos($normalized, ',') > strrpos($normalized, '.')) {
-                $normalized = str_replace('.', '', $normalized);
-                $normalized = str_replace(',', '.', $normalized);
-            } else {
-                $normalized = str_replace(',', '', $normalized);
-            }
-        } elseif ($hasComma) {
-            $normalized = str_replace(',', '.', $normalized);
+        if (!preg_match($this->getAmountPattern(), $normalized)) {
+            return null;
         }
+
+        $separators = $this->getAmountSeparators();
+        $normalized = str_replace($separators['thousands'], '', $normalized);
+        $normalized = str_replace($separators['decimal'], '.', $normalized);
 
         if (!is_numeric($normalized)) {
             return null;
         }
 
         return (float)$normalized;
+    }
+
+    private function resetState(): void
+    {
+        $this->delimiter = ';';
+        $this->enclosure = '"';
+        $this->escape = '\\';
+        $this->filePath = null;
+        $this->offsetHeader = 0;
+        $this->amountFormat = self::AMOUNT_FORMAT_GERMAN;
+        $this->mapping = [
+            Transaction::date => 0,
+            Transaction::value_date => 1,
+            Transaction::payer => 2,
+            Transaction::description => 3,
+            Transaction::purpose => 4,
+            Transaction::balance => 5,
+            Transaction::balance_currency => 6,
+            Transaction::amount => 7,
+            Transaction::amount_currency => 8,
+        ];
+        $this->rows = [];
+        $this->header = [];
+    }
+
+    private function getAmountSeparators(): array
+    {
+        return match ($this->amountFormat) {
+            self::AMOUNT_FORMAT_ENGLISH => [
+                'decimal' => '.',
+                'thousands' => ',',
+            ],
+            default => [
+                'decimal' => ',',
+                'thousands' => '.',
+            ],
+        };
+    }
+
+    private function getAmountPattern(): string
+    {
+        return match ($this->amountFormat) {
+            self::AMOUNT_FORMAT_ENGLISH => '/^[+-]?(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d+)?$/',
+            default => '/^[+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d+)?$/',
+        };
     }
 
 }

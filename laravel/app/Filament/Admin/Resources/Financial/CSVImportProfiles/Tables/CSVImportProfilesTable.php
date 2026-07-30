@@ -25,6 +25,12 @@ class CSVImportProfilesTable
                     ->searchable(),
                 TextColumn::make(CSVImportProfile::escape)
                     ->searchable(),
+                TextColumn::make(CSVImportProfile::amount_format)
+                    ->badge()
+                    ->formatStateUsing(fn($state) => match ($state ?? 'de_de') {
+                        'en_us' => 'Englisch',
+                        default => 'Deutsch',
+                    }),
                 TextColumn::make(CSVImportProfile::created_at)
                     ->dateTime()
                     ->sortable()

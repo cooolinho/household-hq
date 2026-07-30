@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $delimiter
  * @property string $enclosure
  * @property string $escape
+ * @property string $amount_format
  * @property array|null $mapping
  * @property int $offset_header
  * @property Carbon|null $created_at
@@ -30,6 +31,7 @@ class CSVImportProfile extends Model
     const string delimiter = 'delimiter';
     const string enclosure = 'enclosure';
     const string escape = 'escape';
+    const string amount_format = 'amount_format';
     const string mapping = 'mapping';
     const string offset_header = 'offset_header';
     const string created_at = Model::CREATED_AT;
@@ -43,6 +45,7 @@ class CSVImportProfile extends Model
         self::delimiter,
         self::enclosure,
         self::escape,
+        self::amount_format,
         self::mapping,
         self::offset_header,
     ];
