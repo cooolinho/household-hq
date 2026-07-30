@@ -4,6 +4,8 @@ namespace App\Filament\Admin\Resources\Financial\Transactions\Actions;
 
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostForm;
+use App\Models\Enums\FixedCostEndsModeEnum;
+use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
 use Closure;
@@ -56,6 +58,9 @@ class CreateFixedCostAction
             return [
                 FixedCost::name => $record->purpose,
                 FixedCost::amount => $record->amount,
+                FixedCost::interval => FixedCostIntervalEnum::MONTHLY->name,
+                FixedCost::next_booking_date => now()->addMonth()->startOfMonth(),
+                FixedCost::ends_mode => FixedCostEndsModeEnum::default(),
             ];
         };
     }

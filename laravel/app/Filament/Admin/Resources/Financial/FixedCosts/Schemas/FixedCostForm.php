@@ -12,6 +12,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -33,19 +34,25 @@ class FixedCostForm
             Section::make('base')
                 ->heading(false)
                 ->columnSpanFull()
+                ->columns(2)
                 ->schema(self::getSectionBaseSchema()),
 
             Section::make('interval')
                 ->heading(false)
                 ->columnSpanFull()
+                ->columns(2)
                 ->schema(self::getSectionIntervalSchema()),
 
             Section::make('ends_selection')
                 ->heading(false)
                 ->columnSpanFull()
+                ->columns(2)
                 ->schema(self::getSectionEndingSchema()),
 
-//            TagResource::getMorphToManySelect($schema, FixedCost::morph_to_many_tags)
+            Section::make('notes')
+                ->heading(false)
+                ->columnSpanFull()
+                ->schema(self::getSectionNotesSchema()),
         ];
     }
 
@@ -90,6 +97,7 @@ class FixedCostForm
                     }))
                 ->numeric(),
             Select::make(FixedCost::category)
+                ->columnSpanFull()
                 ->options(FixedCostCategoryEnum::options())
                 ->default(FixedCostCategoryEnum::default())
                 ->searchable()
@@ -137,6 +145,7 @@ class FixedCostForm
     {
         return [
             Select::make(FixedCost::ends_mode)
+                ->columnSpanFull()
                 ->options(FixedCostEndsModeEnum::options())
                 ->default(FixedCostEndsModeEnum::default())
                 ->reactive()
@@ -153,6 +162,14 @@ class FixedCostForm
                 ->options(FixedCostIntervalEnum::options())
                 ->default(FixedCostIntervalEnum::default())
                 ->required(),
+        ];
+    }
+
+    private static function getSectionNotesSchema(): array
+    {
+        return [
+            Textarea::make(FixedCost::notes)
+                ->rows(5),
         ];
     }
 }

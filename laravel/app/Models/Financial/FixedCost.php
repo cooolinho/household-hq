@@ -22,6 +22,7 @@ use Spatie\Tags\HasTags;
  * @property int $id
  * @property int $user_id
  * @property string $name
+ * @property string $notes
  * @property float $amount
  * @property FixedCostCategoryEnum $category
  * @property FixedCostIntervalEnum $interval
@@ -51,6 +52,7 @@ class FixedCost extends Model
     const string user_id = 'user_id';
     const string id = 'id';
     const string name = 'name';
+    const string notes = 'notes';
     const string amount = 'amount';
     const string category = 'category';
     const string interval = 'interval';
@@ -76,6 +78,7 @@ class FixedCost extends Model
     protected $fillable = [
         self::user_id,
         self::name,
+        self::notes,
         self::amount,
         self::category,
         self::interval,
