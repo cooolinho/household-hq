@@ -49,7 +49,7 @@
 <h2 class="mb-16">{{ $subject }}</h2>
 
 @foreach(explode("\n", (string) $body) as $line)
-    <div>{{ $line !== '' ? $line : ' ' }}</div>
+    <div>{!! $line !== '' ? e($line) : '<br>' !!}</div>
 @endforeach
 
 <div class="mb-24"></div>

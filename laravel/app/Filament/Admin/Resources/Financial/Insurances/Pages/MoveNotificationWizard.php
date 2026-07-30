@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
 
+use App\Filament\Admin\Pages\MoveNotificationTemplates;
 use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
 use App\Models\Enums\InsuranceMoveNotificationChannelEnum;
 use App\Models\Financial\Insurance;
@@ -215,6 +216,11 @@ class MoveNotificationWizard extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('edit_templates')
+                ->label('Templates bearbeiten')
+                ->icon('heroicon-o-document-text')
+                ->color('gray')
+                ->url(fn(): string => MoveNotificationTemplates::getUrl()),
             Action::make('back_to_list')
                 ->label('Zurueck zu Versicherungen')
                 ->icon('heroicon-o-arrow-left')

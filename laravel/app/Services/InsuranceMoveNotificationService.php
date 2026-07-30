@@ -9,15 +9,22 @@ use App\Models\Enums\InsuranceMoveNotificationStatusEnum;
 use App\Models\Financial\Insurance;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
-class InsuranceMoveNotificationService
+readonly class InsuranceMoveNotificationService
 {
+    public function __construct(
+        private NotificationTemplateService $templateService,
+    )
+    {
+    }
+
     /**
-     * @param \Illuminate\Database\Eloquent\Collection<int, Insurance> $insurances
+     * @param Collection<int, Insurance> $insurances
      * @param array<int, int|string> $selectedInsuranceIds
      * @param array<string, string> $channels
      * @param array<string, array{subject?: string, body?: string, send?: bool}> $drafts
@@ -25,7 +32,7 @@ class InsuranceMoveNotificationService
      * @param array{line1?: string, line2?: string, zip?: string, city?: string} $newAddress
      */
     public function prepareDrafts(
-        \Illuminate\Database\Eloquent\Collection $insurances,
+        Collection $insurances,
         array                                    &$selectedInsuranceIds,
         array                                    &$channels,
         array                                    &$drafts,
@@ -51,7 +58,12 @@ class InsuranceMoveNotificationService
             }
 
             if (!isset($drafts[$key])) {
-                $drafts[$key] = $this->buildDraft($insurance, $oldAddress, $newAddress);
+                $drafts[$key] = $this->buildDraft(
+                    insurance: $insurance,
+                    oldAddress: $oldAddress,
+                    newAddress: $newAddress,
+                    channel: (string)$channels[$key],
+                );
             }
 
             $drafts[$key]['send'] = (bool)($drafts[$key]['send'] ?? true);
@@ -115,8 +127,15 @@ class InsuranceMoveNotificationService
                 continue;
             }
 
-            $subject = trim((string)($draft['subject'] ?? 'Adressaenderung nach Umzug'));
-            $body = trim((string)($draft['body'] ?? ''));
+            $fallbackDraft = $this->buildDraft(
+                insurance: $insurance,
+                oldAddress: $oldAddress,
+                newAddress: $this->newAddressFromUser($user),
+                channel: $channel,
+            );
+
+            $subject = trim((string)($draft['subject'] ?? $fallbackDraft['subject']));
+            $body = trim((string)($draft['body'] ?? $fallbackDraft['body']));
 
             try {
                 DB::transaction(function () use ($insurance, $user, $channel, $subject, $body, $oldAddress, &$result, $noteParts): void {
@@ -222,36 +241,32 @@ class InsuranceMoveNotificationService
     /**
      * @param array{line1?: string, line2?: string, zip?: string, city?: string} $oldAddress
      * @param array{line1?: string, line2?: string, zip?: string, city?: string} $newAddress
+     * @param string $channel
      * @return array{subject: string, body: string}
      */
-    public function buildDraft(Insurance $insurance, array $oldAddress, array $newAddress): array
+    public function buildDraft(Insurance $insurance, array $oldAddress, array $newAddress, string $channel): array
     {
-        $subject = 'Adressaenderung nach Umzug';
-        $body = implode("\n", [
-            'Sehr geehrte Damen und Herren,',
-            '',
-            'hiermit teile ich Ihnen meine neue Adresse mit und bitte um Aktualisierung meiner Vertragsdaten.',
-            '',
-            'Alte Adresse:',
-            trim((string)($oldAddress['line1'] ?? '')),
-            trim((string)($oldAddress['line2'] ?? '')),
-            trim(((string)($oldAddress['zip'] ?? '')) . ' ' . ((string)($oldAddress['city'] ?? ''))),
-            '',
-            'Neue Adresse:',
-            trim((string)($newAddress['line1'] ?? '')),
-            trim((string)($newAddress['line2'] ?? '')),
-            trim(((string)($newAddress['zip'] ?? '')) . ' ' . ((string)($newAddress['city'] ?? ''))),
-            '',
-            sprintf('Versicherung: %s', (string)$insurance->{Insurance::name}),
-            sprintf('Versicherungsnummer: %s', (string)($insurance->{Insurance::number} ?? '-')),
-            '',
-            'Vielen Dank.',
-            'Mit freundlichen Gruessen',
-        ]);
+        $template = $this->templateService->getDraftTemplateForChannel($channel);
+
+        $placeholders = [
+            'user_name' => (string)auth()->user()?->name,
+            'insurance_name' => (string)($insurance->{Insurance::name} ?? ''),
+            'insurance_company' => (string)($insurance->{Insurance::company} ?? ''),
+            'insurance_number' => (string)($insurance->{Insurance::number} ?? '-'),
+            'old_address_line1' => trim((string)($oldAddress['line1'] ?? '')),
+            'old_address_line2' => trim((string)($oldAddress['line2'] ?? '')),
+            'old_address_zip' => trim((string)($oldAddress['zip'] ?? '')),
+            'old_address_city' => trim((string)($oldAddress['city'] ?? '')),
+            'new_address_line1' => trim((string)($newAddress['line1'] ?? '')),
+            'new_address_line2' => trim((string)($newAddress['line2'] ?? '')),
+            'new_address_zip' => trim((string)($newAddress['zip'] ?? '')),
+            'new_address_city' => trim((string)($newAddress['city'] ?? '')),
+            'current_date' => now()->format('d.m.Y'),
+        ];
 
         return [
-            'subject' => $subject,
-            'body' => $body,
+            'subject' => $this->templateService->render((string)$template['subject'], $placeholders),
+            'body' => $this->templateService->render((string)$template['body'], $placeholders),
         ];
     }
 }
