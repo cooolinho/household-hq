@@ -71,8 +71,6 @@ return new class extends Migration {
                         Document::documentable_document_id => $document->{Document::id},
                         Document::documentable_type => $document->{'documentable_type'},
                         Document::documentable_id => $document->{'documentable_id'},
-                        Document::created_at => $document->{Document::created_at} ?? now(),
-                        Document::updated_at => $document->{Document::updated_at} ?? now(),
                     ];
                 }
 
