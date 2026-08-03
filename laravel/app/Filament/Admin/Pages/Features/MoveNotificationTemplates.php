@@ -14,6 +14,8 @@ class MoveNotificationTemplates extends Page
     protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::FEATURES;
     protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedDocumentText;
     protected static ?int $navigationSort = 20;
+    protected static bool $shouldRegisterNavigation = false;
+
     public string $emailSubject = '';
     public string $emailBody = '';
     public string $letterSubject = '';
@@ -23,7 +25,6 @@ class MoveNotificationTemplates extends Page
      */
     public array $placeholders = [];
     protected string $view = 'filament.admin.pages.move-notification-templates';
-
     public static function getNavigationLabel(): string
     {
         return 'Umzugs-Mitteilungs-Templates';

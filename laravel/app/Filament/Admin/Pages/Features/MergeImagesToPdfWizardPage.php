@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Pages\Features;
 
+use App\Filament\Admin\Resources\Documents\DocumentResource;
 use App\Jobs\MergeImagesToPdfJob;
 use App\Menu\NavigationGroup;
 use App\Models\Document;
@@ -24,6 +25,7 @@ class MergeImagesToPdfWizardPage extends Page
 {
     use WithFileUploads;
 
+    protected string $view = 'filament.admin.pages.features.merge-images-to-pdf-wizard-page';
     protected static ?string $title = 'Bilder zu PDF';
     protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::FEATURES;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-photo';
@@ -55,6 +57,7 @@ class MergeImagesToPdfWizardPage extends Page
 
     /** idle | processing | done */
     public string $jobStatus = 'idle';
+
 
     // ─────────────────────────────────────────────────────────────────────────
     // Schema
@@ -283,9 +286,49 @@ class MergeImagesToPdfWizardPage extends Page
             ->body('Die Bilder werden nun zu einem PDF zusammengeführt. Bitte warten...')
             ->info()
             ->send();
+    }
 
-        $this->redirect(route('filament.admin.pages.merge-images-to-pdf-processing-keyed', [
-            'processingCacheKey' => $this->processingCacheKey,
-        ]));
+    public function checkJobStatus(): void
+    {
+        if ($this->processingCacheKey === null || $this->jobStatus !== 'processing') {
+            return;
+        }
+
+        $result = Cache::get($this->processingCacheKey);
+
+        if ($result === null) {
+            // Cache abgelaufen → Timeout
+            $this->jobStatus = 'idle';
+            $this->processingCacheKey = null;
+            Notification::make()
+                ->title('Zeitüberschreitung')
+                ->body('Der Vorgang hat zu lange gedauert. Bitte erneut versuchen.')
+                ->danger()
+                ->send();
+
+            $this->redirect(MergeImagesToPdfWizardPage::getUrl());
+            return;
+        }
+
+        if (($result['status'] ?? '') === 'done') {
+            Cache::forget($this->processingCacheKey);
+            $this->redirect(
+                DocumentResource::getUrl('view', ['record' => $result['documentId']])
+            );
+            return;
+        }
+
+        if (($result['status'] ?? '') === 'error') {
+            $this->jobStatus = 'idle';
+            Cache::forget($this->processingCacheKey);
+            $this->processingCacheKey = null;
+            Notification::make()
+                ->title('Fehler bei der PDF-Erstellung')
+                ->body($result['message'] ?? 'Unbekannter Fehler')
+                ->danger()
+                ->send();
+
+            $this->redirect(MergeImagesToPdfWizardPage::getUrl());
+        }
     }
 }

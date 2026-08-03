@@ -1,6 +1,5 @@
 <?php
 
-use App\Filament\Admin\Pages\Features\MergeImagesToPdfWizardProgressPage;
 use App\Http\Controllers\Admin\DocumentDownloadController;
 use App\Http\Controllers\Admin\DocumentViewController;
 use App\Http\Controllers\Admin\TempImagePreviewController;
@@ -24,7 +23,3 @@ Route::get('admin/scan-temp-preview/{filename}', [TempImagePreviewController::cl
     ->name('admin.scan-temp-preview')
     ->middleware(['web', 'auth']);
 
-// Merge Images to PDF Wizard Progress Page
-Route::get('/' . MergeImagesToPdfWizardProgressPage::SLUG . '/{processingCacheKey}', MergeImagesToPdfWizardProgressPage::class)
-    ->name(MergeImagesToPdfWizardProgressPage::ROUTE_NAME)
-    ->middleware(['web', 'auth']);

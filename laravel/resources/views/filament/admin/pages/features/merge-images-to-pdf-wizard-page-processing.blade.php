@@ -1,5 +1,3 @@
-{{-- Fortschrittsanzeige während der PDF-Job im Queue läuft.
-     wire:poll ruft checkJobStatus() alle 2 Sekunden auf. --}}
 <div
         class="flex flex-col items-center justify-center py-16 gap-6"
         wire:poll.2000ms="checkJobStatus"
