@@ -32,8 +32,8 @@ return new class extends Migration {
             $table->integer(Document::sort)->default(0)->index();
 
             // Polymorphe Relation hinzufügen
-            $table->string(Document::documentable_type)->nullable();
-            $table->unsignedBigInteger(Document::documentable_id)->nullable();
+            $table->string('documentable_type')->nullable();
+            $table->unsignedBigInteger('documentable_id')->nullable();
 
             $table->timestamps();
 

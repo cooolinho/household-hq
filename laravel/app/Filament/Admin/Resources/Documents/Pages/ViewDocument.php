@@ -2,12 +2,14 @@
 
 namespace App\Filament\Admin\Resources\Documents\Pages;
 
+use App\Filament\Admin\Resources\Documents\Actions\ManageDocumentLinksAction;
 use App\Filament\Admin\Resources\Documents\DocumentResource;
 use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
 use App\Models\Document;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Storage;
 
 class ViewDocument extends ViewRecord
@@ -15,6 +17,11 @@ class ViewDocument extends ViewRecord
     protected static string $resource = DocumentResource::class;
 
     protected string $view = 'filament.admin.resources.documents.pages.view-document';
+
+    public function getTitle(): string|Htmlable
+    {
+        return 'Dokument Ansehen';
+    }
 
     protected function getHeaderActions(): array
     {
@@ -25,6 +32,7 @@ class ViewDocument extends ViewRecord
                 ->color('success')
                 ->url(fn() => route('admin.documents.download', $this->record))
                 ->openUrlInNewTab(),
+            ManageDocumentLinksAction::make(),
             EditAction::make(),
         ];
     }
@@ -79,8 +87,7 @@ class ViewDocument extends ViewRecord
             'isPdf' => $isPdf,
             'isText' => $isText,
             'textContent' => $textContent,
-            'contextLabel' => DocumentOwnerRegistry::getDocumentContextLabel($document),
-            'contextUrl' => DocumentOwnerRegistry::getDocumentContextUrl($document),
+            'linkedOwners' => DocumentOwnerRegistry::getLinkedOwners($document),
         ];
     }
 }

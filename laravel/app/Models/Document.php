@@ -2,10 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Contracts\Documentables;
+use App\Models\Financial\FixedCost;
+use App\Models\Financial\Insurance;
+use App\Models\Inventory\Article;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Tags\HasTags;
 
@@ -17,9 +23,10 @@ use Spatie\Tags\HasTags;
  * // core relation to user
  * @property int $user_id
  *
- * // polymorphic relation
- * @property string|null $documentable_type
- * @property int|null $documentable_id
+ * // polymorphic links (pivot)
+ * @property-read Collection<int, FixedCost> $linkedFixedCosts
+ * @property-read Collection<int, Insurance> $linkedInsurances
+ * @property-read Collection<int, Article> $linkedArticles
  *
  * // document data
  * @property string|null $type        // z.B. contract, invoice, sonstiges
@@ -38,7 +45,6 @@ use Spatie\Tags\HasTags;
  *
  * // relation methods
  * @property User $user
- * @property Model|null $documentable
  */
 class Document extends Model
 {
@@ -51,11 +57,6 @@ class Document extends Model
 
     // core relation to user
     const string user_id = 'user_id';
-
-    // polymorphic relation
-    const string documentable_type = 'documentable_type';
-    const string documentable_id = 'documentable_id';
-    const string morph_to_documentable = 'documentable';
 
     // document data
     const string type = 'type';
@@ -75,13 +76,20 @@ class Document extends Model
     // relation methods
     const string belongs_to_user = 'user';
     const string morph_to_many_tags = 'tags';
+    const string morphed_by_many_fixed_costs = 'linkedFixedCosts';
+    const string morphed_by_many_insurances = 'linkedInsurances';
+    const string morphed_by_many_articles = 'linkedArticles';
+
+    // polymorphic relation
+    const string morph_to_documentable = Documentables::MORPH_NAME;
+    const string documentable_document_id = Documentables::document_id;
+    const string documentable_type = Documentables::documentable_type;
+    const string documentable_id = Documentables::documentable_id;
 
     protected $table = self::TABLE;
 
     protected $fillable = [
         self::user_id,
-        self::documentable_type,
-        self::documentable_id,
         self::type,        // z.B. contract, invoice, sonstiges
         self::path,        // storage path oder URL
         self::filename,
@@ -148,8 +156,36 @@ class Document extends Model
         return $this->belongsTo(User::class, self::user_id);
     }
 
-    public function documentable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    public function linkedFixedCosts(): MorphToMany
     {
-        return $this->morphTo(self::morph_to_documentable);
+        return $this->morphedByMany(
+            FixedCost::class,
+            Documentables::MORPH_NAME,
+            Documentables::TABLE,
+            Documentables::document_id,
+            Documentables::documentable_id,
+        )->orderBy(FixedCost::name, 'asc');
+    }
+
+    public function linkedInsurances(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Insurance::class,
+            Documentables::MORPH_NAME,
+            Documentables::TABLE,
+            Documentables::document_id,
+            Documentables::documentable_id,
+        )->orderBy(Insurance::name, 'asc');
+    }
+
+    public function linkedArticles(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Article::class,
+            Documentables::MORPH_NAME,
+            Documentables::TABLE,
+            Documentables::document_id,
+            Documentables::documentable_id,
+        )->orderBy(Article::name, 'asc');
     }
 }

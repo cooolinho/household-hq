@@ -68,15 +68,21 @@
                         Verknüpft mit
                     </dt>
                     <dd class="text-sm">
-                        @if($contextLabel && $contextUrl)
-                            <a href="{{ $contextUrl }}"
-                               class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-medium hover:underline">
-                                {{ $contextLabel }}
-                            </a>
-                        @elseif($contextLabel)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-medium">
-                                {{ $contextLabel }}
-                            </span>
+                        @if($linkedOwners->isNotEmpty())
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach($linkedOwners as $linkedOwner)
+                                    @if(!empty($linkedOwner['url']))
+                                        <a href="{{ $linkedOwner['url'] }}"
+                                           class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-medium hover:underline">
+                                            {{ $linkedOwner['label'] }}
+                                        </a>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-medium">
+                                            {{ $linkedOwner['label'] }}
+                                        </span>
+                                    @endif
+                                @endforeach
+                            </div>
                         @else
                             <span class="text-gray-400 dark:text-gray-500">Nicht verknüpft</span>
                         @endif

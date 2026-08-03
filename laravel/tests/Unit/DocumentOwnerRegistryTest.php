@@ -10,6 +10,7 @@ use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
 use App\Models\Inventory\Article;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
@@ -80,10 +81,13 @@ class DocumentOwnerRegistryTest extends TestCase
             Document::sort => 0,
         ]);
 
-        $document->setRelation(Document::morph_to_documentable, $insurance);
+        $document->setRelation(Document::morphed_by_many_fixed_costs, new EloquentCollection());
+        $document->setRelation(Document::morphed_by_many_insurances, new EloquentCollection([$insurance]));
+        $document->setRelation(Document::morphed_by_many_articles, new EloquentCollection());
 
         $this->assertSame('Versicherung: Hausrat', DocumentOwnerRegistry::getDocumentContextLabel($document));
         $this->assertNotNull(DocumentOwnerRegistry::getDocumentContextUrl($document));
+        $this->assertSame(1, DocumentOwnerRegistry::getDocumentLinksCount($document));
     }
 }
 

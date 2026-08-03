@@ -82,7 +82,7 @@ abstract class CreateRelatedDocument extends CreateRecord
 
         abort_unless(is_string($relationshipName), 500);
 
-        $ownerRecord->{$relationshipName}()->save($document);
+        $ownerRecord->{$relationshipName}()->syncWithoutDetaching([$document->getKey()]);
 
         return $document;
     }

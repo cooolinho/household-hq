@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\Insurances\Pages;
 
+use App\Filament\Admin\Resources\Documents\Actions\AssignExistingDocumentAction;
 use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
@@ -15,6 +16,7 @@ class ViewInsurance extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            AssignExistingDocumentAction::make(),
             EditAction::make(),
         ];
     }

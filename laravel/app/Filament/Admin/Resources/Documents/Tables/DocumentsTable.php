@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Documents\Tables;
 
+use App\Filament\Admin\Resources\Documents\Actions\ManageDocumentLinksAction;
 use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
 use App\Models\Document;
 use Filament\Actions\Action;
@@ -21,12 +22,18 @@ class DocumentsTable
     {
         return $table
             ->defaultSort(Document::created_at, 'desc')
+            ->modifyQueryUsing(fn($query) => $query->withCount([
+                Document::morphed_by_many_fixed_costs,
+                Document::morphed_by_many_insurances,
+                Document::morphed_by_many_articles,
+            ]))
             ->columns(self::getTableColumns())
             ->filters(self::getFilters())
             ->recordActions([
                 ActionGroup::make([
                     self::previewAction(),
                     self::downloadAction(),
+                    ManageDocumentLinksAction::make(),
                     ViewAction::make(),
                     EditAction::make(),
                 ])->button(),
@@ -44,18 +51,16 @@ class DocumentsTable
     private static function getTableColumns(): array
     {
         return [
-            TextColumn::make(Document::type)
-                ->label(__('admin.resource.document.fields.type'))
-                ->searchable(),
-            TextColumn::make('documentable_context')
-                ->label('Verknüpft mit')
-                ->state(fn(Document $record): ?string => DocumentOwnerRegistry::getDocumentContextLabel($record))
-                ->placeholder('Nicht verknüpft')
-                ->badge()
-                ->url(fn(Document $record): ?string => DocumentOwnerRegistry::getDocumentContextUrl($record)),
             TextColumn::make(Document::filename)
                 ->label('Datei')
                 ->searchable(),
+            TextColumn::make(Document::type)
+                ->label(__('admin.resource.document.fields.type'))
+                ->searchable(),
+            TextColumn::make('document_links_count')
+                ->label('Verknüpft mit')
+                ->state(fn(Document $record): int => DocumentOwnerRegistry::getDocumentLinksCount($record))
+                ->badge(),
         ];
     }
 
@@ -214,5 +219,10 @@ class DocumentsTable
             ->color('success')
             ->url(fn(Document $record) => route('admin.documents.download', $record))
             ->openUrlInNewTab();
+    }
+
+    public function manageLinks()
+    {
+
     }
 }

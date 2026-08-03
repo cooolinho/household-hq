@@ -2,6 +2,7 @@
 
 namespace App\Models\Financial;
 
+use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Spatie\Tags\HasTags;
 
@@ -109,9 +110,15 @@ class FixedCost extends Model
         return $this->belongsTo(Insurance::class);
     }
 
-    public function documents(): MorphMany
+    public function documents(): MorphToMany
     {
-        return $this->morphMany(Document::class, Document::morph_to_documentable)
+        return $this->morphToMany(
+            Document::class,
+            Document::morph_to_documentable,
+            Documentables::TABLE,
+            Document::documentable_id,
+            Document::documentable_document_id,
+        )
             ->orderBy(Document::sort, 'asc')
             ->orderBy(Document::id, 'asc');
     }
