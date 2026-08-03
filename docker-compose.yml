@@ -42,8 +42,6 @@ services:
             MYSQL_USER: "${MYSQL_USER}"
             MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
-        #        volumes:
-        #            - 'personal-home-portal-db:/var/lib/mysql'
         networks:
             - personal_home_portal_network
         healthcheck:
@@ -60,8 +58,6 @@ services:
         image: 'redis:alpine'
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
-        #        volumes:
-        #            - 'personal-home-portal-cache:/data'
         networks:
             - personal_home_portal_network
         healthcheck:

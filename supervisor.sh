@@ -8,11 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
 CONF_PATH="${SCRIPT_DIR}/docker/supervisord.conf"
 
-# Read LARAVEL_CONTAINER_NAME from .env, fall back to "laravel"
-if [[ -f "$ENV_FILE" ]]; then
-    CONTAINER=$(grep '^LARAVEL_CONTAINER_NAME=' "$ENV_FILE" | head -1 | sed 's/LARAVEL_CONTAINER_NAME=//' | tr -d '"'"'"' \r')
-fi
-CONTAINER="${CONTAINER:-laravel}"
+CONTAINER="personal-home-portal"
 
 # ─── Colors ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
