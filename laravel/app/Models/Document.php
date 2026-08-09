@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasComments;
 use App\Models\Contracts\Documentables;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
@@ -28,6 +29,9 @@ use Spatie\Tags\HasTags;
  * @property-read Collection<int, Insurance> $linkedInsurances
  * @property-read Collection<int, Article> $linkedArticles
  *
+ * // comments
+ * @property-read Collection<int, Comment> $comments
+ *
  * // document data
  * @property string|null $type        // z.B. contract, invoice, sonstiges
  * @property string $path             // storage path oder URL
@@ -46,9 +50,10 @@ use Spatie\Tags\HasTags;
  * // relation methods
  * @property User $user
  */
-class Document extends Model
+class Document extends Model implements CommentableInterface
 {
     use HasTags;
+    use HasComments;
 
     const string TABLE = 'documents';
     const string STORAGE_DISK = 'documents';
@@ -79,6 +84,7 @@ class Document extends Model
     const string morphed_by_many_fixed_costs = 'linkedFixedCosts';
     const string morphed_by_many_insurances = 'linkedInsurances';
     const string morphed_by_many_articles = 'linkedArticles';
+    const string has_many_comments = 'comments';
 
     // polymorphic relation
     const string morph_to_documentable = Documentables::MORPH_NAME;
@@ -90,12 +96,12 @@ class Document extends Model
 
     protected $fillable = [
         self::user_id,
-        self::type,        // z.B. contract, invoice, sonstiges
-        self::path,        // storage path oder URL
+        self::type,
+        self::path,
         self::filename,
         self::description,
         self::sort,
-        self::file_size,   // size in bytes
+        self::file_size,
         self::mime_type,
     ];
 
@@ -109,23 +115,16 @@ class Document extends Model
         parent::booted();
 
         static::creating(function (Document $document) {
-            // on creating set file_size and mime_type from storage if not set
             if (empty($document->{self::file_size}) || empty($document->{self::mime_type})) {
                 $document->setMetaData();
             }
 
-            // set filename from path if not set
             if (empty($document->{self::filename}) && !empty($document->{self::path})) {
                 $document->{self::filename} = basename($document->{self::path});
             }
         });
     }
 
-    // Booted: listen for created event to populate file metadata
-
-    /**
-     * @return void
-     */
     private function setMetaData(): void
     {
         $path = $this->{self::path} ?? null;

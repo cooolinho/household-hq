@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ContactPeople\Pages;
 
 use App\Filament\Admin\Resources\ContactPeople\ContactPersonResource;
+use App\Filament\Admin\Widgets\CommentsWidget;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -14,6 +15,13 @@ class ViewContactPerson extends ViewRecord
     {
         return [
             EditAction::make(),
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            CommentsWidget::class,
         ];
     }
 }

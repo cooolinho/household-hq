@@ -2,6 +2,8 @@
 
 namespace App\Models\Financial;
 
+use App\Models\CommentableInterface;
+use App\Models\Concerns\HasComments;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use App\Models\User;
@@ -41,8 +43,9 @@ use Spatie\Tags\HasTags;
  * @property Collection|Document[] $has_many_documents
  * @property Collection|FixedCost[] $has_many_fixed_costs
  */
-class Insurance extends Model
+class Insurance extends Model implements CommentableInterface
 {
+    use HasComments;
     use HasTags;
 
     const string TABLE = 'financial_insurances';

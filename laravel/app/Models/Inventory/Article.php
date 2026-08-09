@@ -2,6 +2,8 @@
 
 namespace App\Models\Inventory;
 
+use App\Models\CommentableInterface;
+use App\Models\Concerns\HasComments;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use Illuminate\Database\Eloquent\Model;
@@ -35,9 +37,10 @@ use Spatie\Tags\HasTags;
  * @property Article|null $parent
  * @property Document[]|null $documents
  */
-class Article extends Model
+class Article extends Model implements CommentableInterface
 {
     use HasTags;
+    use HasComments;
 
     const string TABLE = 'inventory_articles';
 

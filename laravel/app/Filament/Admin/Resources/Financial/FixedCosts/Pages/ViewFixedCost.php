@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Financial\FixedCosts\Pages;
 
 use App\Filament\Admin\Resources\Documents\Actions\AssignExistingDocumentAction;
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
+use App\Filament\Admin\Widgets\CommentsWidget;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -24,5 +25,12 @@ class ViewFixedCost extends ViewRecord
     public function getRelationManagers(): array
     {
         return [];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            CommentsWidget::class,
+        ];
     }
 }

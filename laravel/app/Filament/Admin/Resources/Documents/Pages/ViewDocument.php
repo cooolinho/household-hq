@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Documents\Pages;
 use App\Filament\Admin\Resources\Documents\Actions\ManageDocumentLinksAction;
 use App\Filament\Admin\Resources\Documents\DocumentResource;
 use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
+use App\Filament\Admin\Widgets\CommentsWidget;
 use App\Models\Document;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -88,6 +89,13 @@ class ViewDocument extends ViewRecord
             'isText' => $isText,
             'textContent' => $textContent,
             'linkedOwners' => DocumentOwnerRegistry::getLinkedOwners($document),
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            CommentsWidget::class,
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasComments;
 use Database\Factories\ContactPersonFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,11 +38,12 @@ use Spatie\Tags\HasTags;
  * @property User $user
  * @property Tag[] $tags
  */
-class ContactPerson extends Model
+class ContactPerson extends Model implements CommentableInterface
 {
     /** @use HasFactory<ContactPersonFactory> */
     use HasFactory;
     use HasTags;
+    use HasComments;
 
     const string TABLE = 'contact_people';
 

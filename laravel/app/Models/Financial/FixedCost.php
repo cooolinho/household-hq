@@ -2,6 +2,8 @@
 
 namespace App\Models\Financial;
 
+use App\Models\CommentableInterface;
+use App\Models\Concerns\HasComments;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use App\Models\Enums\FixedCostCategoryEnum;
@@ -44,8 +46,9 @@ use Spatie\Tags\HasTags;
  * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
  * @property Collection|FixedCostMatchingRule[] $matchingRules
  */
-class FixedCost extends Model
+class FixedCost extends Model implements CommentableInterface
 {
+    use HasComments;
     use HasTags;
 
     const string TABLE = 'financial_fixed_costs';
