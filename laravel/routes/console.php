@@ -15,13 +15,10 @@ Artisan::command('inspire', function () {
 Schedule::job(new FixedCostJob())
     ->dailyAt((string) config('fixed_costs.update_schedule.time', '00:15'));
 
-$reminderTime = (string) config('fixed_costs.reminder_time', '07:00');
-
-match ((string) config('fixed_costs.reminder_schedule', 'weekly')) {
-    'daily' => Schedule::job(new SendUpcomingFixedCostsReminderJob())->dailyAt($reminderTime),
-    'monthly' => Schedule::job(new SendUpcomingFixedCostsReminderJob())->monthlyOn(1, $reminderTime),
-    default => Schedule::job(new SendUpcomingFixedCostsReminderJob())->weeklyOn(1, $reminderTime),
-};
+if (config('fixed_costs.reminders.enabled', true)) {
+    Schedule::job(new SendUpcomingFixedCostsReminderJob())
+        ->dailyAt((string)config('fixed_costs.reminders.schedule_time', '07:00'));
+}
 
 if (config('fixed_costs.matching.enabled', true)) {
     Schedule::job(new FixedCostTransactionMatchingJob())

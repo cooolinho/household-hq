@@ -1,9 +1,11 @@
 @php
     use App\Filament\Admin\Resources\Documents\DocumentResource;
+    use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
     use App\Filament\Admin\Resources\Financial\Transactions\TransactionResource;
     use App\Models\Enums\FixedCostCategoryEnum;
     use App\Models\Enums\FixedCostEndsModeEnum;
     use App\Models\Enums\FixedCostIntervalEnum;
+    use App\Models\Financial\FixedCostReminder;
     use App\Models\Financial\Transaction;
 
     /** @var \App\Models\Financial\FixedCost $fixedCost */
@@ -22,10 +24,28 @@
     $transactions = $fixedCost->transactions()
         ->orderByDesc(Transaction::date)
         ->get();
+    $reminders = $fixedCost->reminders()
+        ->orderBy(FixedCostReminder::days_before)
+        ->get();
+
+    $reminderRows = $reminders->map(function (FixedCostReminder $reminder) use ($fixedCost): array {
+        $reminderDate = FixedCostReminder::calculateReminderDate($fixedCost->next_booking_date, (int) $reminder->{FixedCostReminder::days_before});
+
+        return [
+            'lead_time_label' => FixedCostReminder::leadTimeLabel((int) $reminder->{FixedCostReminder::days_before}),
+            'channels_label' => FixedCostReminder::channelsLabel((bool) $reminder->{FixedCostReminder::send_mail}, (bool) $reminder->{FixedCostReminder::send_notification}),
+            'enabled' => (bool) $reminder->{FixedCostReminder::enabled},
+            'next_reminder_date' => $reminderDate?->format('d.m.Y') ?? '-',
+            'last_sent_booking_date' => $reminder->{FixedCostReminder::last_sent_booking_date}?->format('d.m.Y') ?? '-',
+        ];
+    });
+    $reminderCount = $reminderRows->count();
+    $activeReminderCount = $reminderRows->where('enabled', true)->count();
 
     $documentCreateUrl = DocumentResource::getUrl(DocumentResource::PAGE_CREATE_FOR_FIXED_COST, [
         'owner' => $fixedCost->id,
     ]);
+    $fixedCostEditUrl = FixedCostResource::getUrl('edit', ['record' => $fixedCost, 'relation' => 1]);
 @endphp
 
 <x-filament-panels::page>
@@ -162,6 +182,49 @@
                     @endforeach
                 @endif
             </div>
+        </section>
+
+        <section class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Reminder</h2>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {{ $activeReminderCount }} von {{ $reminderCount }} Reminder aktiv.
+                    </p>
+                </div>
+                <a href="{{ $fixedCostEditUrl }}"
+                   class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+                    Reminder verwalten
+                </a>
+            </div>
+
+            @if($reminderRows->isEmpty())
+                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Noch keine Reminder konfiguriert.</p>
+            @else
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                    @foreach($reminderRows as $reminder)
+                        <article class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                            <div class="mb-2 flex flex-wrap items-center gap-2">
+                                <span class="inline-flex rounded-full px-2 py-1 text-xs font-medium {{ $reminder['enabled'] ? 'bg-success-100 text-success-800 dark:bg-success-500/20 dark:text-success-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' }}">
+                                    {{ $reminder['enabled'] ? 'Aktiv' : 'Inaktiv' }}
+                                </span>
+                                <span class="inline-flex rounded-full bg-primary-100 px-2 py-1 text-xs font-medium text-primary-800 dark:bg-primary-500/20 dark:text-primary-300">
+                                    {{ $reminder['lead_time_label'] }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Nächste Erinnerung:</strong> {{ $reminder['next_reminder_date'] }}
+                            </p>
+                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Kanäle:</strong> {{ $reminder['channels_label'] }}
+                            </p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                Zuletzt gesendet für Buchung am {{ $reminder['last_sent_booking_date'] }}
+                            </p>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
         </section>
     </div>
 

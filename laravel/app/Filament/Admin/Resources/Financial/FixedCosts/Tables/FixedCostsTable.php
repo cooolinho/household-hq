@@ -9,6 +9,7 @@ use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
 use Closure;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -77,12 +78,14 @@ class FixedCostsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
-                Action::make('show')
-                    ->label('Anzeigen')
-                    ->color('secondary')
-                    ->icon(Heroicon::Eye)
-                    ->url(fn(FixedCost $record): string => FixedCostResource::getViewUrl($record->id)),
-                EditAction::make(),
+                ActionGroup::make([
+                    Action::make('show')
+                        ->label('Anzeigen')
+                        ->color('secondary')
+                        ->icon(Heroicon::Eye)
+                        ->url(fn(FixedCost $record): string => FixedCostResource::getViewUrl($record->id)),
+                    EditAction::make(),
+                ])
             ]);
 
         $filters = [

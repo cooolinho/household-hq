@@ -22,10 +22,10 @@ class ViewFixedCost extends ViewRecord
         ];
     }
 
-    public function getRelationManagers(): array
-    {
-        return [];
-    }
+//    public function getRelationManagers(): array
+//    {
+//        return [];
+//    }
 
     protected function getFooterWidgets(): array
     {

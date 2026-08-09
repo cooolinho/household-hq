@@ -2,14 +2,15 @@
 
 namespace App\Jobs;
 
-use App\Mail\UpcomingFixedCostsReminderMail;
 use App\Models\Financial\FixedCost;
+use App\Models\Financial\FixedCostReminder;
+use App\Models\User;
+use App\Notifications\Financial\FixedCostReminderNotification;
 use App\Services\FixedCostNextBookingDateUpdater;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class SendUpcomingFixedCostsReminderJob implements ShouldQueue
 {
@@ -18,54 +19,84 @@ class SendUpcomingFixedCostsReminderJob implements ShouldQueue
     public function handle(FixedCostNextBookingDateUpdater $updater): void
     {
         try {
+            if (!config('fixed_costs.reminders.enabled', true)) {
+                Log::info('Fixed cost reminders are disabled globally, skipping reminder job.');
+
+                return;
+            }
+
             $today = CarbonImmutable::today();
             $updater->updateDueDates($today);
-
-            $dayEnd = $today->addDay();
-            $weekEnd = $today->addWeek();
-            $monthEnd = $today->addMonth();
+            $maxLeadTimeDays = FixedCostReminder::leadTimeOptions()
+                    |> array_keys(...)
+                    |> max(...);
+            $windowEnd = $today->addDays($maxLeadTimeDays);
 
             FixedCost::query()
                 ->with(FixedCost::belongs_to_user)
-                ->where(FixedCost::amount, '<', 0)
+                ->with(FixedCost::has_many_reminders)
+                ->whereHas(FixedCost::has_many_reminders, function ($query): void {
+                    $query->where(FixedCostReminder::enabled, true);
+                })
                 ->whereNotNull(FixedCost::next_booking_date)
-                ->whereBetween(FixedCost::next_booking_date, [$today->toDateString(), $monthEnd->toDateString()])
-                ->orderBy(FixedCost::next_booking_date)
+                ->whereBetween(FixedCost::next_booking_date, [$today->toDateString(), $windowEnd->toDateString()])
                 ->get()
-                ->groupBy(FixedCost::user_id)
-                ->each(function ($fixedCosts) use ($today, $dayEnd, $weekEnd, $monthEnd) {
-                    $user = $fixedCosts->first()?->user;
-                    if ($user === null || empty($user->email)) {
+                ->each(function (FixedCost $fixedCost) use ($today): void {
+                    $user = $fixedCost->user;
+
+                    if ($user === null) {
                         return;
                     }
 
-                    $windows = [
-                        'day' => $fixedCosts->filter(fn(FixedCost $fixedCost) => $this->isWithinRange($fixedCost, $today, $dayEnd))->values(),
-                        'week' => $fixedCosts->filter(fn(FixedCost $fixedCost) => $this->isWithinRange($fixedCost, $dayEnd->addDay(), $weekEnd))->values(),
-                        'month' => $fixedCosts->filter(fn(FixedCost $fixedCost) => $this->isWithinRange($fixedCost, $weekEnd->addDay(), $monthEnd))->values(),
-                    ];
+                    $dueDate = $fixedCost->next_booking_date?->toImmutable()->startOfDay();
 
-                    if ($windows['day']->isEmpty() && $windows['week']->isEmpty() && $windows['month']->isEmpty()) {
+                    if ($dueDate === null) {
                         return;
                     }
 
-                    Mail::to($user->email)->send(new UpcomingFixedCostsReminderMail($user->name, $windows, [
-                        'day' => [$today, $dayEnd],
-                        'week' => [$dayEnd->addDay(), $weekEnd],
-                        'month' => [$weekEnd->addDay(), $monthEnd],
-                    ]));
+                    $fixedCost->reminders
+                        ->filter(fn(FixedCostReminder $reminder): bool => $this->shouldSendReminder($reminder, $today, $dueDate))
+                        ->each(function (FixedCostReminder $reminder) use ($user, $fixedCost, $dueDate): void {
+                            if (!$this->hasDeliveryChannel($user, $reminder)) {
+                                return;
+                            }
+
+                            $user->notify(new FixedCostReminderNotification($fixedCost, $reminder));
+
+                            $reminder->forceFill([
+                                FixedCostReminder::last_sent_booking_date => $dueDate->toDateString(),
+                            ])->save();
+                        });
                 });
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->fail($e);
             Log::error('Error sending upcoming fixed costs reminder: ' . $e->getMessage(), ['exception' => $e]);
         }
     }
 
-    private function isWithinRange(FixedCost $fixedCost, CarbonImmutable $from, CarbonImmutable $until): bool
+    private function shouldSendReminder(FixedCostReminder $reminder, CarbonImmutable $today, CarbonImmutable $dueDate): bool
     {
-        $date = $fixedCost->next_booking_date?->toImmutable()->startOfDay();
+        if (!$reminder->{FixedCostReminder::enabled}) {
+            return false;
+        }
 
-        return $date !== null && $date->betweenIncluded($from, $until);
+        if ((int)$reminder->{FixedCostReminder::days_before} < 0) {
+            return false;
+        }
+
+        if ($reminder->{FixedCostReminder::last_sent_booking_date}?->toDateString() === $dueDate->toDateString()) {
+            return false;
+        }
+
+        return $dueDate->subDays((int)$reminder->{FixedCostReminder::days_before})->isSameDay($today);
+    }
+
+    private function hasDeliveryChannel(User $user, FixedCostReminder $reminder): bool
+    {
+        $hasMailRecipient = filled($user->{User::email} ?? null);
+
+        return ($reminder->{FixedCostReminder::send_mail} && $hasMailRecipient)
+            || $reminder->{FixedCostReminder::send_notification};
     }
 }
 

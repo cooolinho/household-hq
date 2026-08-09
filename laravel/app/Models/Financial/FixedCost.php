@@ -45,6 +45,7 @@ use Spatie\Tags\HasTags;
  * @property Collection|Transaction[] $transactions
  * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
  * @property Collection|FixedCostMatchingRule[] $matchingRules
+ * @property Collection|FixedCostReminder[] $reminders
  */
 class FixedCost extends Model implements CommentableInterface
 {
@@ -75,6 +76,7 @@ class FixedCost extends Model implements CommentableInterface
     const string has_many_transactions = 'transactions';
     const string has_many_matching_suggestions = 'matchingSuggestions';
     const string has_many_matching_rules = 'matchingRules';
+    const string has_many_reminders = 'reminders';
     const string belongs_to_user = 'user';
     const string belongs_to_insurance = 'insurance';
     const string morph_to_many_tags = 'tags';
@@ -139,5 +141,10 @@ class FixedCost extends Model implements CommentableInterface
     public function matchingRules(): HasMany
     {
         return $this->hasMany(FixedCostMatchingRule::class, FixedCostMatchingRule::fixed_cost_id);
+    }
+
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(FixedCostReminder::class, FixedCostReminder::fixed_cost_id);
     }
 }
