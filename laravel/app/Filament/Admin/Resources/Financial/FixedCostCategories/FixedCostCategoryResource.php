@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Financial\FixedCostCategories;
 use App\Filament\Admin\Resources\Financial\FixedCostCategories\Pages\CreateFixedCostCategory;
 use App\Filament\Admin\Resources\Financial\FixedCostCategories\Pages\EditFixedCostCategory;
 use App\Filament\Admin\Resources\Financial\FixedCostCategories\Pages\ListFixedCostCategories;
+use App\Filament\Admin\Resources\Financial\FixedCostCategories\RelationManagers\FixedCostsRelationManager;
 use App\Filament\Admin\Resources\Financial\FixedCostCategories\Schemas\FixedCostCategoryForm;
 use App\Filament\Admin\Resources\Financial\FixedCostCategories\Tables\FixedCostCategoriesTable;
 use App\Menu\NavigationGroup;
@@ -39,6 +40,13 @@ class FixedCostCategoryResource extends Resource
             'index' => ListFixedCostCategories::route('/'),
             'create' => CreateFixedCostCategory::route('/create'),
             'edit' => EditFixedCostCategory::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            FixedCostsRelationManager::class,
         ];
     }
 
