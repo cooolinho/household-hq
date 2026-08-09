@@ -3,7 +3,6 @@
     use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
     use App\Filament\Admin\Resources\Financial\Insurances\RelationManagers\DocumentsRelationManager;
     use App\Models\Document;
-    use App\Models\Enums\FixedCostCategoryEnum;
     use App\Models\Enums\FixedCostEndsModeEnum;
     use App\Models\Enums\FixedCostIntervalEnum;
     use App\Models\Enums\InsuranceMoveNotificationChannelEnum;
@@ -33,7 +32,7 @@
     $moveStatusLabel = $enumLabelByName(InsuranceMoveNotificationStatusEnum::class, $insurance->move_notification_status);
 
     $documents = $insurance->documents()->get();
-    $fixedCosts = $insurance->fixedCosts()->get();
+    $fixedCosts = $insurance->fixedCosts()->with(FixedCost::belongs_to_category)->get();
 
     $documentCreateUrl = DocumentResource::getUrl(DocumentResource::PAGE_CREATE_FOR_INSURANCE, [
         'owner' => $insurance->id,
@@ -197,7 +196,7 @@
                             $amountClass = $fixedCostAmount < 0 ? 'is-negative' : 'is-positive';
                             $fixedCostViewUrl = FixedCostResource::getViewUrl($fixedCost->id);
 
-                            $categoryLabel = $enumLabelByName(FixedCostCategoryEnum::class, (string) $fixedCost->category);
+                            $categoryLabel = $fixedCost->category?->name ?? 'Nicht kategorisiert';
                             $intervalLabel = $enumLabelByName(FixedCostIntervalEnum::class, (string) $fixedCost->interval);
                             $endsModeLabel = $enumLabelByName(FixedCostEndsModeEnum::class, (string) $fixedCost->ends_mode);
                         @endphp

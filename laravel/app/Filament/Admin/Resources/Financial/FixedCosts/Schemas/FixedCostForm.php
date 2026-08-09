@@ -2,10 +2,10 @@
 
 namespace App\Filament\Admin\Resources\Financial\FixedCosts\Schemas;
 
-use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
+use App\Models\Financial\FixedCostCategory;
 use App\Models\Financial\Insurance;
 use App\Rules\FixedCostAmountNotZeroRule;
 use Carbon\Carbon;
@@ -23,6 +23,8 @@ use Filament\Support\Icons\Heroicon;
 
 class FixedCostForm
 {
+    private const string NO_CATEGORY_OPTION = '__none__';
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -98,14 +100,16 @@ class FixedCostForm
                     }))
                 ->numeric()
                 ->rule(new FixedCostAmountNotZeroRule()),
-            Select::make(FixedCost::category)
+            Select::make(FixedCost::category_id)
                 ->columnSpanFull()
-                ->options(FixedCostCategoryEnum::options())
-                ->default(FixedCostCategoryEnum::default())
+                ->label('Kategorie')
+                ->options(fn() => self::groupedCategoryOptions())
+                ->default(self::NO_CATEGORY_OPTION)
+                ->formatStateUsing(fn($state) => $state ?? self::NO_CATEGORY_OPTION)
+                ->dehydrateStateUsing(fn($state) => $state === self::NO_CATEGORY_OPTION ? null : (int)$state)
                 ->searchable()
                 ->preload()
-                ->reactive()
-                ->required(),
+                ->reactive(),
 
             Checkbox::make('assign_with_insurance')
                 ->label('Mit Versicherung verknüpfen?')
@@ -173,5 +177,26 @@ class FixedCostForm
             Textarea::make(FixedCost::notes)
                 ->rows(5),
         ];
+    }
+
+    private static function groupedCategoryOptions(): array
+    {
+        $grouped = [
+            'Nicht kategorisiert' => [
+                self::NO_CATEGORY_OPTION => 'Keine Kategorie',
+            ],
+        ];
+
+        $categories = FixedCostCategory::query()
+            ->orderBy(FixedCostCategory::group)
+            ->orderBy(FixedCostCategory::name)
+            ->get();
+
+        foreach ($categories as $category) {
+            $group = $category->{FixedCostCategory::group} ?: 'Nicht kategorisiert';
+            $grouped[$group][(string)$category->id] = $category->{FixedCostCategory::name};
+        }
+
+        return $grouped;
     }
 }

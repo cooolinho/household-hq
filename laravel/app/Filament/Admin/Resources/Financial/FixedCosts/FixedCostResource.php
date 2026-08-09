@@ -47,7 +47,9 @@ class FixedCostResource extends Resource
     {
         return FixedCostsTable::configure($table)
             ->modifyQueryUsing(function ($query) {
-                $query->where(FixedCost::user_id, auth()->id());
+                $query
+                    ->where(FixedCost::user_id, auth()->id())
+                    ->with(FixedCost::belongs_to_category);
             });
     }
 

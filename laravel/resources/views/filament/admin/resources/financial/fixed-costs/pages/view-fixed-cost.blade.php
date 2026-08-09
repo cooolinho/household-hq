@@ -2,7 +2,6 @@
     use App\Filament\Admin\Resources\Documents\DocumentResource;
     use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
     use App\Filament\Admin\Resources\Financial\Transactions\TransactionResource;
-    use App\Models\Enums\FixedCostCategoryEnum;
     use App\Models\Enums\FixedCostEndsModeEnum;
     use App\Models\Enums\FixedCostIntervalEnum;
     use App\Models\Financial\FixedCostReminder;
@@ -16,7 +15,7 @@
     $amountClass = $amount < 0 ? 'is-negative' : 'is-positive';
     $amountFormatted = number_format(abs($amount), 2, ',', '.');
 
-    $categoryLabel = FixedCostCategoryEnum::tryFrom((string) $fixedCost->category)?->label() ?? (string) $fixedCost->category;
+    $categoryLabel = $fixedCost->category?->name ?? 'Nicht kategorisiert';
     $intervalLabel = FixedCostIntervalEnum::tryFrom((string) $fixedCost->interval)?->label() ?? (string) $fixedCost->interval;
     $endsModeLabel = FixedCostEndsModeEnum::tryFrom((string) $fixedCost->ends_mode)?->label() ?? (string) $fixedCost->ends_mode;
 

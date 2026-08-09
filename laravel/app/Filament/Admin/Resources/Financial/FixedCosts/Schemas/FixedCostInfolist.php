@@ -15,8 +15,10 @@ class FixedCostInfolist
                 TextEntry::make(FixedCost::name),
                 TextEntry::make(FixedCost::amount)
                     ->numeric(),
-                TextEntry::make(FixedCost::category)
-                    ->badge(),
+                TextEntry::make('category.name')
+                    ->label('Kategorie')
+                    ->badge()
+                    ->placeholder('Nicht kategorisiert'),
                 TextEntry::make(FixedCost::interval)
                     ->badge(),
                 TextEntry::make(FixedCost::ends_mode)

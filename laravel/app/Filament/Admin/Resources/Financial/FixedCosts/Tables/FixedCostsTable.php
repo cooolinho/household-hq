@@ -3,10 +3,10 @@
 namespace App\Filament\Admin\Resources\Financial\FixedCosts\Tables;
 
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
-use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
+use App\Models\Financial\FixedCostCategory;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -40,10 +40,10 @@ class FixedCostsTable
                     ->formatStateUsing(fn(FixedCost $record): string => number_format((float)$record->amount, 2, ',', '.') . ' EUR')
                     ->color(fn(FixedCost $record): string => ((float)$record->amount) < 0 ? 'danger' : 'success')
                     ->sortable(),
-                TextColumn::make(FixedCost::category)
+                TextColumn::make('category.' . FixedCostCategory::name)
                     ->label('Kategorie')
                     ->badge()
-                    ->formatStateUsing(fn(?string $state): string => FixedCostCategoryEnum::tryFrom((string)$state)?->label() ?? (string)$state),
+                    ->placeholder('Nicht kategorisiert'),
                 TextColumn::make(FixedCost::interval)
                     ->label('Intervall')
                     ->badge()
@@ -89,9 +89,13 @@ class FixedCostsTable
             ]);
 
         $filters = [
-            SelectFilter::make(FixedCost::category)
+            SelectFilter::make(FixedCost::category_id)
                 ->label('Kategorie')
-                ->options(FixedCostCategoryEnum::options())
+                ->options(fn() => FixedCostCategory::query()
+                    ->orderBy(FixedCostCategory::group)
+                    ->orderBy(FixedCostCategory::name)
+                    ->pluck(FixedCostCategory::name, FixedCostCategory::id)
+                    ->toArray())
                 ->searchable(),
             SelectFilter::make(FixedCost::interval)
                 ->label('Intervall')

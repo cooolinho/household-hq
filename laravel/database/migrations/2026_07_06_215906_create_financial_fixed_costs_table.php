@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
@@ -23,8 +22,7 @@ return new class extends Migration {
                 ->onDelete('cascade');
             $table->string(FixedCost::name);
             $table->decimal(FixedCost::amount, 10, 2);
-            $table->enum(FixedCost::category, FixedCostCategoryEnum::allNames())
-                ->default(FixedCostCategoryEnum::default());
+            $table->string(FixedCost::category)->nullable();
             $table->enum(FixedCost::interval, FixedCostIntervalEnum::allNames());
             $table->enum(FixedCost::ends_mode, FixedCostEndsModeEnum::allNames())
                 ->default(FixedCostEndsModeEnum::default());

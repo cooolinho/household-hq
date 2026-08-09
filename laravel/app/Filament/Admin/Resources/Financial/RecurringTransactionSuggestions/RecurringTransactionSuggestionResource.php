@@ -6,7 +6,6 @@ use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostForm;
 use App\Filament\Admin\Resources\Financial\RecurringTransactionSuggestions\Pages\ListRecurringTransactionSuggestions;
 use App\Menu\NavigationGroup;
-use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Enums\RecurringTransactionSuggestionStatusEnum;
@@ -127,7 +126,6 @@ class RecurringTransactionSuggestionResource extends Resource
                         return [
                             FixedCost::name => $record->name_hint,
                             FixedCost::amount => $record->amount,
-                            FixedCost::category => FixedCostCategoryEnum::default(),
                             FixedCost::interval => FixedCostIntervalEnum::default(),
                             FixedCost::ends_mode => FixedCostEndsModeEnum::default(),
                             FixedCost::next_booking_date => now()->addMonth()->startOfMonth(),

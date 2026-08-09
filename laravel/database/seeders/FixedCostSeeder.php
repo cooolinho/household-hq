@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
@@ -24,7 +23,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Gehalt',
             FixedCost::amount => 2000.00,
-            FixedCost::category => FixedCostCategoryEnum::INCOME_LOHN_GEHALT,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::user_id => $user->id,
@@ -34,7 +32,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Miete',
             FixedCost::amount => -1000.00,
-            FixedCost::category => FixedCostCategoryEnum::HYPOTHEK_MIETE,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::user_id => $user->id,
@@ -44,7 +41,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Hausrat-Versicherung',
             FixedCost::amount => -100.00,
-            FixedCost::category => FixedCostCategoryEnum::INSURANCE_HAUSRAT,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::insurance_id => Insurance::query()->where(Insurance::name, 'Hausrat Versicherung')->first()->id,
@@ -58,7 +54,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Spotify',
             FixedCost::amount => -9.99,
-            FixedCost::category => FixedCostCategoryEnum::ENTERTAINMENT_MUSIC_STREAMING,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::user_id => $user->id,
@@ -69,7 +64,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Netflix',
             FixedCost::amount => -15.99,
-            FixedCost::category => FixedCostCategoryEnum::ENTERTAINMENT_VIDEO_STREAMING,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::user_id => $user->id,
@@ -80,7 +74,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Strom',
             FixedCost::amount => -80.00,
-            FixedCost::category => FixedCostCategoryEnum::ENERGY_ELECTRICITY,
             FixedCost::interval => FixedCostIntervalEnum::TWO_MONTHS,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::user_id => $user->id,
@@ -91,7 +84,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Amazon Prime',
             FixedCost::amount => -8.99,
-            FixedCost::category => FixedCostCategoryEnum::ENTERTAINMENT_VIDEO_STREAMING,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::user_id => $user->id,
@@ -102,7 +94,6 @@ class FixedCostSeeder extends Seeder
         FixedCost::query()->create([
             FixedCost::name => 'Amazon Prime',      // identischer Name + Betrag → exakt gleicher Score
             FixedCost::amount => -8.99,
-            FixedCost::category => FixedCostCategoryEnum::ENTERTAINMENT_OTHER, // andere Kategorie, ändert Score nicht
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
             FixedCost::user_id => $user->id,

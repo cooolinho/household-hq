@@ -103,6 +103,12 @@ return [
             'plural_model_label' => 'Fixkosten',
         ],
 
+        'fixed_cost_category' => [
+            'navigation_label' => 'Kategorien',
+            'model_label' => 'Kategorie',
+            'plural_model_label' => 'Kategorien',
+        ],
+
         // Insurance / Versicherung
         'insurance' => [
             'navigation_label' => 'Übersicht',

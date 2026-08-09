@@ -4,7 +4,6 @@ namespace Tests\Unit;
 
 use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
 use App\Models\Document;
-use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
@@ -27,7 +26,7 @@ class DocumentOwnerRegistryTest extends TestCase
             FixedCost::name => 'Miete',
             FixedCost::user_id => 1,
             FixedCost::amount => -1200,
-            FixedCost::category => FixedCostCategoryEnum::OTHER->name,
+            FixedCost::category_id => null,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY->name,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE->name,
         ]);
@@ -58,7 +57,7 @@ class DocumentOwnerRegistryTest extends TestCase
             FixedCost::user_id => 77,
             FixedCost::name => 'Miete',
             FixedCost::amount => -1200,
-            FixedCost::category => FixedCostCategoryEnum::OTHER->name,
+            FixedCost::category_id => null,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY->name,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE->name,
         ]);

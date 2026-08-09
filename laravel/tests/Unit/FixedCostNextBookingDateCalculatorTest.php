@@ -64,7 +64,7 @@ class FixedCostNextBookingDateCalculatorTest extends TestCase
         $fixedCost->forceFill([
             FixedCost::name => 'Test fixed cost',
             FixedCost::amount => -100,
-            FixedCost::category => 'OTHER',
+            FixedCost::category_id => null,
             FixedCost::interval => FixedCostIntervalEnum::MONTHLY->name,
             FixedCost::ends_mode => FixedCostEndsModeEnum::NONE->name,
             FixedCost::next_booking_date => CarbonImmutable::parse('2026-07-01'),

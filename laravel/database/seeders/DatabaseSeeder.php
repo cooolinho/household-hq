@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ContactPersonSeeder::class);
         $this->call(BankAccountSeeder::class);
         $this->call(InsuranceSeeder::class);
+        $this->call(FixedCostCategorySeeder::class);
         $this->call(FixedCostSeeder::class);
         $this->call(TransactionSeeder::class);
     }

@@ -6,7 +6,6 @@ use App\Models\CommentableInterface;
 use App\Models\Concerns\HasComments;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
-use App\Models\Enums\FixedCostCategoryEnum;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\User;
@@ -27,7 +26,7 @@ use Spatie\Tags\HasTags;
  * @property string $name
  * @property string $notes
  * @property float $amount
- * @property FixedCostCategoryEnum $category
+ * @property int|null $category_id
  * @property FixedCostIntervalEnum $interval
  * @property FixedCostEndsModeEnum $ends_mode
  * @property Carbon|null $ends_date
@@ -40,6 +39,7 @@ use Spatie\Tags\HasTags;
  *
  * Relations
  * @property User $user
+ * @property \App\Models\Financial\FixedCostCategory|null $category
  * @property Collection|Document[] $documents
  * @property Insurance|null $insurance
  * @property Collection|Transaction[] $transactions
@@ -60,7 +60,9 @@ class FixedCost extends Model implements CommentableInterface
     const string name = 'name';
     const string notes = 'notes';
     const string amount = 'amount';
+    // legacy column used in historical migration only
     const string category = 'category';
+    const string category_id = 'category_id';
     const string interval = 'interval';
     const string ends_mode = 'ends_mode';
     const string ends_date = 'ends_date';
@@ -79,6 +81,7 @@ class FixedCost extends Model implements CommentableInterface
     const string has_many_reminders = 'reminders';
     const string belongs_to_user = 'user';
     const string belongs_to_insurance = 'insurance';
+    const string belongs_to_category = 'category';
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -88,7 +91,7 @@ class FixedCost extends Model implements CommentableInterface
         self::name,
         self::notes,
         self::amount,
-        self::category,
+        self::category_id,
         self::interval,
         self::ends_mode,
         self::ends_date,
@@ -113,6 +116,11 @@ class FixedCost extends Model implements CommentableInterface
     public function insurance(): BelongsTo
     {
         return $this->belongsTo(Insurance::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Financial\FixedCostCategory::class, self::category_id);
     }
 
     public function documents(): MorphToMany
