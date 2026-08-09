@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Financial\FixedCost;
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
+use Illuminate\Support\Facades\Log;
 
 readonly class FixedCostNextBookingDateUpdater
 {
@@ -21,9 +23,13 @@ readonly class FixedCostNextBookingDateUpdater
             ->chunkById(100, function ($fixedCosts) use ($today, &$updated) {
                 foreach ($fixedCosts as $fixedCost) {
                     $nextDate = $this->calculator->resolveNextBookingDate($fixedCost, $today);
+                    if (!$nextDate instanceof DateTimeInterface) {
+                        Log::warning('FixedCostNextBookingDateUpdater: Could not resolve next booking date for FixedCost ID ' . $fixedCost->id);
+                        continue;
+                    }
 
                     $current = $fixedCost->next_booking_date?->toImmutable()->startOfDay();
-                    if ($current?->equalTo($nextDate) ?? ($current === null && $nextDate === null)) {
+                    if ($current?->equalTo($nextDate) ?? ($current === null)) {
                         continue;
                     }
 
