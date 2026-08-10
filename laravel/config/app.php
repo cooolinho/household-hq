@@ -124,6 +124,6 @@ return [
     ],
 
     'countries' => [
-        'whitelist' => ['DE', 'CH', 'AT'], // only list countries with alpha2 code
+        'whitelist' => ['DE', 'CH', 'AT'], // only list countries with alpha2 code, used in InsuranceForm::configure
     ]
 ];

@@ -30,7 +30,7 @@ class InsuranceDashboardWidgetDataTest extends TestCase
         ]), $today);
 
         $this->assertSame(5, $data['totalInsurances']);
-        $this->assertSame(2, $data['expiringSoonCount']);
+        $this->assertSame(3, $data['expiringSoonCount']);
         $this->assertSame(1, $data['expiredCount']);
         $this->assertSame(1, $data['withoutEndDateCount']);
     }

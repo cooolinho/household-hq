@@ -6,6 +6,7 @@ use App\Models\Enums\MatchingSuggestionStatusEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionMatchingSuggestion;
+use App\Settings\FixedCostSettings;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +26,10 @@ use Illuminate\Support\Facades\Log;
  */
 readonly class TransactionFixedCostMatchingService
 {
-    public function __construct(private FixedCostMatchingLearningService $learningService)
+    public function __construct(
+        private FixedCostMatchingLearningService $learningService,
+        private FixedCostSettings                $settings,
+    )
     {
     }
 
@@ -131,7 +135,7 @@ readonly class TransactionFixedCostMatchingService
             ->values();
 
         $topScore = (float)$scored->first()['score'];
-        $threshold = (float)config('fixed_costs.matching.threshold', 70);
+        $threshold = (float)$this->settings->matching_threshold;
 
         if ($topScore < $threshold) {
             return 'skipped';
@@ -235,7 +239,7 @@ readonly class TransactionFixedCostMatchingService
      */
     private function resolveRuleOutcome(Transaction $transaction, array $eligibleFixedCosts, array $confidences): ?string
     {
-        $ruleMinConfidence = (float)config('fixed_costs.matching.learning.rule_confidence_min', 80);
+        $ruleMinConfidence = (float)$this->settings->matching_learning_rule_confidence_min;
 
         $scoredByRule = collect($eligibleFixedCosts)
             ->map(function (FixedCost $fixedCost) use ($confidences): array {

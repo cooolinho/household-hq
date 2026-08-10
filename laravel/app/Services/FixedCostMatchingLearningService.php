@@ -6,10 +6,23 @@ use App\Models\Financial\FixedCost;
 use App\Models\Financial\FixedCostMatchingRule;
 use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionMatchingSuggestion;
+use App\Settings\FixedCostSettings;
 use Illuminate\Support\Collection;
 
 class FixedCostMatchingLearningService
 {
+    private ?FixedCostSettings $settings;
+
+    public function __construct(?FixedCostSettings $settings = null)
+    {
+        $this->settings = $settings;
+    }
+
+    private function settings(): FixedCostSettings
+    {
+        return $this->settings ??= app(FixedCostSettings::class);
+    }
+
     public function learnFromAcceptedSuggestion(TransactionMatchingSuggestion $suggestion): void
     {
         $transaction = $suggestion->transaction;
@@ -22,7 +35,7 @@ class FixedCostMatchingLearningService
         $this->learnPositive(
             $transaction,
             $fixedCost,
-            (float)config('fixed_costs.matching.learning.accepted_positive_weight', 1.0),
+            $this->settings()->matching_learning_accepted_positive_weight,
             FixedCostMatchingRule::SOURCE_SUGGESTION_ACCEPT
         );
     }
@@ -100,7 +113,7 @@ class FixedCostMatchingLearningService
     ): void
     {
         $absAmount = abs((float)$transaction->amount);
-        $tolerance = ((float)config('fixed_costs.matching.learning.amount_tolerance_percent', 5.0)) / 100;
+        $tolerance = ((float)$this->settings()->matching_learning_amount_tolerance_percent) / 100;
         $min = round($absAmount * (1 - $tolerance), 2);
         $max = round($absAmount * (1 + $tolerance), 2);
 
@@ -148,7 +161,7 @@ class FixedCostMatchingLearningService
         $this->learnNegative(
             $transaction,
             $fixedCost,
-            (float)config('fixed_costs.matching.learning.rejected_negative_weight', 1.0),
+            $this->settings()->matching_learning_rejected_negative_weight,
             FixedCostMatchingRule::SOURCE_SUGGESTION_REJECT
         );
     }
@@ -166,11 +179,11 @@ class FixedCostMatchingLearningService
 
     public function learnFromAutoLink(Transaction $transaction, FixedCost $fixedCost, float $score): void
     {
-        if (!(bool)config('fixed_costs.matching.learning.enabled', true)) {
+        if (!$this->settings()->matching_learning_enabled) {
             return;
         }
 
-        $minScore = (float)config('fixed_costs.matching.learning.auto_learn_min_score', 90);
+        $minScore = (float)$this->settings()->matching_learning_auto_learn_min_score;
         if ($score < $minScore) {
             return;
         }
@@ -178,7 +191,7 @@ class FixedCostMatchingLearningService
         $this->learnPositive(
             $transaction,
             $fixedCost,
-            (float)config('fixed_costs.matching.learning.auto_positive_weight', 0.6),
+            $this->settings()->matching_learning_auto_positive_weight,
             FixedCostMatchingRule::SOURCE_AUTO_LINK
         );
     }
@@ -192,7 +205,7 @@ class FixedCostMatchingLearningService
      */
     public function getRuleEvidenceForTransaction(Transaction $transaction, Collection $fixedCosts): array
     {
-        if (!(bool)config('fixed_costs.matching.learning.enabled', true)) {
+        if (!$this->settings()->matching_learning_enabled) {
             return ['blocked_fixed_cost_ids' => [], 'confidences' => []];
         }
 
@@ -208,7 +221,7 @@ class FixedCostMatchingLearningService
         $fingerprints = array_values(array_unique(array_column($descriptors, 'fingerprint')));
         $txAbsAmount = abs((float)$transaction->amount);
         $txAmountSign = $this->sign((float)$transaction->amount);
-        $blockThreshold = (float)config('fixed_costs.matching.learning.reject_block_threshold', 2.0);
+        $blockThreshold = $this->settings()->matching_learning_reject_block_threshold;
 
         $rules = FixedCostMatchingRule::query()
             ->where(FixedCostMatchingRule::user_id, $transaction->user_id)

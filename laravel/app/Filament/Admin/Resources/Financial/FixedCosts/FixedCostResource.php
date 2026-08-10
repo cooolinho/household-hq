@@ -15,6 +15,7 @@ use App\Filament\Admin\Resources\Financial\FixedCosts\Tables\FixedCostsTable;
 use App\Jobs\SendUpcomingFixedCostsReminderJob;
 use App\Menu\NavigationGroup;
 use App\Models\Financial\FixedCost;
+use App\Settings\FixedCostSettings;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -128,7 +129,7 @@ class FixedCostResource extends Resource
             ->color('warning')
             ->requiresConfirmation()
             ->action(function (): void {
-                if (!config('fixed_costs.reminders.enabled', true)) {
+                if (!app(FixedCostSettings::class)->reminders_enabled) {
                     Notification::make()
                         ->warning()
                         ->title('Erinnerungen sind global deaktiviert.')

@@ -53,7 +53,7 @@ class FixedCostReminderNotification extends Notification
             recipientName: $recipientName,
             fixedCostName: (string)$this->fixedCost->{FixedCost::name},
             fixedCostUrl: $fixedCostUrl,
-            fixedCostAmount: (string)$this->fixedCost->{FixedCost::amount},
+            fixedCostAmount: (float)$this->fixedCost->{FixedCost::amount},
             dueDate: $dueDate,
             leadTimeLabel: FixedCostReminder::leadTimeLabel((int)$this->reminder->{FixedCostReminder::days_before}),
         );

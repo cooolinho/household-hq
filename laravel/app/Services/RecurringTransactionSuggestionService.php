@@ -6,11 +6,24 @@ use App\Models\Enums\RecurringTransactionSuggestionStatusEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\RecurringTransactionSuggestion;
 use App\Models\Financial\Transaction;
+use App\Settings\FixedCostSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class RecurringTransactionSuggestionService
 {
+    private ?FixedCostSettings $settings;
+
+    public function __construct(?FixedCostSettings $settings = null)
+    {
+        $this->settings = $settings;
+    }
+
+    private function settings(): FixedCostSettings
+    {
+        return $this->settings ??= app(FixedCostSettings::class);
+    }
+
     /**
      * @return array{created: int, updated: int, skipped: int}
      */
@@ -41,8 +54,8 @@ class RecurringTransactionSuggestionService
     public function detectForUser(int $userId): array
     {
         $results = ['created' => 0, 'updated' => 0, 'skipped' => 0];
-        $windowMonths = max(1, (int)config('fixed_costs.recurring.window_months', 4));
-        $minOccurrences = max(2, (int)config('fixed_costs.recurring.min_occurrences', 3));
+        $windowMonths = max(1, $this->settings()->recurring_window_months);
+        $minOccurrences = max(2, $this->settings()->recurring_min_occurrences);
         $startDate = now()->subMonths($windowMonths)->startOfDay();
 
         $transactions = Transaction::query()
@@ -158,7 +171,7 @@ class RecurringTransactionSuggestionService
     private function likelyAlreadyCoveredByFixedCost(Transaction $transaction): bool
     {
         $amount = (float)$transaction->amount;
-        $tolerance = ((float)config('fixed_costs.recurring.amount_tolerance_percent', 3.0)) / 100;
+        $tolerance = ((float)$this->settings()->recurring_amount_tolerance_percent) / 100;
         $min = abs($amount) * (1 - $tolerance);
         $max = abs($amount) * (1 + $tolerance);
 

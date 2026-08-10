@@ -7,13 +7,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.5",
+        "ext-imap": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "filament/filament": "^5.0",
         "laravel/framework": "^13.9",
         "laravel/tinker": "^3.0",
         "league/iso3166": "^4.4",
-        "spatie/laravel-tags": "^4.12",
-        "ext-imap": "*"
+        "spatie/laravel-settings": "^3.4",
+        "spatie/laravel-tags": "^4.12"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

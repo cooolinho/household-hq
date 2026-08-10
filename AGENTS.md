@@ -11,10 +11,11 @@
 
 ## All Commands Run Inside Docker
 
-The container name defaults to `laravel` but is set to `portal` in this project via `.env`:
+The app container is `personal-home-portal` (see `docker-compose.yml`):
 
 ```bash
 docker exec -it --user sail personal-home-portal sh -c "php artisan migrate"
+docker exec -it --user sail personal-home-portal sh -c "php artisan test"
 docker exec -it --user sail personal-home-portal sh -c "yarn build"
 docker exec -it --user sail personal-home-portal sh -c "yarn add <package>"
 ```
@@ -49,7 +50,7 @@ class User extends Authenticatable {
 
 Reference constants instead of raw strings in queries and Filament forms.
 
-## Two Filament Panels
+## Filament Panel
 
 | Panel       | Path     | Provider             |
 |-------------|----------|----------------------|
@@ -64,17 +65,21 @@ from `app/Filament/Admin/Pages`, widgets from `app/Filament/Admin/Widgets`.
 |---------------------------------------------------------|-------------------------------------------------------------------------------------|
 | `laravel/init.sh`                                       | First-run setup: composer, yarn, key:generate, migrate, filament:assets, yarn build |
 | `laravel/app/Providers/Filament/AdminPanelProvider.php` | Admin-Panel config (theme, colors, middleware)                                      |
+| `supervisor.sh`                                         | Interactive control for Supervisor processes (`php`, `worker`, `scheduler`)         |
+| `docker/supervisord.conf`                               | Runtime process definitions for app server, queue worker, and scheduler             |
 | `docs/index.md`                                         | Full domain documentation (roles, billing formula, workflow)                        |
-| `docs/todo.md`                                          | Phased implementation plan with exact resource/page names                           |
+| `docs/todos.md`                                         | Phased implementation plan with exact resource/page names                           |
 | `docker-compose.yml`                                    | Service definitions (laravel, mysql, redis, mailpit)                                |
+| `docker-compose.prod.yml`                               | Production setup with Traefik labels and persistent DB/Redis volumes                |
 
 ## First-Run Setup
 
 ```bash
 docker-compose build && docker-compose up -d
 docker exec -it personal-home-portal bash -c "chmod -R 777 /var/www/html"
+docker exec -it personal-home-portal bash -c "chown -R sail:sail /var/www/html"
 docker exec -it --user sail personal-home-portal sh -c "sh init.sh"
 docker exec -it --user sail personal-home-portal sh -c "php artisan filament:user --name=Admin --email=admin@example.com --password=secret --panel=admin"
-docker restart portal
-# Admin UI: http://localhost:8080/admin/login
+docker restart personal-home-portal
+# Admin UI: http://localhost/admin/login
 ```

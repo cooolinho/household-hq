@@ -7,6 +7,7 @@ use App\Models\Financial\FixedCostReminder;
 use App\Models\User;
 use App\Notifications\Financial\FixedCostReminderNotification;
 use App\Services\FixedCostNextBookingDateUpdater;
+use App\Settings\FixedCostSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -16,10 +17,10 @@ class SendUpcomingFixedCostsReminderJob implements ShouldQueue
 {
     use Queueable;
 
-    public function handle(FixedCostNextBookingDateUpdater $updater): void
+    public function handle(FixedCostNextBookingDateUpdater $updater, FixedCostSettings $settings): void
     {
         try {
-            if (!config('fixed_costs.reminders.enabled', true)) {
+            if (!$settings->reminders_enabled) {
                 Log::info('Fixed cost reminders are disabled globally, skipping reminder job.');
 
                 return;
