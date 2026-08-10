@@ -3,10 +3,15 @@
 namespace App\Filament\Auth\Pages;
 
 use App\AppConfig;
+use App\Models\ImapAccount;
 use App\Models\User;
 use Filament\Auth\Pages\EditProfile as FilamentEditProfile;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -69,6 +74,74 @@ class EditProfile extends FilamentEditProfile
                     TextInput::make(User::phone),
                     TextInput::make(User::email_business)->email(),
                     TextInput::make(User::email_private)->email(),
+                ]),
+
+            Section::make('IMAP Einstellungen')
+                ->columnSpanFull()
+                ->heading('IMAP Einstellungen')
+                ->description('Verwalten Sie mehrere Mailboxen für den automatischen Dokumentimport.')
+                ->schema([
+                    Repeater::make(User::has_many_imap_accounts)
+                        ->relationship(User::has_many_imap_accounts)
+                        ->label('IMAP Konten')
+                        ->defaultItems(0)
+                        ->collapsible()
+                        ->itemLabel(fn(array $state): ?string => $state[ImapAccount::name] ?? null)
+                        ->columns(2)
+                        ->schema([
+                            TextInput::make(ImapAccount::name)
+                                ->label('Kontoname')
+                                ->required(),
+                            Toggle::make(ImapAccount::is_active)
+                                ->label('Aktiv')
+                                ->default(true),
+                            TextInput::make(ImapAccount::host)
+                                ->label('Host')
+                                ->required(),
+                            TextInput::make(ImapAccount::port)
+                                ->label('Port')
+                                ->numeric()
+                                ->default(993)
+                                ->required(),
+                            Select::make(ImapAccount::encryption)
+                                ->label('Verschlüsselung')
+                                ->options([
+                                    'ssl' => 'SSL',
+                                    'tls' => 'TLS',
+                                    'none' => 'Keine',
+                                ])
+                                ->default('ssl')
+                                ->required(),
+                            TextInput::make(ImapAccount::username)
+                                ->label('Benutzername')
+                                ->required(),
+                            TextInput::make(ImapAccount::password)
+                                ->label('Passwort')
+                                ->password()
+                                ->revealable()
+                                ->required(),
+                            TextInput::make(ImapAccount::inbox_folder)
+                                ->label('Inbox Ordner')
+                                ->default('INBOX')
+                                ->required(),
+                            TextInput::make(ImapAccount::processed_folder)
+                                ->label('Processed Ordner')
+                                ->default('Processed')
+                                ->required(),
+                            Toggle::make(ImapAccount::mark_as_read)
+                                ->label('Nach Import als gelesen markieren')
+                                ->default(true),
+                            CheckboxList::make(ImapAccount::allowed_extensions)
+                                ->label('Erlaubte Dateitypen')
+                                ->options([
+                                    'pdf' => 'PDF',
+                                    'txt' => 'TXT',
+                                    'docx' => 'DOCX',
+                                ])
+                                ->default(['pdf', 'txt', 'docx'])
+                                ->columns(3)
+                                ->required(),
+                        ]),
                 ]),
 
         ];

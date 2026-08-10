@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\FetchImapDocumentsJob;
 use App\Jobs\FixedCostJob;
 use App\Jobs\FixedCostTransactionMatchingJob;
 use App\Jobs\RecurringTransactionSuggestionDetectionJob;
@@ -28,5 +29,13 @@ if (config('fixed_costs.matching.enabled', true)) {
 if (config('fixed_costs.recurring.enabled', true)) {
     Schedule::job(new RecurringTransactionSuggestionDetectionJob())
         ->dailyAt((string)config('fixed_costs.recurring.schedule_time', '03:00'));
+}
+
+if (config('imap_import.enabled', true)) {
+    $minutes = max(1, min(59, (int)config('imap_import.schedule_minutes', 15)));
+
+    Schedule::job(new FetchImapDocumentsJob())
+        ->cron(sprintf('*/%d * * * *', $minutes))
+        ->withoutOverlapping();
 }
 

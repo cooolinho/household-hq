@@ -12,7 +12,8 @@
         "laravel/framework": "^13.9",
         "laravel/tinker": "^3.0",
         "league/iso3166": "^4.4",
-        "spatie/laravel-tags": "^4.12"
+        "spatie/laravel-tags": "^4.12",
+        "ext-imap": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

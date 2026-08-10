@@ -29,6 +29,9 @@ return [
                 'sort' => 'Sortierung',
                 'created_at' => 'Erstellt',
                 'updated_at' => 'Aktualisiert',
+                'import_warning' => 'Import Warnung',
+                'source_email_subject' => 'Quelle E-Mail Betreff',
+                'source_email_from' => 'Quelle E-Mail Absender',
             ],
 
             'filters' => [
@@ -65,6 +68,33 @@ return [
 
             'helpers' => [
                 'filename_auto' => 'Wird automatisch befüllt beim Upload, kann aber manuell geändert werden.',
+            ],
+        ],
+
+        'imported_email' => [
+            'navigation_label' => 'E-Mail Imports',
+            'model_label' => 'E-Mail Import',
+            'plural_model_label' => 'E-Mail Imports',
+            'fields' => [
+                'imap_account' => 'IMAP Konto',
+                'subject' => 'Betreff',
+                'from_name' => 'Absendername',
+                'from_email' => 'Absender E-Mail',
+                'message_id' => 'Message-ID',
+                'uid' => 'UID',
+                'mailbox_folder' => 'Mailbox Ordner',
+                'attachments_count' => 'Anhaenge',
+                'attachments' => 'Anhaenge',
+                'warning_count' => 'Warnungen',
+                'warning_summary' => 'Warnungsdetails',
+                'marked_as_read' => 'Als gelesen markiert',
+                'moved_to_processed' => 'In processed verschoben',
+                'received_at' => 'Empfangen am',
+                'processed_at' => 'Verarbeitet am',
+            ],
+            'filters' => [
+                'moved_to_processed' => 'In processed verschoben',
+                'has_warnings' => 'Hat Warnungen',
             ],
         ],
 

@@ -10,6 +10,7 @@ use App\Models\Inventory\Article;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -85,6 +86,7 @@ class Document extends Model implements CommentableInterface
     const string morphed_by_many_insurances = 'linkedInsurances';
     const string morphed_by_many_articles = 'linkedArticles';
     const string has_many_comments = 'comments';
+    const string has_one_imported_email_attachment = 'importedEmailAttachment';
 
     // polymorphic relation
     const string morph_to_documentable = Documentables::MORPH_NAME;
@@ -186,5 +188,10 @@ class Document extends Model implements CommentableInterface
             Documentables::document_id,
             Documentables::documentable_id,
         )->orderBy(Article::name, 'asc');
+    }
+
+    public function importedEmailAttachment(): HasOne
+    {
+        return $this->hasOne(ImportedEmailAttachment::class, ImportedEmailAttachment::document_id);
     }
 }

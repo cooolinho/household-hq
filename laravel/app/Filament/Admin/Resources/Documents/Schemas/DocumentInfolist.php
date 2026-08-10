@@ -33,6 +33,19 @@ class DocumentInfolist
                 TextEntry::make(Document::mime_type)
                     ->label(__('admin.resource.document.fields.mime_type'))
                     ->placeholder(__('admin.resource.document.placeholders.empty')),
+                TextEntry::make('import_warning')
+                    ->label('Import Warnung')
+                    ->state(fn(Document $record): ?string => $record->importedEmailAttachment?->importedEmail?->warning_summary)
+                    ->placeholder(__('admin.resource.document.placeholders.empty'))
+                    ->visible(fn(Document $record): bool => !empty($record->importedEmailAttachment?->importedEmail?->warning_summary)),
+                TextEntry::make('source_email_subject')
+                    ->label('Quelle E-Mail Betreff')
+                    ->state(fn(Document $record): ?string => $record->importedEmailAttachment?->importedEmail?->subject)
+                    ->placeholder(__('admin.resource.document.placeholders.empty')),
+                TextEntry::make('source_email_from')
+                    ->label('Quelle E-Mail Absender')
+                    ->state(fn(Document $record): ?string => $record->importedEmailAttachment?->importedEmail?->from_email)
+                    ->placeholder(__('admin.resource.document.placeholders.empty')),
                 TextEntry::make(Document::sort)
                     ->label(__('admin.resource.document.fields.sort'))
                     ->numeric()
