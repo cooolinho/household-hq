@@ -67,6 +67,7 @@ class TransactionsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort(Transaction::date, 'desc')
             ->filters([
                 //
             ])

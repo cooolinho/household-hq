@@ -27,7 +27,7 @@ class UpcomingTransactionsTableWidget extends TableWidget
         $monthStart = CarbonImmutable::today()->startOfMonth();
 
         return $table
-            ->heading('Letzte Transaktionen (' . $currency . ')')
+            ->heading('Letzte Transaktionen diesen Monat (' . $currency . ')')
             ->query(
                 Transaction::query()
                     ->where(Transaction::user_id, $userId)
@@ -44,18 +44,21 @@ class UpcomingTransactionsTableWidget extends TableWidget
                 TextColumn::make(Transaction::payer)
                     ->label('Auftraggeber')
                     ->limit(20)
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make(Transaction::purpose)
                     ->label('Verwendungszweck')
                     ->limit(35)
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make(Transaction::belongs_to_fixed_cost . '.' . FixedCost::name)
                     ->label('Fixkosten')
                     ->badge()
                     ->placeholder('-')
                     ->url(fn(Transaction $record): ?string => $record->fixed_cost_id
                         ? FixedCostResource::getViewUrl((int)$record->fixed_cost_id)
-                        : null),
+                        : null)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make(Transaction::amount)
                     ->label('Betrag')
                     ->alignEnd()

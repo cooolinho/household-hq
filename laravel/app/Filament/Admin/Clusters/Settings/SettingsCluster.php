@@ -10,7 +10,7 @@ use Filament\Support\Icons\Heroicon;
 class SettingsCluster extends Cluster
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
-    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
     protected static ?string $clusterBreadcrumb = 'Einstellungen';
     protected static ?string $navigationLabel = 'Einstellungen';
 }
