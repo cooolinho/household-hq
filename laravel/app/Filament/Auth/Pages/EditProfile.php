@@ -10,6 +10,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -131,6 +132,16 @@ class EditProfile extends FilamentEditProfile
                             Toggle::make(ImapAccount::mark_as_read)
                                 ->label('Nach Import als gelesen markieren')
                                 ->default(true),
+                            TagsInput::make(ImapAccount::blacklisted_senders)
+                                ->label('Blockierte Absender')
+                                ->placeholder('newsletter@example.com')
+                                ->helperText('Eine E-Mail-Adresse oder Teilzeichenfolge pro Tag. Groß-/Kleinschreibung wird ignoriert.')
+                                ->columnSpanFull(),
+                            TagsInput::make(ImapAccount::blacklisted_subject_keywords)
+                                ->label('Blockierte Schlagwörter im Betreff')
+                                ->placeholder('Werbung')
+                                ->helperText('Ein Schlagwort pro Tag. Groß-/Kleinschreibung wird ignoriert.')
+                                ->columnSpanFull(),
                             CheckboxList::make(ImapAccount::allowed_extensions)
                                 ->label('Erlaubte Dateitypen')
                                 ->options([

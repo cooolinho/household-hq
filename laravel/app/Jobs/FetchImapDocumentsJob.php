@@ -16,6 +16,15 @@ class FetchImapDocumentsJob implements ShouldQueue
         $result = $service->importAllActiveAccounts();
 
         Log::info('[FetchImapDocumentsJob] Import summary', $result);
+
+        Log::channel('database')->info('IMAP-Import wurde abgeschlossen.', [
+            'event' => 'email.import.summary',
+            'accounts' => (int)($result['accounts'] ?? 0),
+            'emails' => (int)($result['emails'] ?? 0),
+            'documents' => (int)($result['documents'] ?? 0),
+            'skipped' => (int)($result['skipped'] ?? 0),
+            'failed' => (int)($result['failed'] ?? 0),
+        ]);
     }
 }
 

@@ -34,5 +34,44 @@ class ImapDocumentImportServiceTest extends TestCase
 
         $this->assertNull($reason);
     }
+
+    public function test_it_skips_when_sender_is_blacklisted(): void
+    {
+        $shouldSkip = ImapDocumentImportService::shouldSkipMessage(
+            'Rechnung',
+            'newsletter@example.com',
+            'Newsletter Bot',
+            ['newsletter@example.com'],
+            []
+        );
+
+        $this->assertTrue($shouldSkip);
+    }
+
+    public function test_it_skips_when_subject_keyword_is_blacklisted(): void
+    {
+        $shouldSkip = ImapDocumentImportService::shouldSkipMessage(
+            'Werbung: Neue Angebote',
+            'sender@example.com',
+            'Sender',
+            [],
+            ['werbung']
+        );
+
+        $this->assertTrue($shouldSkip);
+    }
+
+    public function test_it_keeps_email_when_blacklist_does_not_match(): void
+    {
+        $shouldSkip = ImapDocumentImportService::shouldSkipMessage(
+            'Rechnung',
+            'sender@example.com',
+            'Sender',
+            ['newsletter@example.com'],
+            ['werbung']
+        );
+
+        $this->assertFalse($shouldSkip);
+    }
 }
 

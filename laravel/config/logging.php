@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\DatabaseLoggerFactory;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -121,6 +122,12 @@ return [
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
+        ],
+
+        'database' => [
+            'driver' => 'custom',
+            'via' => DatabaseLoggerFactory::class,
+            'level' => env('LOG_DATABASE_LEVEL', 'info'),
         ],
 
         'emergency' => [

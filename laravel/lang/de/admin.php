@@ -98,6 +98,27 @@ return [
             ],
         ],
 
+        'application_log' => [
+            'navigation_label' => 'System-Logs',
+            'model_label' => 'System-Log',
+            'plural_model_label' => 'System-Logs',
+            'fields' => [
+                'event' => 'Event',
+                'channel' => 'Kanal',
+                'level' => 'Level',
+                'message' => 'Nachricht',
+                'user' => 'Benutzer',
+                'occurred_at' => 'Zeitpunkt',
+            ],
+            'filters' => [
+                'event' => 'Event',
+                'level' => 'Level',
+                'occurred_between' => 'Zeitraum',
+                'from' => 'Von',
+                'until' => 'Bis',
+            ],
+        ],
+
         // MeasurementDevice / Messgerät
         'measurement_device' => [
             'navigation_label' => 'Messgeräte',

@@ -21,6 +21,8 @@ use Illuminate\Support\Carbon;
  * @property bool $mark_as_read
  * @property bool $is_active
  * @property array<int, string>|null $allowed_extensions
+ * @property array<int, string>|null $blacklisted_senders
+ * @property array<int, string>|null $blacklisted_subject_keywords
  * @property Carbon|null $last_run_at
  * @property string|null $last_error
  */
@@ -41,6 +43,8 @@ class ImapAccount extends Model
     const string mark_as_read = 'mark_as_read';
     const string is_active = 'is_active';
     const string allowed_extensions = 'allowed_extensions';
+    const string blacklisted_senders = 'blacklisted_senders';
+    const string blacklisted_subject_keywords = 'blacklisted_subject_keywords';
     const string last_run_at = 'last_run_at';
     const string last_error = 'last_error';
     const string created_at = self::CREATED_AT;
@@ -64,6 +68,8 @@ class ImapAccount extends Model
         self::mark_as_read,
         self::is_active,
         self::allowed_extensions,
+        self::blacklisted_senders,
+        self::blacklisted_subject_keywords,
         self::last_run_at,
         self::last_error,
     ];
@@ -90,6 +96,8 @@ class ImapAccount extends Model
             self::mark_as_read => 'boolean',
             self::is_active => 'boolean',
             self::allowed_extensions => 'array',
+            self::blacklisted_senders => 'array',
+            self::blacklisted_subject_keywords => 'array',
             self::last_run_at => 'datetime',
             self::password => 'encrypted',
         ];

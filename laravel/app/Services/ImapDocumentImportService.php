@@ -99,13 +99,51 @@ class ImapDocumentImportService
                     continue;
                 }
 
-                $messageId = $this->resolveMessageId($stream, $uid);
+                $messageData = $this->fetchMessageData($stream, $uid);
+                $messageId = $messageData['message_id'];
 
                 if ($this->hasEmailBeenImported($account, $uid, $messageId)) {
                     continue;
                 }
 
-                $email = $this->createImportedEmailRecord($stream, $account, $uid);
+                if (self::shouldSkipMessage(
+                    $messageData['subject'],
+                    $messageData['from_email'],
+                    $messageData['from_name'],
+                    (array)($account->blacklisted_senders ?? []),
+                    (array)($account->blacklisted_subject_keywords ?? [])
+                )) {
+                    $markedAsRead = false;
+                    if ($account->mark_as_read) {
+                        $markFlags = defined('ST_UID') ? ST_UID : 0;
+                        $markedAsRead = (bool)@imap_setflag_full($stream, (string)$uid, '\\Seen', $markFlags);
+                    }
+
+                    [$movedToProcessed, $moveWarning] = $this->moveMessageToProcessedFolder($stream, $account, $uid);
+
+                    Log::info('[ImapDocumentImportService] Email skipped by blacklist', [
+                        'accountId' => $account->id,
+                        'userId' => $account->user_id,
+                        'uid' => $uid,
+                        'subject' => $messageData['subject'],
+                        'fromEmail' => $messageData['from_email'],
+                    ]);
+
+                    Log::channel('database')->info('E-Mail wurde beim Import uebersprungen.', [
+                        'event' => 'email.import.skipped',
+                        'user_id' => $account->user_id,
+                        'imap_account_id' => $account->id,
+                        'uid' => $uid,
+                        'subject' => $messageData['subject'],
+                        'from_email' => $messageData['from_email'],
+                        'reason' => 'blacklist',
+                    ]);
+
+                    $result['skipped']++;
+                    continue;
+                }
+
+                $email = $this->createImportedEmailRecord($stream, $account, $uid, $messageData);
                 $result['emails']++;
 
                 $meta = $this->extractAttachmentMeta($stream, $uid);
@@ -236,15 +274,76 @@ class ImapDocumentImportService
         return sprintf('{%s:%d%s}%s', $account->host, $account->port, $flags, $folder);
     }
 
-    private function resolveMessageId($stream, int $uid): ?string
+    public static function shouldSkipMessage(?string $subject, ?string $fromEmail, ?string $fromName, array $blacklistedSenders, array $blacklistedSubjectKeywords): bool
+    {
+        $normalizedSenders = self::normalizeBlacklistValues($blacklistedSenders);
+        $normalizedKeywords = self::normalizeBlacklistValues($blacklistedSubjectKeywords);
+
+        foreach ($normalizedSenders as $sender) {
+            $candidateValues = array_values(array_filter([
+                $fromEmail,
+                $fromName,
+                $fromEmail && $fromName ? sprintf('%s <%s>', $fromName, $fromEmail) : null,
+            ], static function (?string $value): bool {
+                return $value !== null && $value !== '';
+            }));
+
+            foreach ($candidateValues as $candidateValue) {
+                $normalizedCandidate = strtolower(trim((string)$candidateValue));
+                if ($normalizedCandidate === '' || $sender === '') {
+                    continue;
+                }
+
+                if (str_contains($normalizedCandidate, $sender) || str_contains($sender, $normalizedCandidate)) {
+                    return true;
+                }
+            }
+        }
+
+        if ($subject === null || $subject === '') {
+            return false;
+        }
+
+        $normalizedSubject = strtolower(trim((string)$subject));
+        return array_any($normalizedKeywords, fn($keyword) => $normalizedSubject !== '' && str_contains($normalizedSubject, $keyword));
+    }
+
+    private static function normalizeBlacklistValues(array $values): array
+    {
+        $normalized = array_map(static fn($value): string => strtolower(trim((string)$value)), $values);
+
+        return array_filter($normalized, static fn(string $value): bool => $value !== '')
+                |> array_unique(...)
+                |> array_values(...);
+    }
+
+    private function fetchMessageData($stream, int $uid): array
     {
         $fetchFlags = defined('FT_UID') ? FT_UID : 0;
         $overview = imap_fetch_overview($stream, (string)$uid, $fetchFlags);
         $data = is_array($overview) && isset($overview[0]) ? $overview[0] : null;
 
         $messageId = isset($data->message_id) ? trim((string)$data->message_id, '<>') : null;
+        $subject = isset($data->subject) ? imap_utf8((string)$data->subject) : null;
+        $fromRaw = isset($data->from) ? imap_utf8((string)$data->from) : null;
+        [$fromName, $fromEmail] = $this->parseFromAddress($fromRaw);
 
-        return $messageId !== '' ? $messageId : null;
+        $receivedAt = null;
+        if (!empty($data?->date)) {
+            try {
+                $receivedAt = Carbon::parse((string)$data->date);
+            } catch (Throwable) {
+                $receivedAt = null;
+            }
+        }
+
+        return [
+            'message_id' => $messageId !== '' ? $messageId : null,
+            'subject' => $subject,
+            'from_name' => $fromName,
+            'from_email' => $fromEmail,
+            'received_at' => $receivedAt,
+        ];
     }
 
     private function hasEmailBeenImported(ImapAccount $account, int $uid, ?string $messageId): bool
@@ -261,25 +360,16 @@ class ImapDocumentImportService
             ->exists();
     }
 
-    private function createImportedEmailRecord($stream, ImapAccount $account, int $uid): ImportedEmail
+    private function createImportedEmailRecord($stream, ImapAccount $account, int $uid, ?array $messageData = null): ImportedEmail
     {
         $fetchFlags = defined('FT_UID') ? FT_UID : 0;
-        $overview = imap_fetch_overview($stream, (string)$uid, $fetchFlags);
-        $data = is_array($overview) && isset($overview[0]) ? $overview[0] : null;
+        $messageData = $messageData ?? $this->fetchMessageData($stream, $uid);
 
-        $messageId = isset($data->message_id) ? trim((string)$data->message_id, '<>') : null;
-        $subject = isset($data->subject) ? imap_utf8((string)$data->subject) : null;
-        $fromRaw = isset($data->from) ? imap_utf8((string)$data->from) : null;
-        $receivedAt = null;
-        if (!empty($data?->date)) {
-            try {
-                $receivedAt = Carbon::parse((string)$data->date);
-            } catch (Throwable) {
-                $receivedAt = null;
-            }
-        }
-
-        [$fromName, $fromEmail] = $this->parseFromAddress($fromRaw);
+        $messageId = $messageData['message_id'];
+        $subject = $messageData['subject'];
+        $fromName = $messageData['from_name'];
+        $fromEmail = $messageData['from_email'];
+        $receivedAt = $messageData['received_at'];
 
         $headers = @imap_fetchheader($stream, (string)$uid, $fetchFlags) ?: null;
 
