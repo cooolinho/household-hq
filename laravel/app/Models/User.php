@@ -10,6 +10,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -70,6 +71,7 @@ class User extends Authenticatable implements FilamentUser
     const string email_private = 'email_private';
     const string has_many_imap_accounts = 'imapAccounts';
     const string has_many_imported_emails = 'importedEmails';
+    const string has_one_dashboard_widget_preference = 'dashboardWidgetPreference';
 
     protected $table = self::TABLE;
 
@@ -148,5 +150,10 @@ class User extends Authenticatable implements FilamentUser
     public function importedEmails(): HasMany
     {
         return $this->hasMany(ImportedEmail::class, ImportedEmail::user_id);
+    }
+
+    public function dashboardWidgetPreference(): HasOne
+    {
+        return $this->hasOne(DashboardWidgetPreference::class, DashboardWidgetPreference::user_id);
     }
 }

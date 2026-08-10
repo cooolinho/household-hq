@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Admin\Clusters\Settings\Pages\DashboardSettingsPage;
 use App\Filament\Admin\Clusters\Settings\Pages\FixedCostSettingsPage;
 use App\Filament\Admin\Clusters\Settings\Pages\ImapSettingsPage;
+use App\Models\DashboardWidgetPreference;
+use App\Models\User;
 use App\Settings\FixedCostSettings;
 use App\Settings\ImapImportSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +45,32 @@ class SettingsPagesPersistenceTest extends TestCase
 
         $this->assertFalse($settings->enabled);
         $this->assertSame(22, $settings->schedule_minutes);
+    }
+
+    public function test_dashboard_settings_page_saves_values_to_user_preferences(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(DashboardSettingsPage::class)
+            ->set('data.' . DashboardWidgetPreference::show_monthly_balance_stats, false)
+            ->set('data.' . DashboardWidgetPreference::show_monthly_balance_chart, true)
+            ->set('data.' . DashboardWidgetPreference::show_upcoming_transactions_table, false)
+            ->set('data.' . DashboardWidgetPreference::show_portfolio_overview, true)
+            ->set('data.' . DashboardWidgetPreference::balance_mode, DashboardWidgetPreference::BALANCE_MODE_BOTH)
+            ->set('data.' . DashboardWidgetPreference::currency, 'eur')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas(DashboardWidgetPreference::TABLE, [
+            DashboardWidgetPreference::user_id => $user->id,
+            DashboardWidgetPreference::show_monthly_balance_stats => 0,
+            DashboardWidgetPreference::show_monthly_balance_chart => 1,
+            DashboardWidgetPreference::show_upcoming_transactions_table => 0,
+            DashboardWidgetPreference::show_portfolio_overview => 1,
+            DashboardWidgetPreference::balance_mode => DashboardWidgetPreference::BALANCE_MODE_BOTH,
+            DashboardWidgetPreference::currency => 'EUR',
+        ]);
     }
 }
 
