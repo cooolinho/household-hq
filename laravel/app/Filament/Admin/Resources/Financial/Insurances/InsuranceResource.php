@@ -48,7 +48,9 @@ class InsuranceResource extends Resource
     {
         return InsurancesTable::configure($table)
             ->modifyQueryUsing(function ($query) {
-                $query->where(Insurance::user_id, auth()->id());
+                $query
+                    ->where(Insurance::user_id, auth()->id())
+                    ->with(Insurance::belongs_to_category);
             });
     }
 

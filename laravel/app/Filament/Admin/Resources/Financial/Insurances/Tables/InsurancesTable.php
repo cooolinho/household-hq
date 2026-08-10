@@ -19,6 +19,11 @@ class InsurancesTable
             ->columns([
                 TextColumn::make(Insurance::name)
                     ->searchable(),
+                TextColumn::make(Insurance::belongs_to_category . '.name')
+                    ->label('Kategorie')
+                    ->badge()
+                    ->placeholder('-')
+                    ->searchable(),
                 TextColumn::make(Insurance::move_notification_status)
                     ->label('Umzug-Status')
                     ->badge()

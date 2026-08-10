@@ -7,7 +7,6 @@
     use App\Models\Enums\FixedCostIntervalEnum;
     use App\Models\Enums\InsuranceMoveNotificationChannelEnum;
     use App\Models\Enums\InsuranceMoveNotificationStatusEnum;
-    use App\Models\Enums\InsuranceTypeEnum;
     use App\Models\Financial\FixedCost;
 
     /** @var \App\Models\Financial\Insurance $insurance */
@@ -27,7 +26,8 @@
         return $enumName;
     };
 
-    $typeLabel = $enumLabelByName(InsuranceTypeEnum::class, $insurance->type);
+    $categoryLabel = $insurance->category?->name ?? '-';
+    $categoryGroupLabel = $insurance->category?->group ?? '-';
     $moveChannelLabel = $enumLabelByName(InsuranceMoveNotificationChannelEnum::class, $insurance->move_notification_channel);
     $moveStatusLabel = $enumLabelByName(InsuranceMoveNotificationStatusEnum::class, $insurance->move_notification_status);
 
@@ -58,8 +58,8 @@
 
             <div class="iv-main-metrics">
                 <div class="iv-type">
-                    <span class="iv-type-label">Typ</span>
-                    <span class="iv-type-value">{{ $typeLabel }}</span>
+                    <span class="iv-type-label">Kategorie</span>
+                    <span class="iv-type-value">{{ $categoryLabel }}</span>
                 </div>
 
                 <div class="iv-company">
@@ -70,6 +70,10 @@
         </section>
 
         <section class="iv-meta-grid">
+            <article>
+                <span>Gruppe</span>
+                <strong>{{ $categoryGroupLabel }}</strong>
+            </article>
             <article>
                 <span>Versicherungsnummer</span>
                 <strong>{{ $insurance->number ?: '-' }}</strong>

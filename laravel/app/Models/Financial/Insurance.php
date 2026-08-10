@@ -23,7 +23,7 @@ use Spatie\Tags\HasTags;
  * @property int $user_id
  * @property string $name
  * @property string|null $number
- * @property string|null $type
+ * @property int|null $category_id
  * @property Carbon|null $start_date
  * @property Carbon|null $end_date
  * @property string|null $company
@@ -40,6 +40,7 @@ use Spatie\Tags\HasTags;
  *
  * Relations
  * @property User $user
+ * @property InsuranceCategory|null $category
  * @property Collection|Document[] $has_many_documents
  * @property Collection|FixedCost[] $has_many_fixed_costs
  */
@@ -57,7 +58,7 @@ class Insurance extends Model implements CommentableInterface
     const string updated_at = Model::UPDATED_AT;
 
     const string number = 'number';
-    const string type = 'type';
+    const string category_id = 'category_id';
     const string start_date = 'start_date';
     const string end_date = 'end_date';
     const string company = 'company';
@@ -85,6 +86,7 @@ class Insurance extends Model implements CommentableInterface
     const string has_many_documents = 'documents';
     const string has_many_fixed_costs = 'fixedCosts';
     const string belongs_to_user = 'user';
+    const string belongs_to_category = 'category';
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -92,7 +94,7 @@ class Insurance extends Model implements CommentableInterface
         self::name,
         self::user_id,
         self::number,
-        self::type,
+        self::category_id,
         self::start_date,
         self::end_date,
         self::company,
@@ -122,6 +124,11 @@ class Insurance extends Model implements CommentableInterface
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(InsuranceCategory::class, self::category_id);
     }
 
     public function documents(): MorphToMany

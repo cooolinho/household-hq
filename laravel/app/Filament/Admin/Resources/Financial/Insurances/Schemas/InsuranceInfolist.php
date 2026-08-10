@@ -14,7 +14,12 @@ class InsuranceInfolist
             ->components([
                 TextEntry::make(Insurance::name),
                 TextEntry::make(Insurance::number),
-                TextEntry::make(Insurance::type),
+                TextEntry::make(Insurance::belongs_to_category . '.name')
+                    ->label('Kategorie')
+                    ->placeholder('-'),
+                TextEntry::make(Insurance::belongs_to_category . '.group')
+                    ->label('Gruppe')
+                    ->placeholder('-'),
                 TextEntry::make(Insurance::start_date),
                 TextEntry::make(Insurance::end_date),
                 TextEntry::make(Insurance::company),

@@ -116,6 +116,12 @@ return [
             'plural_model_label' => 'Versicherungen',
         ],
 
+        'insurance_category' => [
+            'navigation_label' => 'Kategorien',
+            'model_label' => 'Versicherungskategorie',
+            'plural_model_label' => 'Versicherungskategorien',
+        ],
+
         // MatchingSuggestion / Matching-Vorschlag
         'matching_suggestion' => [
             'navigation_label' => 'Matching-Vorschläge',

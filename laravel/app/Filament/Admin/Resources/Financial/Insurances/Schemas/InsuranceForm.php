@@ -3,8 +3,8 @@
 namespace App\Filament\Admin\Resources\Financial\Insurances\Schemas;
 
 use App\Filament\Admin\Resources\Tags\TagResource;
-use App\Models\Enums\InsuranceTypeEnum;
 use App\Models\Financial\Insurance;
+use App\Models\Financial\InsuranceCategory;
 use App\Util\CountriesUtil;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -27,10 +27,11 @@ class InsuranceForm
                         TextInput::make(Insurance::name)
                             ->required(),
                         TextInput::make(Insurance::company),
-                        Select::make(Insurance::type)
-                            ->options(InsuranceTypeEnum::options())
+                        Select::make(Insurance::category_id)
+                            ->label('Kategorie')
+                            ->options(self::groupedCategoryOptions())
                             ->searchable()
-                            ->placeholder('Select type'),
+                            ->placeholder('Keine Kategorie'),
                         TextInput::make(Insurance::number),
                         DatePicker::make(Insurance::start_date),
                         DatePicker::make(Insurance::end_date),
@@ -69,5 +70,21 @@ class InsuranceForm
 
                 TagResource::getMorphToManySelect($schema, Insurance::morph_to_many_tags)
             ]);
+    }
+
+    private static function groupedCategoryOptions(): array
+    {
+        $grouped = [];
+
+        $categories = InsuranceCategory::query()
+            ->orderBy(InsuranceCategory::group)
+            ->orderBy(InsuranceCategory::name)
+            ->get();
+
+        foreach ($categories as $category) {
+            $grouped[$category->{InsuranceCategory::group}][(string)$category->id] = $category->{InsuranceCategory::name};
+        }
+
+        return $grouped;
     }
 }
