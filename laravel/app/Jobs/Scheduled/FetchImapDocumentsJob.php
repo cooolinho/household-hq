@@ -1,21 +1,26 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Jobs\Scheduled;
 
 use App\Services\ImapDocumentImportService;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
 class FetchImapDocumentsJob implements ShouldQueue
 {
+    use Dispatchable;
     use Queueable;
+
+    public static function description(): string
+    {
+        return 'IMAP-Dokumente aus allen aktiven Konten importieren';
+    }
 
     public function handle(ImapDocumentImportService $service): void
     {
         $result = $service->importAllActiveAccounts();
-
-        Log::info('[FetchImapDocumentsJob] Import summary', $result);
 
         Log::channel('database')->info('IMAP-Import wurde abgeschlossen.', [
             'event' => 'email.import.summary',

@@ -88,6 +88,7 @@ class TagResource extends Resource
         }
         return false;
     }
+
     public static function getMorphToManySelect(Schema $schema, string $relationship, string $property = 'tags')
     {
         return Select::make($property)

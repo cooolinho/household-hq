@@ -1,10 +1,10 @@
 <?php
 
-use App\Jobs\FetchImapDocumentsJob;
-use App\Jobs\FixedCostJob;
-use App\Jobs\FixedCostTransactionMatchingJob;
-use App\Jobs\RecurringTransactionSuggestionDetectionJob;
-use App\Jobs\SendUpcomingFixedCostsReminderJob;
+use App\Jobs\Scheduled\FetchImapDocumentsJob;
+use App\Jobs\Scheduled\FixedCostJob;
+use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
+use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
+use App\Jobs\Scheduled\SendUpcomingFixedCostsReminderJob;
 use App\Settings\FixedCostSettings;
 use App\Settings\ImapImportSettings;
 use Illuminate\Foundation\Inspiring;
@@ -27,8 +27,10 @@ if (!Schema::hasTable('settings')) {
 $fixedCostSettings = app(FixedCostSettings::class);
 $imapImportSettings = app(ImapImportSettings::class);
 
-Schedule::job(new FixedCostJob())
-    ->dailyAt($fixedCostSettings->update_schedule_time);
+if ($fixedCostSettings->update_due_dates_enabled) {
+    Schedule::job(new FixedCostJob())
+        ->dailyAt($fixedCostSettings->update_schedule_time);
+}
 
 if ($fixedCostSettings->reminders_enabled) {
     Schedule::job(new SendUpcomingFixedCostsReminderJob())

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\FixedCosts\Schemas;
 
+use App\Filament\Admin\Resources\Financial\FixedCostCategories\Schemas\FixedCostCategoryForm;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
@@ -24,6 +25,7 @@ use Filament\Support\Icons\Heroicon;
 class FixedCostForm
 {
     private const string NO_CATEGORY_OPTION = '__none__';
+    const string INPUT_ASSIGN_WITH_INSURANCE = 'assign_with_insurance';
 
     public static function configure(Schema $schema): Schema
     {
@@ -39,6 +41,12 @@ class FixedCostForm
                 ->columnSpanFull()
                 ->columns(2)
                 ->schema(self::getSectionBaseSchema()),
+
+            Section::make('insurance')
+                ->heading(false)
+                ->columnSpanFull()
+                ->columns(2)
+                ->schema(self::getSectionInsuranceSchema()),
 
             Section::make('interval')
                 ->heading(false)
@@ -100,29 +108,7 @@ class FixedCostForm
                     }))
                 ->numeric()
                 ->rule(new FixedCostAmountNotZeroRule()),
-            Select::make(FixedCost::category_id)
-                ->columnSpanFull()
-                ->label('Kategorie')
-                ->options(fn() => self::groupedCategoryOptions())
-                ->default(self::NO_CATEGORY_OPTION)
-                ->formatStateUsing(fn($state) => $state ?? self::NO_CATEGORY_OPTION)
-                ->dehydrateStateUsing(fn($state) => $state === self::NO_CATEGORY_OPTION ? null : (int)$state)
-                ->searchable()
-                ->preload()
-                ->reactive(),
-
-            Checkbox::make('assign_with_insurance')
-                ->label('Mit Versicherung verknüpfen?')
-                ->reactive(),
-
-            Select::make(FixedCost::insurance_id)
-                ->label('Versicherung')
-                ->options(Insurance::all()->pluck('name', 'id')->toArray())
-                ->searchable()
-                ->visible(function (Get $get) {
-                    return $get('assign_with_insurance') === true;
-                })
-                ->preload(),
+            self::getBelongsToCategorySelect(),
         ];
     }
 
@@ -198,5 +184,66 @@ class FixedCostForm
         }
 
         return $grouped;
+    }
+
+    private static function getSectionInsuranceSchema(): array
+    {
+        return [
+            Checkbox::make(self::INPUT_ASSIGN_WITH_INSURANCE)
+                ->label('Mit Versicherung verknüpfen?')
+                ->reactive(),
+
+            Select::make(FixedCost::insurance_id)
+                ->label('Versicherung')
+                ->options(function () {
+                    return Insurance::query()
+                        ->orderBy(Insurance::name)
+                        ->pluck(Insurance::name, Insurance::id)
+                        ->toArray();
+                })
+                ->searchable()
+                ->visible(function (Get $get) {
+                    return $get('assign_with_insurance') === true;
+                })
+                ->preload(),
+        ];
+    }
+
+    public static function getBelongsToCategorySelect(
+        string $inputName = FixedCost::category_id
+    ): Select
+    {
+        return Select::make($inputName)
+            ->label(__('admin.resource.fixed_cost_category.model_label'))
+            ->options(function () {
+                $grouped = [];
+
+                $categories = FixedCostCategory::query()
+                    ->orderBy(FixedCostCategory::group)
+                    ->orderBy(FixedCostCategory::name)
+                    ->get();
+
+                /** @var FixedCostCategory $category */
+                foreach ($categories as $category) {
+                    $group = $category->{FixedCostCategory::group} ?: FixedCostCategory::GROUP_NOT_CATEGORIZED;
+                    $grouped[$group][(string)$category->id] = $category->{FixedCostCategory::name};
+                }
+
+                // group "GROUP_NOT_CATEGORIZED" at the end
+                if (isset($grouped[FixedCostCategory::GROUP_NOT_CATEGORIZED])) {
+                    $notCategorized = $grouped[FixedCostCategory::GROUP_NOT_CATEGORIZED];
+                    unset($grouped[FixedCostCategory::GROUP_NOT_CATEGORIZED]);
+                    $grouped[FixedCostCategory::GROUP_NOT_CATEGORIZED] = $notCategorized;
+                }
+
+                return $grouped;
+            })
+            ->preload()
+            ->searchable()
+            ->createOptionForm(FixedCostCategoryForm::configure(new Schema())->getComponents())
+            ->createOptionUsing(function (array $data) {
+                return FixedCostCategory::query()->create($data)->id;
+            })
+            ->placeholder('Kategorie auswählen');
     }
 }

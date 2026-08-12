@@ -19,13 +19,14 @@ use Illuminate\Support\Carbon;
 class FixedCostCategory extends Model
 {
     const string TABLE = 'financial_fixed_cost_categories';
-
+    const string GROUP_NOT_CATEGORIZED = 'Nicht kategorisiert';
+    
     const string id = 'id';
     const string name = 'name';
     const string group = 'group';
     const string created_at = Model::CREATED_AT;
-    const string updated_at = Model::UPDATED_AT;
 
+    const string updated_at = Model::UPDATED_AT;
     const string has_many_fixed_costs = 'fixedCosts';
 
     protected $table = self::TABLE;

@@ -19,8 +19,14 @@ class InsuranceCategoryForm
                     ->maxLength(255),
                 Select::make(InsuranceCategory::group)
                     ->label('Gruppe')
-                    ->required()
                     ->searchable()
+                    ->options(function (): array {
+                        return InsuranceCategory::query()
+                            ->distinct()
+                            ->orderBy(InsuranceCategory::group)
+                            ->pluck(InsuranceCategory::group, InsuranceCategory::group)
+                            ->toArray();
+                    })
                     ->getSearchResultsUsing(function (string $search): array {
                         $existing = InsuranceCategory::query()
                             ->where(InsuranceCategory::group, 'like', "%{$search}%")

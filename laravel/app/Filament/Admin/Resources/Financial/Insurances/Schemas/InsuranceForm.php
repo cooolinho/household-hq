@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Financial\Insurances\Schemas;
 
+use App\Filament\Admin\Resources\Financial\InsuranceCategories\Schemas\InsuranceCategoryForm;
 use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\Financial\Insurance;
 use App\Models\Financial\InsuranceCategory;
@@ -27,11 +28,7 @@ class InsuranceForm
                         TextInput::make(Insurance::name)
                             ->required(),
                         TextInput::make(Insurance::company),
-                        Select::make(Insurance::category_id)
-                            ->label('Kategorie')
-                            ->options(self::groupedCategoryOptions())
-                            ->searchable()
-                            ->placeholder('Keine Kategorie'),
+                        self::getBelongsToCategorySelect($schema),
                         TextInput::make(Insurance::number),
                         DatePicker::make(Insurance::start_date),
                         DatePicker::make(Insurance::end_date),
@@ -68,23 +65,45 @@ class InsuranceForm
                             ->options(CountriesUtil::options())
                     ]),
 
-                TagResource::getMorphToManySelect($schema, Insurance::morph_to_many_tags)
+                TagResource::getMorphToManySelect($schema, Insurance::morph_to_many_tags),
             ]);
     }
 
-    private static function groupedCategoryOptions(): array
+    public static function getBelongsToCategorySelect(
+        Schema $schema,
+        string $inputName = Insurance::category_id
+    ): Select
     {
-        $grouped = [];
+        return Select::make($inputName)
+            ->label(__('admin.resource.insurance_category.model_label'))
+            ->options(function () {
+                $grouped = [];
 
-        $categories = InsuranceCategory::query()
-            ->orderBy(InsuranceCategory::group)
-            ->orderBy(InsuranceCategory::name)
-            ->get();
+                $categories = InsuranceCategory::query()
+                    ->orderBy(InsuranceCategory::group)
+                    ->orderBy(InsuranceCategory::name)
+                    ->get();
 
-        foreach ($categories as $category) {
-            $grouped[$category->{InsuranceCategory::group}][(string)$category->id] = $category->{InsuranceCategory::name};
-        }
+                /** @var InsuranceCategory $category */
+                foreach ($categories as $category) {
+                    $grouped[$category->{InsuranceCategory::group}][(string)$category->id] = $category->{InsuranceCategory::name};
+                }
 
-        return $grouped;
+                // group "GROUP_NOT_CATEGORIZED" at the end
+                if (isset($grouped[InsuranceCategory::GROUP_NOT_CATEGORIZED])) {
+                    $notCategorized = $grouped[InsuranceCategory::GROUP_NOT_CATEGORIZED];
+                    unset($grouped[InsuranceCategory::GROUP_NOT_CATEGORIZED]);
+                    $grouped[InsuranceCategory::GROUP_NOT_CATEGORIZED] = $notCategorized;
+                }
+
+                return $grouped;
+            })
+            ->preload()
+            ->searchable()
+            ->createOptionForm(InsuranceCategoryForm::configure($schema)->getComponents())
+            ->createOptionUsing(function (array $data) {
+                return InsuranceCategory::query()->create($data)->id;
+            })
+            ->placeholder('Kategorie auswählen');
     }
 }

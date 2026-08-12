@@ -30,36 +30,19 @@ class FixedCostSettingsPage extends Page implements HasForms
 
     public function mount(FixedCostSettings $settings): void
     {
-        $this->form->fill([
-            'update_schedule_time' => $settings->update_schedule_time,
-            'reminders_enabled' => $settings->reminders_enabled,
-            'reminders_schedule_time' => $settings->reminders_schedule_time,
-            'matching_threshold' => $settings->matching_threshold,
-            'matching_schedule_time' => $settings->matching_schedule_time,
-            'matching_enabled' => $settings->matching_enabled,
-            'matching_learning_enabled' => $settings->matching_learning_enabled,
-            'matching_learning_auto_learn_min_score' => $settings->matching_learning_auto_learn_min_score,
-            'matching_learning_auto_positive_weight' => $settings->matching_learning_auto_positive_weight,
-            'matching_learning_accepted_positive_weight' => $settings->matching_learning_accepted_positive_weight,
-            'matching_learning_rejected_negative_weight' => $settings->matching_learning_rejected_negative_weight,
-            'matching_learning_reject_block_threshold' => $settings->matching_learning_reject_block_threshold,
-            'matching_learning_rule_confidence_min' => $settings->matching_learning_rule_confidence_min,
-            'matching_learning_amount_tolerance_percent' => $settings->matching_learning_amount_tolerance_percent,
-            'recurring_enabled' => $settings->recurring_enabled,
-            'recurring_schedule_time' => $settings->recurring_schedule_time,
-            'recurring_min_occurrences' => $settings->recurring_min_occurrences,
-            'recurring_window_months' => $settings->recurring_window_months,
-            'recurring_amount_tolerance_percent' => $settings->recurring_amount_tolerance_percent,
-        ]);
+        $this->form->fill($settings->toArray());
     }
 
     public function form(Schema $form): Schema
     {
         return $form
             ->schema([
-                Section::make('Jobs')
-                    ->columns(3)
+                Section::make('Jobs & Uhrzeiten')
+                    ->columns(2)
                     ->schema([
+                        Toggle::make('update_due_dates_enabled')
+                            ->label('Update Due Dates aktiviert')
+                            ->helperText('Aktiviert den Job, der die Fälligkeitstermine von Fixkosten aktualisiert.'),
                         TextInput::make('update_schedule_time')
                             ->label('Update Job (HH:MM)')
                             ->helperText('Tägliche Uhrzeit für den Job, der Fixkosten aktualisiert.')
@@ -90,9 +73,14 @@ class FixedCostSettingsPage extends Page implements HasForms
                             ->required()
                             ->rule('date_format:H:i'),
                     ]),
+
                 Section::make('Matching')
                     ->columns(3)
                     ->schema([
+                        Toggle::make('matching_learning_enabled')
+                            ->label('Learning aktiviert')
+                            ->columnSpanFull()
+                            ->helperText('Aktiviert lernende Matching-Regeln aus automatischen und manuellen Entscheidungen.'),
                         TextInput::make('matching_threshold')
                             ->label('Auto-Link Threshold')
                             ->helperText('Mindest-Score (0-100) für eine automatische Verknüpfung ohne manuellen Vorschlag.')
@@ -100,9 +88,6 @@ class FixedCostSettingsPage extends Page implements HasForms
                             ->minValue(0)
                             ->maxValue(100)
                             ->required(),
-                        Toggle::make('matching_learning_enabled')
-                            ->label('Learning aktiviert')
-                            ->helperText('Aktiviert lernende Matching-Regeln aus automatischen und manuellen Entscheidungen.'),
                         TextInput::make('matching_learning_auto_learn_min_score')
                             ->label('Auto-Learn Min Score')
                             ->helperText('Ab diesem Score wird ein Auto-Link als positives Lernsignal gewertet.')
@@ -184,6 +169,7 @@ class FixedCostSettingsPage extends Page implements HasForms
     {
         $state = $this->form->getState();
 
+        $settings->update_due_dates_enabled = (string)$state['update_due_dates_enabled'];
         $settings->update_schedule_time = (string)$state['update_schedule_time'];
         $settings->reminders_enabled = (bool)$state['reminders_enabled'];
         $settings->reminders_schedule_time = (string)$state['reminders_schedule_time'];

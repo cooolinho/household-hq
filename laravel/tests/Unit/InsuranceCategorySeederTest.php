@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\Financial\InsuranceCategory;
 use Database\Seeders\InsuranceCategorySeeder;
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +22,7 @@ class InsuranceCategorySeederTest extends TestCase
             'Persönliche Absicherung',
             'Vermögensabsicherung',
             'Vermögensaufbau',
-            'Nicht kategorisiert',
+            InsuranceCategory::GROUP_NOT_CATEGORIZED,
         ];
 
         foreach ($expectedGroups as $group) {

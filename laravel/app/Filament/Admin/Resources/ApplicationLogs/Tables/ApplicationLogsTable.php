@@ -42,10 +42,6 @@ class ApplicationLogsTable
                 TextColumn::make(ApplicationLog::channel)
                     ->label(__('admin.resource.application_log.fields.channel'))
                     ->badge(),
-                TextColumn::make(ApplicationLog::belongs_to_user . '.' . \App\Models\User::email)
-                    ->label(__('admin.resource.application_log.fields.user'))
-                    ->placeholder('-')
-                    ->searchable(),
             ])
             ->filters([
                 SelectFilter::make(ApplicationLog::event)

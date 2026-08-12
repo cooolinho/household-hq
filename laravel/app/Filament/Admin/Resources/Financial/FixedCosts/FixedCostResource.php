@@ -12,7 +12,7 @@ use App\Filament\Admin\Resources\Financial\FixedCosts\RelationManagers\Transacti
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostForm;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostInfolist;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Tables\FixedCostsTable;
-use App\Jobs\SendUpcomingFixedCostsReminderJob;
+use App\Jobs\Scheduled\SendUpcomingFixedCostsReminderJob;
 use App\Menu\NavigationGroup;
 use App\Models\Financial\FixedCost;
 use App\Settings\FixedCostSettings;

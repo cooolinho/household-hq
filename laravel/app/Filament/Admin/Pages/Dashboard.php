@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Pages;
 
+use App\Filament\Admin\Actions\RunScheduledJobAction;
 use App\Filament\Admin\Widgets\Dashboard\MonthlyBalanceChartWidget;
 use App\Filament\Admin\Widgets\Dashboard\MonthlyBalanceStatsWidget;
 use App\Filament\Admin\Widgets\Dashboard\PortfolioOverviewWidget;
@@ -10,6 +11,13 @@ use App\Models\DashboardWidgetPreference;
 
 class Dashboard extends \Filament\Pages\Dashboard
 {
+    protected function getHeaderActions(): array
+    {
+        return [
+            RunScheduledJobAction::make(),
+        ];
+    }
+
     public function getWidgets(): array
     {
         $userId = auth()->id();

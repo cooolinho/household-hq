@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\SendUpcomingFixedCostsReminderJob;
+use App\Jobs\Scheduled\SendUpcomingFixedCostsReminderJob;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;

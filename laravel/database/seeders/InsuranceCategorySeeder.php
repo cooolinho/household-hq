@@ -38,7 +38,7 @@ class InsuranceCategorySeeder extends Seeder
                 'Einmalanlagen (z.B. Festgeld, Anleihen)',
                 'Sonstige Vermögensaufbau-Produkte',
             ],
-            'Nicht kategorisiert' => [
+            InsuranceCategory::GROUP_NOT_CATEGORIZED => [
                 'Sonstige',
             ],
         ];

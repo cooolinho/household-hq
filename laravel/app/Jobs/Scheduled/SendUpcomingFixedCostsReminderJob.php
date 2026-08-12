@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Jobs\Scheduled;
 
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\FixedCostReminder;
@@ -10,18 +10,29 @@ use App\Services\FixedCostNextBookingDateUpdater;
 use App\Settings\FixedCostSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
 class SendUpcomingFixedCostsReminderJob implements ShouldQueue
 {
+    use Dispatchable;
     use Queueable;
+
+    public static function description(): string
+    {
+        return 'Erinnerungen für bald fällige Fixkosten versenden';
+    }
 
     public function handle(FixedCostNextBookingDateUpdater $updater, FixedCostSettings $settings): void
     {
         try {
             if (!$settings->reminders_enabled) {
                 Log::info('Fixed cost reminders are disabled globally, skipping reminder job.');
+                Log::channel('database')->info('Fixed cost reminder job wurde global übersprungen.', [
+                    'event' => 'fixed_costs.reminders.skipped',
+                    'reason' => 'disabled_globally',
+                ]);
 
                 return;
             }
@@ -69,9 +80,18 @@ class SendUpcomingFixedCostsReminderJob implements ShouldQueue
                             ])->save();
                         });
                 });
+
+            Log::channel('database')->info('Fixed cost reminder job wurde abgeschlossen.', [
+                'event' => 'fixed_costs.reminders.completed',
+                'date' => $today->toDateString(),
+                'window_end' => $windowEnd->toDateString(),
+            ]);
         } catch (\Throwable $e) {
             $this->fail($e);
-            Log::error('Error sending upcoming fixed costs reminder: ' . $e->getMessage(), ['exception' => $e]);
+            Log::channel('database')->error('Fehler beim Ausführen des Fixed cost reminder Jobs.', [
+                'event' => 'fixed_costs.reminders.failed',
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 

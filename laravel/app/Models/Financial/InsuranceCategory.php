@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
 class InsuranceCategory extends Model
 {
     const string TABLE = 'financial_insurance_categories';
+    const string GROUP_NOT_CATEGORIZED = 'Nicht kategorisiert';
 
     const string id = 'id';
     const string name = 'name';

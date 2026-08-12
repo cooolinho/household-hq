@@ -6,6 +6,7 @@ use Spatie\LaravelSettings\Settings;
 
 class FixedCostSettings extends Settings
 {
+    public bool $update_due_dates_enabled = true;
     public string $update_schedule_time;
 
     public bool $reminders_enabled;

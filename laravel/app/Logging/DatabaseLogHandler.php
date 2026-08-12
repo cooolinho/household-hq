@@ -52,12 +52,36 @@ class DatabaseLogHandler extends AbstractProcessingHandler
             ]);
         } catch (\Throwable) {
             // Logging darf den Hauptprozess nie unterbrechen.
+            $exception = $record->context['exception'] ?? null;
+            $message = sprintf(
+                '[DatabaseLogHandler] Fehler beim Schreiben des Log-Eintrags in die Datenbank: %s%s',
+                $record->message,
+                PHP_EOL
+            );
+
+            if ($exception instanceof \Throwable) {
+                $message .= sprintf(
+                    '[DatabaseLogHandler] Ausnahme: %s in %s:%d%s',
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine(),
+                    PHP_EOL
+                );
+            }
+
+            $message .= sprintf('[DatabaseLogHandler] Context: %s%s', json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', PHP_EOL);
+
+            if (app()->runningInConsole()) {
+                fwrite(STDERR, $message);
+            } else {
+                error_log($message);
+            }
         }
     }
 
     /**
      * @param mixed $value
-     *
+     * @param int $depth
      * @return mixed
      */
     private function sanitizeContext(mixed $value, int $depth): mixed

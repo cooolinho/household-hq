@@ -62,11 +62,7 @@ class ApplicationLogResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return ApplicationLogsTable::configure($table)
-            ->modifyQueryUsing(fn($query) => $query
-                ->where(ApplicationLog::user_id, auth()->id())
-                ->with([ApplicationLog::belongs_to_user])
-            );
+        return ApplicationLogsTable::configure($table);
     }
 
     public static function getRelations(): array
@@ -90,11 +86,6 @@ class ApplicationLogResource extends Resource
     public static function canDelete(Model $record): bool
     {
         return false;
-    }
-
-    public static function canView(Model $record): bool
-    {
-        return $record instanceof ApplicationLog && $record->{ApplicationLog::user_id} === auth()->id();
     }
 }
 

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\FetchImapDocumentsJob;
+use App\Jobs\Scheduled\FetchImapDocumentsJob;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;

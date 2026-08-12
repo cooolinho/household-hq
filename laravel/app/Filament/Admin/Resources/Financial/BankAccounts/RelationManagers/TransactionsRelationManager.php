@@ -6,8 +6,8 @@ use App\Filament\Admin\Resources\Financial\Transactions\Actions\ImportCSVFileAct
 use App\Filament\Admin\Resources\Financial\Transactions\Schemas\TransactionForm;
 use App\Filament\Admin\Resources\Financial\Transactions\Schemas\TransactionInfolist;
 use App\Filament\Admin\Resources\Financial\Transactions\Tables\TransactionsTable;
-use App\Jobs\FixedCostTransactionMatchingJob;
-use App\Jobs\RecurringTransactionSuggestionDetectionJob;
+use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
+use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\Transaction;
 use Filament\Actions\Action;
