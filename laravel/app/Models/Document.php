@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasComments;
 use App\Models\Contracts\Documentables;
+use App\Models\EnergyTracker\MeasurementDeviceContract;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
 use App\Models\Inventory\Article;
@@ -29,6 +30,7 @@ use Spatie\Tags\HasTags;
  * @property-read Collection<int, FixedCost> $linkedFixedCosts
  * @property-read Collection<int, Insurance> $linkedInsurances
  * @property-read Collection<int, Article> $linkedArticles
+ * @property-read Collection<int, MeasurementDeviceContract> $linkedMeasurementDeviceContracts
  *
  * // comments
  * @property-read Collection<int, Comment> $comments
@@ -85,6 +87,7 @@ class Document extends Model implements CommentableInterface
     const string morphed_by_many_fixed_costs = 'linkedFixedCosts';
     const string morphed_by_many_insurances = 'linkedInsurances';
     const string morphed_by_many_articles = 'linkedArticles';
+    const string morphed_by_many_measurement_device_contracts = 'linkedMeasurementDeviceContracts';
     const string has_many_comments = 'comments';
     const string has_one_imported_email_attachment = 'importedEmailAttachment';
 
@@ -188,6 +191,17 @@ class Document extends Model implements CommentableInterface
             Documentables::document_id,
             Documentables::documentable_id,
         )->orderBy(Article::name, 'asc');
+    }
+
+    public function linkedMeasurementDeviceContracts(): MorphToMany
+    {
+        return $this->morphedByMany(
+            MeasurementDeviceContract::class,
+            Documentables::MORPH_NAME,
+            Documentables::TABLE,
+            Documentables::document_id,
+            Documentables::documentable_id,
+        )->orderBy(MeasurementDeviceContract::name, 'asc');
     }
 
     public function importedEmailAttachment(): HasOne

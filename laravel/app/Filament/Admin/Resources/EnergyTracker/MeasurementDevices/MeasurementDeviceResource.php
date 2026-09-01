@@ -7,6 +7,7 @@ use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\EditMeas
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\ListMeasurementDevices;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\MeasurementDeviceReadingWizard;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages\ViewMeasurementDevice;
+use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\RelationManagers\MeasurementDeviceContractsRelationManager;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\RelationManagers\ReadingEntriesRelationManager;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Schemas\MeasurementDeviceForm;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Schemas\MeasurementDeviceInfolist;
@@ -76,6 +77,7 @@ class MeasurementDeviceResource extends Resource
     {
         return [
             ReadingEntriesRelationManager::class,
+            MeasurementDeviceContractsRelationManager::class,
         ];
     }
 

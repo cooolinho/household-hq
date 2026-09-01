@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\ContactPerson;
+use App\Models\Enums\ContactPersonTypeEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -28,6 +29,7 @@ class ContactPersonFactory extends Factory
             ContactPerson::phone_business => fake()->phoneNumber(),
             ContactPerson::notes => fake()->paragraph(),
             ContactPerson::role => fake()->jobTitle(),
+            ContactPerson::type => fake()->randomElement(ContactPersonTypeEnum::allNames()),
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ContactPeople\Tables;
 
 use App\Models\ContactPerson;
+use App\Models\Enums\ContactPersonTypeEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -33,6 +34,10 @@ class ContactPeopleTable
                     ->searchable(),
                 TextColumn::make(ContactPerson::role)
                     ->searchable(),
+                TextColumn::make(ContactPerson::type)
+                    ->label('Kontaktart')
+                    ->badge()
+                    ->formatStateUsing(fn(?string $state): string => ContactPersonTypeEnum::tryFromName($state)?->label() ?? (string)$state),
                 TextColumn::make(ContactPerson::created_at)
                     ->dateTime()
                     ->sortable()

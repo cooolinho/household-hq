@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Schemas;
 
 use App\Models\EnergyTracker\MeasurementDevice;
+use App\Models\EnergyTracker\MeasurementDeviceContract;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -25,6 +26,9 @@ class MeasurementDeviceInfolist
                     ->date(),
                 TextEntry::make(MeasurementDevice::meter_description)
                     ->placeholder('-'),
+                TextEntry::make('active_contract_name')
+                    ->label('Aktiver Vertrag')
+                    ->state(fn(MeasurementDevice $record): string => (string)($record->activeContract?->{MeasurementDeviceContract::name} ?? 'Kein aktiver Vertrag')),
                 TextEntry::make(MeasurementDevice::decimal_places)
                     ->numeric(),
                 TextEntry::make(MeasurementDevice::created_at)

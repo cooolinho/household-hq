@@ -33,6 +33,11 @@ class MeasurementDevicesTable
                     ->sortable(),
                 TextColumn::make(MeasurementDevice::meter_description)
                     ->searchable(),
+                TextColumn::make(MeasurementDevice::has_many_contracts . '_count')
+                    ->label('Verträge')
+                    ->counts(MeasurementDevice::has_many_contracts)
+                    ->badge()
+                    ->color('info'),
                 TextColumn::make(MeasurementDevice::decimal_places)
                     ->numeric()
                     ->sortable(),

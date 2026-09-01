@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Spatie\Tags\HasTags;
 
@@ -30,6 +31,8 @@ use Spatie\Tags\HasTags;
  * Relations
  * @property User|null $user
  * @property ReadingEntry[]|null $readingEntries
+ * @property MeasurementDeviceContract[]|null $contracts
+ * @property MeasurementDeviceContract|null $activeContract
  */
 class MeasurementDevice extends Model
 {
@@ -55,6 +58,8 @@ class MeasurementDevice extends Model
     // relations
     const string belongs_to_user = 'user';
     const string has_many_reading_entries = 'readingEntries';
+    const string has_many_contracts = 'contracts';
+    const string has_one_active_contract = 'activeContract';
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -91,5 +96,16 @@ class MeasurementDevice extends Model
     public function readingEntries(): HasMany
     {
         return $this->hasMany(ReadingEntry::class, ReadingEntry::measurement_device_id);
+    }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(MeasurementDeviceContract::class, MeasurementDeviceContract::measurement_device_id);
+    }
+
+    public function activeContract(): HasOne
+    {
+        return $this->hasOne(MeasurementDeviceContract::class, MeasurementDeviceContract::measurement_device_id)
+            ->where(MeasurementDeviceContract::is_active, true);
     }
 }

@@ -4,6 +4,9 @@ namespace App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Pages;
 
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\MeasurementDeviceResource;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Widgets\MeasurementDeviceConsumptionForecastWidget;
+use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Widgets\MeasurementDeviceContractCostComparisonWidget;
+use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Widgets\MeasurementDeviceContractCostForecastWidget;
+use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Widgets\MeasurementDeviceContractCostStatsOverviewWidget;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Widgets\MeasurementDeviceReadingIntervalWidget;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Widgets\MeasurementDeviceRecentQuarterComparisonWidget;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDevices\Widgets\MeasurementDeviceStatsOverviewWidget;
@@ -25,8 +28,11 @@ class ViewMeasurementDevice extends ViewRecord
     {
         return [
             MeasurementDeviceStatsOverviewWidget::class,
+            MeasurementDeviceContractCostStatsOverviewWidget::class,
+            MeasurementDeviceContractCostComparisonWidget::class,
             MeasurementDeviceRecentQuarterComparisonWidget::class,
             MeasurementDeviceConsumptionForecastWidget::class,
+            MeasurementDeviceContractCostForecastWidget::class,
             MeasurementDeviceReadingIntervalWidget::class,
         ];
     }

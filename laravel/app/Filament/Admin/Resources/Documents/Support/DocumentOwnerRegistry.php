@@ -2,11 +2,14 @@
 
 namespace App\Filament\Admin\Resources\Documents\Support;
 
+use App\Filament\Admin\Resources\EnergyTracker\MeasurementDeviceContracts\MeasurementDeviceContractResource;
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
 use App\Filament\Admin\Resources\Inventory\Articles\ArticleResource;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
+use App\Models\EnergyTracker\MeasurementDevice;
+use App\Models\EnergyTracker\MeasurementDeviceContract;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
 use App\Models\Inventory\Article;
@@ -23,6 +26,7 @@ class DocumentOwnerRegistry
     const string TYPE_FIXED_COST = 'fixed_cost';
     const string TYPE_INSURANCE = 'insurance';
     const string TYPE_ARTICLE = 'article';
+    const string TYPE_MEASUREMENT_DEVICE_CONTRACT = 'measurement_device_contract';
 
     public static function getRelationshipName(Model|string $owner): ?string
     {
@@ -30,6 +34,7 @@ class DocumentOwnerRegistry
             Insurance::class => Insurance::has_many_documents,
             FixedCost::class => FixedCost::has_many_documents,
             Article::class => Article::has_many_documents,
+            MeasurementDeviceContract::class => MeasurementDeviceContract::has_many_documents,
             default => null,
         };
     }
@@ -45,6 +50,7 @@ class DocumentOwnerRegistry
             self::TYPE_FIXED_COST => self::getLabel(FixedCost::class),
             self::TYPE_INSURANCE => self::getLabel(Insurance::class),
             self::TYPE_ARTICLE => self::getLabel(Article::class),
+            self::TYPE_MEASUREMENT_DEVICE_CONTRACT => self::getLabel(MeasurementDeviceContract::class),
         ];
     }
 
@@ -54,6 +60,7 @@ class DocumentOwnerRegistry
             self::TYPE_FIXED_COST => FixedCost::class,
             self::TYPE_INSURANCE => Insurance::class,
             self::TYPE_ARTICLE => Article::class,
+            self::TYPE_MEASUREMENT_DEVICE_CONTRACT => MeasurementDeviceContract::class,
             default => null,
         };
     }
@@ -64,6 +71,7 @@ class DocumentOwnerRegistry
             FixedCost::class => self::TYPE_FIXED_COST,
             Insurance::class => self::TYPE_INSURANCE,
             Article::class => self::TYPE_ARTICLE,
+            MeasurementDeviceContract::class => self::TYPE_MEASUREMENT_DEVICE_CONTRACT,
             default => null,
         };
     }
@@ -74,6 +82,7 @@ class DocumentOwnerRegistry
             Insurance::class => InsuranceResource::class,
             FixedCost::class => FixedCostResource::class,
             Article::class => ArticleResource::class,
+            MeasurementDeviceContract::class => MeasurementDeviceContractResource::class,
             default => null,
         };
     }
@@ -83,6 +92,7 @@ class DocumentOwnerRegistry
         return match ($owner::class) {
             Insurance::class => InsuranceResource::canView($owner),
             FixedCost::class => FixedCostResource::canView($owner),
+            MeasurementDeviceContract::class => MeasurementDeviceContractResource::canView($owner),
             Article::class => Article::query()
                 ->whereKey($owner->getKey())
                 ->whereHas(
@@ -121,6 +131,7 @@ class DocumentOwnerRegistry
             Insurance::class => 'Versicherung',
             FixedCost::class => 'Fixkosten',
             Article::class => 'Artikel',
+            MeasurementDeviceContract::class => 'Vertrag',
             default => null,
         };
     }
@@ -131,6 +142,7 @@ class DocumentOwnerRegistry
             Insurance::class => $owner->{Insurance::name},
             FixedCost::class => $owner->{FixedCost::name},
             Article::class => $owner->{Article::name},
+            MeasurementDeviceContract::class => $owner->{MeasurementDeviceContract::name},
             default => null,
         };
 
@@ -157,6 +169,7 @@ class DocumentOwnerRegistry
             Insurance::class => InsuranceResource::getUrl('view', ['record' => $owner->getKey()]),
             FixedCost::class => FixedCostResource::getUrl('view', ['record' => $owner->getKey()]),
             Article::class => ArticleResource::getUrl('view', ['record' => $owner->getKey()]),
+            MeasurementDeviceContract::class => MeasurementDeviceContractResource::getUrl('view', ['record' => $owner->getKey()]),
             default => null,
         };
     }
@@ -169,13 +182,21 @@ class DocumentOwnerRegistry
             Document::morphed_by_many_articles,
         ]);
 
+        if ($document->exists) {
+            $document->loadMissing(Document::morphed_by_many_measurement_device_contracts);
+        }
+
         $fixedCosts = self::mapOwners($document->{Document::morphed_by_many_fixed_costs});
         $insurances = self::mapOwners($document->{Document::morphed_by_many_insurances});
         $articles = self::mapOwners($document->{Document::morphed_by_many_articles});
+        $contracts = $document->relationLoaded(Document::morphed_by_many_measurement_device_contracts)
+            ? self::mapOwners($document->{Document::morphed_by_many_measurement_device_contracts})
+            : collect();
 
         return $fixedCosts
             ->merge($insurances)
             ->merge($articles)
+            ->merge($contracts)
             ->sortBy('label')
             ->values();
     }
@@ -185,9 +206,10 @@ class DocumentOwnerRegistry
         $fixedCostsCount = $document->getAttribute('linked_fixed_costs_count');
         $insurancesCount = $document->getAttribute('linked_insurances_count');
         $articlesCount = $document->getAttribute('linked_articles_count');
+        $contractsCount = $document->getAttribute('linked_measurement_device_contracts_count');
 
-        if ($fixedCostsCount !== null || $insurancesCount !== null || $articlesCount !== null) {
-            return (int)$fixedCostsCount + (int)$insurancesCount + (int)$articlesCount;
+        if ($fixedCostsCount !== null || $insurancesCount !== null || $articlesCount !== null || $contractsCount !== null) {
+            return (int)$fixedCostsCount + (int)$insurancesCount + (int)$articlesCount + (int)$contractsCount;
         }
 
         if (!$document->exists) {
@@ -303,8 +325,11 @@ class DocumentOwnerRegistry
                 Article::belongs_to_location . '.' . Location::belongs_to_collection,
                 fn(Builder $query) => $query->where(Collection::user_id, auth()->id())
             ),
+            MeasurementDeviceContract::class => MeasurementDeviceContract::query()->whereHas(
+                MeasurementDeviceContract::belongs_to_measurement_device,
+                fn(Builder $query) => $query->where(MeasurementDevice::user_id, auth()->id())
+            ),
             default => Insurance::query()->whereRaw('1 = 0'),
         };
     }
 }
-

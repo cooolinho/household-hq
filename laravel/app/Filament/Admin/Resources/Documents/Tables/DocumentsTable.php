@@ -26,6 +26,7 @@ class DocumentsTable
                 Document::morphed_by_many_fixed_costs,
                 Document::morphed_by_many_insurances,
                 Document::morphed_by_many_articles,
+                Document::morphed_by_many_measurement_device_contracts,
             ]))
             ->columns(self::getTableColumns())
             ->filters(self::getFilters())

@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ContactPeople\Schemas;
 
 use App\Models\ContactPerson;
+use App\Models\Enums\ContactPersonTypeEnum;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -25,6 +26,11 @@ class ContactPersonInfolist
                 TextEntry::make(ContactPerson::avatar)
                     ->placeholder('-'),
                 TextEntry::make(ContactPerson::role)
+                    ->placeholder('-'),
+                TextEntry::make(ContactPerson::type)
+                    ->label('Kontaktart')
+                    ->badge()
+                    ->formatStateUsing(fn(?string $state): string => ContactPersonTypeEnum::tryFromName($state)?->label() ?? (string)$state)
                     ->placeholder('-'),
                 TextEntry::make(ContactPerson::created_at)
                     ->dateTime()

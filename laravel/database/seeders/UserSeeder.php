@@ -11,9 +11,6 @@ class UserSeeder extends Seeder
 {
     const string ADMIN_EMAIL = 'admin@example.com';
 
-    /**
-     * @return User|null
-     */
     public static function getAdminUser(): ?User
     {
         return User::query()
@@ -26,13 +23,21 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            User::name => 'Administrator',
-            User::email => self::ADMIN_EMAIL,
-        ]);
-        User::factory()->create([
-            User::name => 'User',
-            User::email => 'user@example.com',
-        ]);
+        $this->createUserIfMissing(self::ADMIN_EMAIL, 'Administrator');
+        $this->createUserIfMissing('user@example.com', 'User');
+    }
+
+    private function createUserIfMissing(string $email, string $name): void
+    {
+        User::query()->firstOrCreate(
+            [
+                User::email => $email,
+            ],
+            [
+                User::name => $name,
+                User::email_verified_at => now(),
+                User::password => 'secret',
+            ],
+        );
     }
 }

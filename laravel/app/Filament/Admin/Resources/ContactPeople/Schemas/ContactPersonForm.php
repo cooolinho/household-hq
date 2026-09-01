@@ -4,7 +4,9 @@ namespace App\Filament\Admin\Resources\ContactPeople\Schemas;
 
 use App\Filament\Admin\Resources\Tags\TagResource;
 use App\Models\ContactPerson;
+use App\Models\Enums\ContactPersonTypeEnum;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -35,6 +37,11 @@ class ContactPersonForm
                     ->disk('public')
                     ->placeholder('-'),
                 TextInput::make(ContactPerson::role),
+                Select::make(ContactPerson::type)
+                    ->label('Kontaktart')
+                    ->options(ContactPersonTypeEnum::options())
+                    ->default(ContactPersonTypeEnum::default())
+                    ->required(),
 
                 TagResource::getMorphToManySelect($schema, ContactPerson::morph_to_many_tags)
             ]);

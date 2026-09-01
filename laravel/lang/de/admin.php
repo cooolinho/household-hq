@@ -126,6 +126,13 @@ return [
             'plural_model_label' => 'Messgeräte',
         ],
 
+        // MeasurementDeviceContract / Vertrag
+        'measurement_device_contract' => [
+            'navigation_label' => 'Verträge',
+            'model_label' => 'Vertrag',
+            'plural_model_label' => 'Verträge',
+        ],
+
         // ReadingEntry / Ablesung
         'reading_entry' => [
             'navigation_label' => 'Ablesungen',

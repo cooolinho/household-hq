@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\Documents\Pages\CreateArticleDocument;
 use App\Filament\Admin\Resources\Documents\Pages\CreateDocument;
 use App\Filament\Admin\Resources\Documents\Pages\CreateFixedCostDocument;
 use App\Filament\Admin\Resources\Documents\Pages\CreateInsuranceDocument;
+use App\Filament\Admin\Resources\Documents\Pages\CreateMeasurementDeviceContractDocument;
 use App\Filament\Admin\Resources\Documents\Pages\EditDocument;
 use App\Filament\Admin\Resources\Documents\Pages\ListDocuments;
 use App\Filament\Admin\Resources\Documents\Pages\ViewDocument;
@@ -25,6 +26,7 @@ class DocumentResource extends Resource
     const string PAGE_CREATE_FOR_INSURANCE = 'create-insurance';
     const string PAGE_CREATE_FOR_FIXED_COST = 'create-fixed-cost';
     const string PAGE_CREATE_FOR_ARTICLE = 'create-article';
+    const string PAGE_CREATE_FOR_MEASUREMENT_DEVICE_CONTRACT = 'create-measurement-device-contract';
 
     protected static ?string $model = Document::class;
 
@@ -65,6 +67,7 @@ class DocumentResource extends Resource
             self::PAGE_CREATE_FOR_INSURANCE => CreateInsuranceDocument::route('/insurances/{owner}/create'),
             self::PAGE_CREATE_FOR_FIXED_COST => CreateFixedCostDocument::route('/fixed-costs/{owner}/create'),
             self::PAGE_CREATE_FOR_ARTICLE => CreateArticleDocument::route('/articles/{owner}/create'),
+            self::PAGE_CREATE_FOR_MEASUREMENT_DEVICE_CONTRACT => CreateMeasurementDeviceContractDocument::route('/measurement-device-contracts/{owner}/create'),
             'view' => ViewDocument::route('/{record}'),
             'edit' => EditDocument::route('/{record}/edit'),
         ];

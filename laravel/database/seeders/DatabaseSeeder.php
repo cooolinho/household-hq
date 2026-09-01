@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->call(EnergyTrackerSeeder::class);
         $this->call(TagSeeder::class);
         $this->call(ContactPersonSeeder::class);
+        $this->call(MeasurementDeviceContractSeeder::class);
         $this->call(BankAccountSeeder::class);
         $this->call(InsuranceCategorySeeder::class);
         $this->call(InsuranceSeeder::class);
