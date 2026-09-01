@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Financial\Transactions\Actions;
 
 use App\AppConfig;
 use App\Exceptions\TransactionsImportException;
+use App\Jobs\Scheduled\CategorizeTransactionsJob;
 use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
 use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
 use App\Models\Financial\BankAccount;
@@ -103,6 +104,7 @@ class ImportCSVFileAction
 
             FixedCostTransactionMatchingJob::dispatchAfterResponse();
             RecurringTransactionSuggestionDetectionJob::dispatchAfterResponse();
+            CategorizeTransactionsJob::dispatchAfterResponse();
         };
     }
 }

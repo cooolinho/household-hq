@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
         $this->call(FixedCostCategorySeeder::class);
         $this->call(FixedCostSeeder::class);
         $this->call(TransactionSeeder::class);
+        $this->call(TransactionCategorySeeder::class);
     }
 }

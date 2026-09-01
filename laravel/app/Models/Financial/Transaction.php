@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Tags\HasTags;
 
@@ -69,6 +70,7 @@ class Transaction extends Model
     const string has_many_matching_suggestions = 'matchingSuggestions';
     const string has_many_recurring_suggestions = 'recurringSuggestions';
     const string morph_to_many_tags = 'tags';
+    const string belongs_to_many_transaction_categories = 'transactionCategories';
 
     protected $table = self::TABLE;
 
@@ -127,5 +129,15 @@ class Transaction extends Model
     public function recurringSuggestions(): HasMany
     {
         return $this->hasMany(RecurringTransactionSuggestion::class, RecurringTransactionSuggestion::sample_transaction_id);
+    }
+
+    public function transactionCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            TransactionCategory::class,
+            'financial_transaction_transaction_category',
+            'transaction_id',
+            'transaction_category_id'
+        )->withPivot('created_at');
     }
 }
