@@ -2,9 +2,12 @@
 
 namespace App\Models\Inventory;
 
+use App\AppConfig;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Carbon;
 
 /**
@@ -14,20 +17,24 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $user_id
  * @property string $name
+ * @property string|null $preview_image
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * Relations
  * @property User $user
  * @property Location[]|null $locations
+ * @property Article[]|null $articles
  */
 class Collection extends Model
 {
     const string TABLE = 'inventory_collections';
+    const string STORAGE_DISK = AppConfig::FILESYSTEM_INVENTORY_PREVIEWS;
 
     const string id = 'id';
     const string user_id = 'user_id';
     const string name = 'name';
+    const string preview_image = 'preview_image';
     const string created_at = Model::CREATED_AT;
     const string updated_at = Model::UPDATED_AT;
 
@@ -40,11 +47,24 @@ class Collection extends Model
     protected $fillable = [
         self::name,
         self::user_id,
+        self::preview_image,
     ];
 
-    public function locations()
+    public function locations(): HasMany
     {
         return $this->hasMany(Location::class, Location::collection_id);
+    }
+
+    public function articles(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Article::class,
+            Location::class,
+            Location::collection_id,
+            Article::location_id,
+            self::id,
+            Location::id,
+        );
     }
 
     public function user(): BelongsTo

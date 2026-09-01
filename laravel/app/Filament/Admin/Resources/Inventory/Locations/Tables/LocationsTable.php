@@ -22,7 +22,11 @@ class LocationsTable
                     ->searchable(),
                 TextColumn::make(Location::name)
                     ->searchable(),
-                ImageColumn::make(Location::preview_image),
+                ImageColumn::make(Location::preview_image)
+                    ->getStateUsing(fn(Location $record): ?string => filled($record->{Location::preview_image})
+                        ? route('admin.inventory.preview', ['type' => 'location', 'record' => $record->getKey()])
+                        : null)
+                    ->defaultImageUrl(asset('location.jpg')),
                 TextColumn::make(Location::created_at)
                     ->dateTime()
                     ->sortable()

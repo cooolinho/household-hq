@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Inventory\Locations\RelationManagers\ArticlesRe
 use App\Filament\Admin\Resources\Inventory\Locations\Schemas\LocationForm;
 use App\Filament\Admin\Resources\Inventory\Locations\Schemas\LocationInfolist;
 use App\Filament\Admin\Resources\Inventory\Locations\Tables\LocationsTable;
+use App\Filament\Admin\Resources\Inventory\Support\InventoryNavigationVisibility;
 use App\Menu\NavigationGroup;
 use App\Models\Inventory\Collection;
 use App\Models\Inventory\Location;
@@ -33,6 +34,11 @@ class LocationResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin.resource.location.navigation_label');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return InventoryNavigationVisibility::hasArticlesForCurrentUser();
     }
 
     public static function getModelLabel(): string
@@ -71,7 +77,13 @@ class LocationResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return LocationsTable::configure($table);
+        return LocationsTable::configure($table)
+            ->modifyQueryUsing(function ($query) {
+                $query->whereHas(
+                    Location::belongs_to_collection,
+                    fn($collectionQuery) => $collectionQuery->where(Collection::user_id, auth()->id())
+                );
+            });
     }
 
     public static function getRelations(): array

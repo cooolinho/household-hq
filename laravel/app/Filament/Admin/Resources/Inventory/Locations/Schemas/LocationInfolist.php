@@ -21,7 +21,10 @@ class LocationInfolist
                     ->placeholder('-')
                     ->columnSpanFull(),
                 ImageEntry::make(Location::preview_image)
-                    ->placeholder('-'),
+                    ->getStateUsing(fn(Location $record): ?string => filled($record->{Location::preview_image})
+                        ? route('admin.inventory.preview', ['type' => 'location', 'record' => $record->getKey()])
+                        : null)
+                    ->defaultImageUrl(asset('location.jpg')),
                 TextEntry::make(Location::created_at)
                     ->dateTime()
                     ->placeholder('-'),

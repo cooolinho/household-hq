@@ -8,6 +8,7 @@ use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Spatie\Tags\HasTags;
@@ -36,6 +37,7 @@ use Spatie\Tags\HasTags;
  * @property Location|null $location
  * @property Article|null $parent
  * @property Document[]|null $documents
+ * @property ArticleImage[]|null $previewImages
  */
 class Article extends Model implements CommentableInterface
 {
@@ -72,6 +74,7 @@ class Article extends Model implements CommentableInterface
     // relations
     const string belongs_to_parent = 'parent';
     const string belongs_to_location = 'location';
+    const string has_many_preview_images = 'previewImages';
     const string has_many_documents = 'documents';
     const string morph_to_many_tags = 'tags';
 
@@ -111,5 +114,12 @@ class Article extends Model implements CommentableInterface
         )
             ->orderBy(Document::sort, 'asc')
             ->orderBy(Document::id, 'asc');
+    }
+
+    public function previewImages(): HasMany
+    {
+        return $this->hasMany(ArticleImage::class, ArticleImage::article_id)
+            ->orderBy(ArticleImage::sort)
+            ->orderBy(ArticleImage::id);
     }
 }

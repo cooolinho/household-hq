@@ -33,6 +33,7 @@ class LocationsRelationManager extends RelationManager
                 Textarea::make(Location::description)
                     ->columnSpanFull(),
                 FileUpload::make(Location::preview_image)
+                    ->disk(Location::STORAGE_DISK)
                     ->image(),
             ]);
     }
@@ -46,7 +47,10 @@ class LocationsRelationManager extends RelationManager
                     ->placeholder('-')
                     ->columnSpanFull(),
                 ImageEntry::make(Location::preview_image)
-                    ->placeholder('-'),
+                    ->getStateUsing(fn(Location $record): ?string => filled($record->{Location::preview_image})
+                        ? route('admin.inventory.preview', ['type' => 'location', 'record' => $record->getKey()])
+                        : null)
+                    ->defaultImageUrl(asset('location.jpg')),
                 TextEntry::make(Location::created_at)
                     ->dateTime()
                     ->placeholder('-'),
@@ -63,7 +67,11 @@ class LocationsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make(Location::name)
                     ->searchable(),
-                ImageColumn::make(Location::preview_image),
+                ImageColumn::make(Location::preview_image)
+                    ->getStateUsing(fn(Location $record): ?string => filled($record->{Location::preview_image})
+                        ? route('admin.inventory.preview', ['type' => 'location', 'record' => $record->getKey()])
+                        : null)
+                    ->defaultImageUrl(asset('location.jpg')),
                 TextColumn::make(Location::created_at)
                     ->dateTime()
                     ->sortable()

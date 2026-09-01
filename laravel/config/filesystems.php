@@ -90,6 +90,24 @@ return [
             'throw' => false,
             'report' => false,
         ],
+
+        \App\AppConfig::FILESYSTEM_INVENTORY_PREVIEWS => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/inventory/previews'),
+            'url' => env('APP_URL') . '/storage/inventory/previews',
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        \App\AppConfig::FILESYSTEM_INVENTORY_ARTICLE_IMAGES => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/inventory/article-images'),
+            'url' => env('APP_URL') . '/storage/inventory/article-images',
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
     ],
 
     /*

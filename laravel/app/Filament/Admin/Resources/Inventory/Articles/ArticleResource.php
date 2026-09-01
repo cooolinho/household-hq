@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Inventory\Articles\RelationManagers\DocumentsRe
 use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleForm;
 use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleInfolist;
 use App\Filament\Admin\Resources\Inventory\Articles\Tables\ArticlesTable;
+use App\Filament\Admin\Resources\Inventory\Support\InventoryNavigationVisibility;
 use App\Menu\NavigationGroup;
 use App\Models\Inventory\Article;
 use App\Models\Inventory\Collection;
@@ -34,6 +35,11 @@ class ArticleResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin.resource.article.navigation_label');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return InventoryNavigationVisibility::hasArticlesForCurrentUser();
     }
 
     public static function getModelLabel(): string
@@ -72,7 +78,13 @@ class ArticleResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return ArticlesTable::configure($table);
+        return ArticlesTable::configure($table)
+            ->modifyQueryUsing(function ($query) {
+                $query->with(Article::has_many_preview_images)->whereHas(
+                    Article::belongs_to_location . '.' . Location::belongs_to_collection,
+                    fn($collectionQuery) => $collectionQuery->where(Collection::user_id, auth()->id())
+                );
+            });
     }
 
     public static function getRelations(): array

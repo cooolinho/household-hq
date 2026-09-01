@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventory;
 
+use App\AppConfig;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
 class Location extends Model
 {
     const string TABLE = 'inventory_locations';
+    const string STORAGE_DISK = AppConfig::FILESYSTEM_INVENTORY_PREVIEWS;
 
     const string id = 'id';
     const string name = 'name';

@@ -6,10 +6,12 @@ use App\Filament\Admin\Resources\Inventory\Collections\Pages\CreateCollection;
 use App\Filament\Admin\Resources\Inventory\Collections\Pages\EditCollection;
 use App\Filament\Admin\Resources\Inventory\Collections\Pages\ListCollections;
 use App\Filament\Admin\Resources\Inventory\Collections\Pages\ViewCollection;
+use App\Filament\Admin\Resources\Inventory\Collections\RelationManagers\ArticlesRelationManager;
 use App\Filament\Admin\Resources\Inventory\Collections\RelationManagers\LocationsRelationManager;
 use App\Filament\Admin\Resources\Inventory\Collections\Schemas\CollectionForm;
 use App\Filament\Admin\Resources\Inventory\Collections\Schemas\CollectionInfolist;
 use App\Filament\Admin\Resources\Inventory\Collections\Tables\CollectionsTable;
+use App\Filament\Admin\Resources\Inventory\Support\InventoryNavigationVisibility;
 use App\Menu\NavigationGroup;
 use App\Models\Inventory\Collection;
 use BackedEnum;
@@ -33,6 +35,11 @@ class CollectionResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('admin.resource.collection.navigation_label');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return InventoryNavigationVisibility::hasArticlesForCurrentUser();
     }
 
     public static function getModelLabel(): string
@@ -78,6 +85,7 @@ class CollectionResource extends Resource
     {
         return [
             LocationsRelationManager::class,
+            ArticlesRelationManager::class,
         ];
     }
 
