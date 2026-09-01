@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/.env}"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+CONTAINER_WORKDIR="/var/www/html"
+APP_CONTAINER_NAME="personal-home-portal"
+
+MODE="dev"
+PULL_CHANGES=true
+
+read_env_value() {
+    local key="$1"
+    local file="$2"
+    local line
+
+    [[ -f "$file" ]] || return 1
+
+    line="$(grep -E "^[[:space:]]*${key}=" "$file" | tail -n 1 || true)"
+    [[ -n "$line" ]] || return 1
+
+    line="${line#*=}"
+    line="${line%$'\r'}"
+    line="${line%\"}"
+    line="${line#\"}"
+    line="${line%\'}"
+    line="${line#\'}"
+
+    printf '%s\n' "$line"
+}
+
+usage() {
+    cat <<EOF
+Usage:
+  $(basename "$0") [dev|prod] [--no-pull]
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") dev --no-pull
+  $(basename "$0") prod
+
+Options:
+  dev                 Use docker-compose.yml (default)
+  prod                Use docker-compose.prod.yml
+  --no-pull           Skip git pull --ff-only
+  -h, --help          Show this help
+EOF
+}
+
+log_step() {
+    printf '\n==> %s\n' "$1"
+}
+
+fail() {
+    printf 'Error: %s\n' "$1" >&2
+    exit 1
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            dev|prod)
+                MODE="$1"
+                ;;
+            --no-pull)
+                PULL_CHANGES=false
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                fail "Unknown argument: $1"
+                ;;
+        esac
+        shift
+    done
+}
+
+compose_file() {
+    case "$MODE" in
+        dev) printf '%s/docker-compose.yml\n' "$SCRIPT_DIR" ;;
+        prod) printf '%s/docker-compose.prod.yml\n' "$SCRIPT_DIR" ;;
+    esac
+}
+
+compose() {
+    "$DOCKER_BIN" compose --env-file "$ENV_FILE" -f "$(compose_file)" "$@"
+}
+
+ensure_prerequisites() {
+    [[ -f "$ENV_FILE" ]] || fail "Missing env file: $ENV_FILE"
+    [[ -f "$(compose_file)" ]] || fail "Missing compose file: $(compose_file)"
+    command -v git >/dev/null 2>&1 || fail "git is required."
+    command -v "$DOCKER_BIN" >/dev/null 2>&1 || fail "docker is required."
+}
+
+ensure_clean_worktree_for_pull() {
+    local status
+
+    status="$(git -C "$SCRIPT_DIR" status --porcelain)"
+    [[ -z "$status" ]] || fail "Git worktree is not clean. Commit/stash changes or rerun with --no-pull."
+}
+
+update_repository() {
+    if [[ "$PULL_CHANGES" != true ]]; then
+        log_step "Skipping git pull"
+        return
+    fi
+
+    ensure_clean_worktree_for_pull
+    log_step "Pulling latest changes"
+    git -C "$SCRIPT_DIR" pull --ff-only
+}
+
+update_stack() {
+    log_step "Refreshing ${MODE} Docker stack"
+
+    # In prod the application ships inside the image (vendor/ and the compiled
+    # assets are baked in by ./build-image), so there is nothing to build here.
+    if [[ "$MODE" == "prod" ]]; then
+        # --ignore-pull-failures keeps a locally built image (./build-image
+        # without --push) working instead of aborting the deployment.
+        compose pull --ignore-pull-failures
+        compose up -d
+        return
+    fi
+
+    compose up -d --build
+}
+
+run_in_app_container() {
+    local command="$1"
+
+    log_step "$command"
+    "$DOCKER_BIN" exec -u sail -w "$CONTAINER_WORKDIR" "$APP_CONTAINER_NAME" bash -lc "$command"
+}
+
+install_php_dependencies() {
+    if [[ "$MODE" == "prod" ]]; then
+        log_step "Skipping composer install (vendor/ ships inside the image)"
+        return
+    fi
+
+    run_in_app_container "composer install --no-interaction"
+}
+
+install_frontend_dependencies() {
+    if [[ "$MODE" == "prod" ]]; then
+        log_step "Skipping yarn install (assets ship inside the image)"
+        return
+    fi
+
+    run_in_app_container "yarn install"
+}
+
+run_laravel_maintenance() {
+    run_in_app_container "php artisan optimize:clear"
+    run_in_app_container "php artisan storage:link --force"
+
+    if [[ "$MODE" == "prod" ]]; then
+        run_in_app_container "php artisan migrate --force"
+        run_in_app_container "php artisan optimize"
+        return
+    fi
+
+    run_in_app_container "php artisan migrate"
+    run_in_app_container "php artisan filament:assets"
+    run_in_app_container "yarn build"
+}
+
+main() {
+    parse_args "$@"
+    ensure_prerequisites
+    update_repository
+    update_stack
+    install_php_dependencies
+    install_frontend_dependencies
+    run_laravel_maintenance
+
+    log_step "Update completed"
+    printf 'Mode: %s\n' "$MODE"
+}
+
+main "$@"
