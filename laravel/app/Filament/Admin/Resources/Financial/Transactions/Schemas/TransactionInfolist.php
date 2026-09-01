@@ -7,6 +7,7 @@ use App\Models\Financial\Transaction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class TransactionInfolist
 {
@@ -15,6 +16,20 @@ class TransactionInfolist
         return $schema
             ->columns(2)
             ->components([
+                Section::make()
+                    ->columnSpanFull()
+                    ->schema([
+                        TextEntry::make('statement')
+                            ->label('Transaktionsdetails')
+                            ->html()
+                            ->columnSpanFull()
+                            ->state(fn(Transaction $record): HtmlString => new HtmlString(
+                                view('filament.admin.resources.financial.transactions.actions.transaction-statement', [
+                                    'record' => $record,
+                                ])->render()
+                            )),
+                    ]),
+
                 Section::make('Buchung')
                     ->columnSpanFull()
                     ->columns(2)

@@ -4,6 +4,7 @@ use App\Jobs\Scheduled\FetchImapDocumentsJob;
 use App\Jobs\Scheduled\FixedCostJob;
 use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
 use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
+use App\Jobs\Scheduled\RefreshTransactionStatisticsJob;
 use App\Jobs\Scheduled\SendUpcomingFixedCostsReminderJob;
 use App\Settings\FixedCostSettings;
 use App\Settings\ImapImportSettings;
@@ -54,4 +55,8 @@ if ($imapImportSettings->enabled) {
         ->cron(sprintf('*/%d * * * *', $minutes))
         ->withoutOverlapping();
 }
+
+// Refresh transaction statistics cache nightly
+Schedule::job(new RefreshTransactionStatisticsJob())
+    ->dailyAt('03:00');
 

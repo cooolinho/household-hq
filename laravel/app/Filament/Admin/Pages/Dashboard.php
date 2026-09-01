@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Pages;
 
 use App\Filament\Admin\Actions\RunScheduledJobAction;
+use App\Filament\Admin\Widgets\Dashboard\CategorySpendingWidget;
 use App\Filament\Admin\Widgets\Dashboard\MonthlyBalanceChartWidget;
 use App\Filament\Admin\Widgets\Dashboard\MonthlyBalanceStatsWidget;
 use App\Filament\Admin\Widgets\Dashboard\PortfolioOverviewWidget;
@@ -33,6 +34,7 @@ class Dashboard extends \Filament\Pages\Dashboard
             $preferences->{DashboardWidgetPreference::show_portfolio_overview} ? PortfolioOverviewWidget::class : null,
             $preferences->{DashboardWidgetPreference::show_monthly_balance_chart} ? MonthlyBalanceChartWidget::class : null,
             $preferences->{DashboardWidgetPreference::show_upcoming_transactions_table} ? UpcomingTransactionsTableWidget::class : null,
+            CategorySpendingWidget::class,
         ]));
     }
 

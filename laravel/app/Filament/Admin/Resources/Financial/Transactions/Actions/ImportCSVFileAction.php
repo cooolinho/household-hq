@@ -7,6 +7,7 @@ use App\Exceptions\TransactionsImportException;
 use App\Jobs\Scheduled\CategorizeTransactionsJob;
 use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
 use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
+use App\Jobs\Scheduled\RefreshTransactionStatisticsJob;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\CSVImportProfile;
 use App\Models\Financial\Transaction;
@@ -105,6 +106,7 @@ class ImportCSVFileAction
             FixedCostTransactionMatchingJob::dispatchAfterResponse();
             RecurringTransactionSuggestionDetectionJob::dispatchAfterResponse();
             CategorizeTransactionsJob::dispatchAfterResponse();
+            RefreshTransactionStatisticsJob::dispatchAfterResponse();
         };
     }
 }

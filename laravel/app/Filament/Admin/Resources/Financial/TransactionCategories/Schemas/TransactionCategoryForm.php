@@ -50,6 +50,7 @@ class TransactionCategoryForm
                 ->relationship()
                 ->addActionLabel('Regel hinzufügen')
                 ->collapsible()
+                ->columnSpanFull()
                 ->itemLabel(fn(array $state): string => 'Regel (' . ($state[TransactionCategoryRule::operator] ?? 'AND') . ')')
                 ->schema([
                     Select::make(TransactionCategoryRule::operator)
