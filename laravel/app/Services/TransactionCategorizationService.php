@@ -6,6 +6,7 @@ use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
+use App\Models\Financial\TransactionCategoryRuleUserSetting;
 use Illuminate\Database\Eloquent\Collection;
 
 class TransactionCategorizationService
@@ -18,12 +19,21 @@ class TransactionCategorizationService
     public function categorizeUncategorized(int $userId): array
     {
         $categories = TransactionCategory::query()
-            ->where(TransactionCategory::user_id, $userId)
+            ->visibleForUser($userId)
             ->where(TransactionCategory::active, true)
             ->with([
-                TransactionCategory::has_many_rules => function ($query) {
-                    $query->where(TransactionCategoryRule::active, true)
-                        ->with(TransactionCategoryRule::has_many_criteria);
+                TransactionCategory::has_many_rules => function ($query) use ($userId) {
+                    $query
+                        ->where(function ($query) use ($userId) {
+                            $query->whereNull(TransactionCategoryRule::user_id)
+                                ->orWhere(TransactionCategoryRule::user_id, $userId);
+                        })
+                        ->with([
+                            TransactionCategoryRule::has_many_criteria,
+                            TransactionCategoryRule::has_many_user_settings => function ($query) use ($userId) {
+                                $query->where(TransactionCategoryRuleUserSetting::user_id, $userId);
+                            },
+                        ]);
                 },
             ])
             ->get();
@@ -68,7 +78,10 @@ class TransactionCategorizationService
     public function matchTransaction(Transaction $transaction, Collection $categories): Collection
     {
         return $categories->filter(function (TransactionCategory $category) use ($transaction): bool {
-            $activeRules = $category->rules->filter(fn(TransactionCategoryRule $r) => $r->active);
+            $userId = (int)$transaction->user_id;
+            $activeRules = $category->rules->filter(
+                fn(TransactionCategoryRule $r) => $this->isRuleActiveForUser($r, $userId)
+            );
 
             if ($activeRules->isEmpty()) {
                 return false;
@@ -83,6 +96,22 @@ class TransactionCategorizationService
 
             return false;
         })->values();
+    }
+
+    private function isRuleActiveForUser(TransactionCategoryRule $rule, int $userId): bool
+    {
+        // User overrides exist only for globally defined rules.
+        if ($rule->user_id === null) {
+            /** @var TransactionCategoryRuleUserSetting|null $override */
+            $override = $rule->userSettings
+                ->firstWhere(TransactionCategoryRuleUserSetting::user_id, $userId);
+
+            if ($override !== null) {
+                return $override->active;
+            }
+        }
+
+        return $rule->active;
     }
 
     /**

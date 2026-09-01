@@ -9,6 +9,7 @@ use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class CategorizeTransactionAction
@@ -33,7 +34,10 @@ class CategorizeTransactionAction
     private static function action(): \Closure
     {
         return function (Transaction $record, array $data) {
-            $categoryIds = $data['categories'] ?? [];
+            $categoryIds = self::getScopedCategoriesQuery((int)$record->user_id)
+                ->whereIn(TransactionCategory::id, $data['categories'] ?? [])
+                ->pluck(TransactionCategory::id)
+                ->toArray();
 
             // Pivot-Tabelle hat nur created_at, kein updated_at — deshalb syncWithoutDetaching
             // nicht nutzbar; stattdessen manuell detach + attach mit created_at
@@ -81,12 +85,19 @@ class CategorizeTransactionAction
 
     private static function getCategoryOptions(): array
     {
-        return TransactionCategory::where(TransactionCategory::active, true)
+        return self::getScopedCategoriesQuery((int)auth()->id())
             ->with(TransactionCategory::belongs_to_parent)
             ->get()
             ->mapWithKeys(fn(TransactionCategory $category) => [
                 $category->id => $category->getFullNameAttribute(),
             ])
             ->toArray();
+    }
+
+    private static function getScopedCategoriesQuery(int $userId): Builder
+    {
+        return TransactionCategory::query()
+            ->where(TransactionCategory::active, true)
+            ->visibleForUser($userId);
     }
 }

@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\Financial\TransactionCategories\Tables;
 
 use App\Models\Financial\TransactionCategory;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -32,9 +31,28 @@ class TransactionCategoriesTable
 
                 TextColumn::make(TransactionCategory::has_many_rules . '_count')
                     ->label('Regeln')
-                    ->counts(TransactionCategory::has_many_rules)
+                    ->state(function (TransactionCategory $record): int {
+                        $query = $record->rules();
+
+                        if ($record->isGlobal()) {
+                            $query->where(function ($query) {
+                                $query->whereNull(TransactionCategory::user_id)
+                                    ->orWhere(TransactionCategory::user_id, auth()->id());
+                            });
+                        }
+
+                        return $query->count();
+                    })
                     ->badge()
                     ->color('info'),
+
+                BadgeColumn::make(TransactionCategory::user_id)
+                    ->label('Quelle')
+                    ->formatStateUsing(fn(?int $state): string => $state === null ? 'Global' : 'Eigene')
+                    ->colors([
+                        'primary' => static fn(?int $state): bool => $state === null,
+                        'success' => static fn(?int $state): bool => $state !== null,
+                    ]),
 
                 IconColumn::make(TransactionCategory::active)
                     ->label('Aktiv')
@@ -53,8 +71,8 @@ class TransactionCategoriesTable
                 SelectFilter::make(TransactionCategory::parent_id)
                     ->label('Hauptkategorie')
                     ->options(fn() => TransactionCategory::query()
+                        ->visibleForUser((int)auth()->id())
                         ->whereNull(TransactionCategory::parent_id)
-                        ->where(TransactionCategory::user_id, auth()->id())
                         ->orderBy(TransactionCategory::name)
                         ->pluck(TransactionCategory::name, TransactionCategory::id)
                         ->toArray())
@@ -62,11 +80,6 @@ class TransactionCategoriesTable
             ])
             ->recordActions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

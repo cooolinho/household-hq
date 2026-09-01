@@ -52,6 +52,8 @@ class DatabaseSeederIdempotencyTest extends TestCase
             'contracts' => 3,
             'contract_prices' => 7,
         ], $firstRunCounts);
+        self::assertSame(14, TransactionCategory::query()->whereNull(TransactionCategory::user_id)->count());
+        self::assertSame(11, TransactionCategoryRule::query()->whereNull(TransactionCategoryRule::user_id)->count());
 
         $this->seed(DatabaseSeeder::class);
 

@@ -100,7 +100,7 @@ class TransactionsTable
                     ->label('Kategorie')
                     ->options(fn() => TransactionCategory::query()
                         ->where(TransactionCategory::active, true)
-                        ->where(TransactionCategory::user_id, auth()->id())
+                        ->visibleForUser((int)auth()->id())
                         ->with(TransactionCategory::belongs_to_parent)
                         ->get()
                         ->mapWithKeys(fn(TransactionCategory $category) => [

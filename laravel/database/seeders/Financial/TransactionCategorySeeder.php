@@ -5,7 +5,6 @@ namespace Database\Seeders\Financial;
 use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
-use Database\Seeders\Core\UserSeeder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -37,21 +36,11 @@ class TransactionCategorySeeder extends Seeder
      */
     public static function dependencies(): array
     {
-        return [UserSeeder::class];
+        return [];
     }
 
     public function run(): void
     {
-        $user = UserSeeder::getAdminUser();
-
-        if (!$user) {
-            $this->command?->warn('TransactionCategorySeeder: User fehlt – UserSeeder zuerst ausführen.');
-
-            return;
-        }
-
-        $userId = $user->getKey();
-
         $structure = [
             'Abonnements' => [
                 'Musik Streaming' => [
@@ -99,7 +88,7 @@ class TransactionCategorySeeder extends Seeder
                 ],
                 'Amazon' => [
                     [
-                        'operator' => TransactionCategoryCriterion::OP_CONTAINS,
+                        'operator' => TransactionCategoryRule::OPERATOR_OR,
                         'criteria' => [
                             [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'amazon'],
                         ],
@@ -170,7 +159,7 @@ class TransactionCategorySeeder extends Seeder
         foreach ($structure as $parentName => $children) {
             $parent = TransactionCategory::query()->firstOrCreate(
                 [
-                    TransactionCategory::user_id => $userId,
+                    TransactionCategory::user_id => null,
                     TransactionCategory::name => $parentName,
                     TransactionCategory::parent_id => null,
                 ],
@@ -182,7 +171,7 @@ class TransactionCategorySeeder extends Seeder
             foreach ($children as $childName => $rules) {
                 $child = TransactionCategory::query()->firstOrCreate(
                     [
-                        TransactionCategory::user_id => $userId,
+                        TransactionCategory::user_id => null,
                         TransactionCategory::name => $childName,
                         TransactionCategory::parent_id => $parent->id,
                     ],
@@ -195,6 +184,7 @@ class TransactionCategorySeeder extends Seeder
                     $rule = TransactionCategoryRule::query()->firstOrCreate(
                         [
                             TransactionCategoryRule::transaction_category_id => $child->getKey(),
+                            TransactionCategoryRule::user_id => null,
                             TransactionCategoryRule::operator => $ruleDef['operator'],
                         ],
                         [

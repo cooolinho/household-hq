@@ -3,6 +3,7 @@
 namespace App\Models\Financial;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +16,7 @@ use Illuminate\Support\Carbon;
  *
  * Columns
  * @property int $id
- * @property int $user_id
+ * @property int|null $user_id
  * @property string $name
  * @property int|null $parent_id
  * @property bool $active
@@ -99,5 +100,18 @@ class TransactionCategory extends Model
         }
 
         return $this->name;
+    }
+
+    public function isGlobal(): bool
+    {
+        return $this->user_id === null;
+    }
+
+    public function scopeVisibleForUser(Builder $query, int $userId): Builder
+    {
+        return $query->where(function (Builder $query) use ($userId) {
+            $query->where(self::user_id, $userId)
+                ->orWhereNull(self::user_id);
+        });
     }
 }

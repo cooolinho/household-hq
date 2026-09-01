@@ -48,7 +48,7 @@ class TransactionCategoryResource extends Resource
     {
         return TransactionCategoriesTable::configure($table)
             ->modifyQueryUsing(function (Builder $query) {
-                $query->where(TransactionCategory::user_id, auth()->id());
+                $query->visibleForUser((int)auth()->id());
             });
     }
 
