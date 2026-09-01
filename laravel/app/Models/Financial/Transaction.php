@@ -86,6 +86,7 @@ class Transaction extends Model
         self::amount_currency,
         self::bank_account_id,
         self::user_id,
+        self::hash,
         self::fixed_cost_id,
     ];
 

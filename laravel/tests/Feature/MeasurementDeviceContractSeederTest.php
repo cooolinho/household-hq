@@ -10,8 +10,8 @@ use App\Models\Enums\EnergyTrackerCountingMethodEnum;
 use App\Models\Enums\EnergyTrackerCountingTypeEnum;
 use App\Models\Enums\EnergyTrackerUnitEnum;
 use App\Models\User;
-use Database\Seeders\MeasurementDeviceContractSeeder;
-use Database\Seeders\UserSeeder;
+use Database\Seeders\Core\UserSeeder;
+use Database\Seeders\EnergyTracker\MeasurementDeviceContractSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -62,7 +62,7 @@ class MeasurementDeviceContractSeederTest extends TestCase
     }
 
     private function createDevice(
-        User   $user,
+        User $user,
         string $name,
         string $countingType,
         string $countingUnit,

@@ -1,10 +1,11 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Financial;
 
 use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
+use Database\Seeders\Core\UserSeeder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -26,16 +27,30 @@ use Illuminate\Database\Seeder;
  */
 class TransactionCategorySeeder extends Seeder
 {
+    public static function description(): string
+    {
+        return 'Legt Demo-Transaktionskategorien mit Regeln und Kriterien an';
+    }
+
+    /**
+     * @return list<class-string<Seeder>>
+     */
+    public static function dependencies(): array
+    {
+        return [UserSeeder::class];
+    }
+
     public function run(): void
     {
         $user = UserSeeder::getAdminUser();
 
         if (!$user) {
-            $this->command->warn('TransactionCategorySeeder: User fehlt – UserSeeder zuerst ausführen.');
+            $this->command?->warn('TransactionCategorySeeder: User fehlt – UserSeeder zuerst ausführen.');
+
             return;
         }
 
-        $userId = $user->id;
+        $userId = $user->getKey();
 
         $structure = [
             'Abonnements' => [
@@ -153,7 +168,7 @@ class TransactionCategorySeeder extends Seeder
         ];
 
         foreach ($structure as $parentName => $children) {
-            $parent = TransactionCategory::query()->updateOrCreate(
+            $parent = TransactionCategory::query()->firstOrCreate(
                 [
                     TransactionCategory::user_id => $userId,
                     TransactionCategory::name => $parentName,
@@ -161,11 +176,11 @@ class TransactionCategorySeeder extends Seeder
                 ],
                 [
                     TransactionCategory::active => true,
-                ]
+                ],
             );
 
             foreach ($children as $childName => $rules) {
-                $child = TransactionCategory::query()->updateOrCreate(
+                $child = TransactionCategory::query()->firstOrCreate(
                     [
                         TransactionCategory::user_id => $userId,
                         TransactionCategory::name => $childName,
@@ -173,24 +188,32 @@ class TransactionCategorySeeder extends Seeder
                     ],
                     [
                         TransactionCategory::active => true,
-                    ]
+                    ],
                 );
 
                 foreach ($rules as $ruleDef) {
-                    $rule = TransactionCategoryRule::query()->create([
-                        TransactionCategoryRule::transaction_category_id => $child->id,
-                        TransactionCategoryRule::operator => $ruleDef['operator'],
-                        TransactionCategoryRule::active => true,
-                    ]);
+                    $rule = TransactionCategoryRule::query()->firstOrCreate(
+                        [
+                            TransactionCategoryRule::transaction_category_id => $child->getKey(),
+                            TransactionCategoryRule::operator => $ruleDef['operator'],
+                        ],
+                        [
+                            TransactionCategoryRule::active => true,
+                        ],
+                    );
 
                     foreach ($ruleDef['criteria'] as [$field, $operator, $value]) {
-                        TransactionCategoryCriterion::query()->create([
-                            TransactionCategoryCriterion::transaction_category_rule_id => $rule->id,
-                            TransactionCategoryCriterion::field => $field,
-                            TransactionCategoryCriterion::operator => $operator,
-                            TransactionCategoryCriterion::value => $value,
-                            TransactionCategoryCriterion::case_sensitive => false,
-                        ]);
+                        TransactionCategoryCriterion::query()->firstOrCreate(
+                            [
+                                TransactionCategoryCriterion::transaction_category_rule_id => $rule->getKey(),
+                                TransactionCategoryCriterion::field => $field,
+                                TransactionCategoryCriterion::operator => $operator,
+                                TransactionCategoryCriterion::value => $value,
+                            ],
+                            [
+                                TransactionCategoryCriterion::case_sensitive => false,
+                            ],
+                        );
                     }
                 }
             }

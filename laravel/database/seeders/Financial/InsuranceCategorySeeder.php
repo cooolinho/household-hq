@@ -1,12 +1,25 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Financial;
 
 use App\Models\Financial\InsuranceCategory;
 use Illuminate\Database\Seeder;
 
 class InsuranceCategorySeeder extends Seeder
 {
+    public static function description(): string
+    {
+        return 'Legt Demo-Versicherungskategorien inklusive Nicht kategorisiert an';
+    }
+
+    /**
+     * @return list<class-string<Seeder>>
+     */
+    public static function dependencies(): array
+    {
+        return [];
+    }
+
     public function run(): void
     {
         $categories = [
@@ -45,12 +58,13 @@ class InsuranceCategorySeeder extends Seeder
 
         foreach ($categories as $group => $names) {
             foreach ($names as $name) {
-                InsuranceCategory::query()->updateOrCreate([
-                    InsuranceCategory::group => $group,
-                    InsuranceCategory::name => $name,
-                ]);
+                InsuranceCategory::query()->firstOrCreate(
+                    [
+                        InsuranceCategory::group => $group,
+                        InsuranceCategory::name => $name,
+                    ],
+                );
             }
         }
     }
 }
-

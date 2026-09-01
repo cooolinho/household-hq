@@ -1,9 +1,10 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Financial;
 
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
+use Database\Seeders\Core\UserSeeder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -20,18 +21,36 @@ use Illuminate\Database\Seeder;
  */
 class TransactionSeeder extends Seeder
 {
+    public static function description(): string
+    {
+        return 'Legt Demo-Transaktionen für das Fixkosten-Matching an';
+    }
+
+    /**
+     * @return list<class-string<Seeder>>
+     */
+    public static function dependencies(): array
+    {
+        return [
+            UserSeeder::class,
+            BankAccountSeeder::class,
+            FixedCostSeeder::class,
+        ];
+    }
+
     public function run(): void
     {
         $user = UserSeeder::getAdminUser();
         $bankAccount = BankAccountSeeder::getMainAccount();
 
         if (!$user || !$bankAccount) {
-            $this->command->warn('TransactionSeeder: User oder BankAccount fehlt – UserSeeder/BankAccountSeeder zuerst ausführen.');
+            $this->command?->warn('TransactionSeeder: User oder BankAccount fehlt – UserSeeder/BankAccountSeeder zuerst ausführen.');
+
             return;
         }
 
-        $userId = $user->id;
-        $bankAccountId = $bankAccount->id;
+        $userId = $user->getKey();
+        $bankAccountId = $bankAccount->getKey();
 
         // FixedCosts per Name abrufen (für "already linked"-Szenario)
         $fcSpotify = FixedCost::query()
@@ -279,7 +298,11 @@ class TransactionSeeder extends Seeder
         // Hash aus den Transaktionsdaten berechnen
         $base[Transaction::hash] = Transaction::createHash($base);
 
-        Transaction::query()->create($base);
+        Transaction::query()->firstOrCreate(
+            [
+                Transaction::hash => $base[Transaction::hash],
+            ],
+            $base,
+        );
     }
 }
-

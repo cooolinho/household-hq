@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\EnergyTracker;
 
 use App\Models\ContactPerson;
 use App\Models\EnergyTracker\MeasurementDevice;
@@ -10,13 +10,31 @@ use App\Models\Enums\ContactPersonTypeEnum;
 use App\Models\Enums\EnergyTrackerContractBasePriceIntervalEnum;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Database\Seeders\Core\ContactPersonSeeder;
+use Database\Seeders\Core\UserSeeder;
 use Illuminate\Database\Seeder;
 
 class MeasurementDeviceContractSeeder extends Seeder
 {
+    private const string DEMO_ANCHOR_DATE = '2026-07-29';
+
+    public static function description(): string
+    {
+        return 'Legt Demo-Energieverträge, Preisstände und Ansprechpartner an';
+    }
+
     /**
-     * Run the database seeds.
+     * @return list<class-string<Seeder>>
      */
+    public static function dependencies(): array
+    {
+        return [
+            UserSeeder::class,
+            ContactPersonSeeder::class,
+            EnergyTrackerSeeder::class,
+        ];
+    }
+
     public function run(): void
     {
         $user = UserSeeder::getAdminUser();
@@ -28,7 +46,7 @@ class MeasurementDeviceContractSeeder extends Seeder
         }
 
         $contacts = $this->seedContacts($user);
-        $today = CarbonImmutable::today();
+        $today = CarbonImmutable::parse(self::DEMO_ANCHOR_DATE);
 
         $electricity = MeasurementDevice::query()
             ->where(MeasurementDevice::user_id, $user->getKey())
@@ -54,7 +72,7 @@ class MeasurementDeviceContractSeeder extends Seeder
             $this->seedPrice($currentElectricityContract, $today->subMonths(8)->startOfMonth(), 0.32);
             $this->seedPrice($currentElectricityContract, $today->subMonths(2)->startOfMonth(), 0.35);
             $this->seedPrice($currentElectricityContract, $today->addMonths(3)->startOfMonth(), 0.39);
-            $currentElectricityContract->contacts()->sync([
+            $currentElectricityContract->contacts()->syncWithoutDetaching([
                 $contacts['private']->getKey(),
                 $contacts['business']->getKey(),
             ]);
@@ -72,7 +90,7 @@ class MeasurementDeviceContractSeeder extends Seeder
             );
             $this->seedPrice($historicElectricityContract, $today->subYears(2)->startOfMonth(), 0.28);
             $this->seedPrice($historicElectricityContract, $today->subYear()->startOfMonth(), 0.31);
-            $historicElectricityContract->contacts()->sync([
+            $historicElectricityContract->contacts()->syncWithoutDetaching([
                 $contacts['business']->getKey(),
             ]);
         }
@@ -91,7 +109,7 @@ class MeasurementDeviceContractSeeder extends Seeder
             );
             $this->seedPrice($gasContract, $today->subMonths(6)->startOfMonth(), 0.11);
             $this->seedPrice($gasContract, $today->addMonths(2)->startOfMonth(), 0.125);
-            $gasContract->contacts()->sync([
+            $gasContract->contacts()->syncWithoutDetaching([
                 $contacts['business']->getKey(),
             ]);
         }
@@ -106,7 +124,7 @@ class MeasurementDeviceContractSeeder extends Seeder
      */
     private function seedContacts(User $user): array
     {
-        $private = ContactPerson::query()->updateOrCreate(
+        $private = ContactPerson::query()->firstOrCreate(
             [
                 ContactPerson::user_id => $user->getKey(),
                 ContactPerson::email => 'anna.mueller@example.com',
@@ -122,7 +140,7 @@ class MeasurementDeviceContractSeeder extends Seeder
             ],
         );
 
-        $business = ContactPerson::query()->updateOrCreate(
+        $business = ContactPerson::query()->firstOrCreate(
             [
                 ContactPerson::user_id => $user->getKey(),
                 ContactPerson::email => 'markus.schneider@stadtwerke.example',
@@ -156,7 +174,7 @@ class MeasurementDeviceContractSeeder extends Seeder
         bool              $isActive,
     ): MeasurementDeviceContract
     {
-        return MeasurementDeviceContract::query()->updateOrCreate(
+        return MeasurementDeviceContract::query()->firstOrCreate(
             [
                 MeasurementDeviceContract::measurement_device_id => $device->getKey(),
                 MeasurementDeviceContract::name => $name,
@@ -181,22 +199,14 @@ class MeasurementDeviceContractSeeder extends Seeder
         float                     $unitPrice,
     ): void
     {
-        $price = $contract->prices()
-            ->whereDate(MeasurementDeviceContractPrice::valid_from, $validFrom->toDateString())
-            ->first();
-        $attributes = [
-            MeasurementDeviceContractPrice::unit_price => $unitPrice,
-            MeasurementDeviceContractPrice::notes => 'Demo-Preisstand',
-        ];
-
-        if ($price instanceof MeasurementDeviceContractPrice) {
-            $price->update($attributes);
-
-            return;
-        }
-
-        $contract->prices()->create(array_merge($attributes, [
-            MeasurementDeviceContractPrice::valid_from => $validFrom->toDateString(),
-        ]));
+        $contract->prices()->firstOrCreate(
+            [
+                MeasurementDeviceContractPrice::valid_from => $validFrom->toDateString(),
+            ],
+            [
+                MeasurementDeviceContractPrice::unit_price => $unitPrice,
+                MeasurementDeviceContractPrice::notes => 'Demo-Preisstand',
+            ],
+        );
     }
 }

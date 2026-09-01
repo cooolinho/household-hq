@@ -44,6 +44,20 @@ E-Mail:  admin@example.com
 Password: secret
 ```
 
+## Demo data
+
+Run all idempotent demo seeders:
+
+```bash
+docker exec -it --user sail personal-home-portal sh -c "php artisan db:seed"
+```
+
+Choose a single seeder or a grouped domain such as `Financial` interactively:
+
+```bash
+docker exec -it --user sail personal-home-portal sh -c "php artisan app:seed-demo-data"
+```
+
 ## Docs
 - [Project Definition](docs/index.md)
 - [TODO's](docs/todos.md)

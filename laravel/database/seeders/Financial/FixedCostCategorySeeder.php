@@ -1,12 +1,25 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Financial;
 
 use App\Models\Financial\FixedCostCategory;
 use Illuminate\Database\Seeder;
 
 class FixedCostCategorySeeder extends Seeder
 {
+    public static function description(): string
+    {
+        return 'Legt Demo-Kategorien für Fixkosten an';
+    }
+
+    /**
+     * @return list<class-string<Seeder>>
+     */
+    public static function dependencies(): array
+    {
+        return [];
+    }
+
     public function run(): void
     {
         $categories = [
@@ -22,12 +35,13 @@ class FixedCostCategorySeeder extends Seeder
 
         foreach ($categories as $group => $names) {
             foreach ($names as $name) {
-                FixedCostCategory::query()->updateOrCreate([
-                    FixedCostCategory::group => $group,
-                    FixedCostCategory::name => $name,
-                ]);
+                FixedCostCategory::query()->firstOrCreate(
+                    [
+                        FixedCostCategory::group => $group,
+                        FixedCostCategory::name => $name,
+                    ],
+                );
             }
         }
     }
 }
-

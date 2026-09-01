@@ -3,14 +3,14 @@
 namespace Tests\Unit;
 
 use App\Models\Financial\InsuranceCategory;
-use Database\Seeders\InsuranceCategorySeeder;
+use Database\Seeders\Financial\InsuranceCategorySeeder;
 use PHPUnit\Framework\TestCase;
 
 class InsuranceCategorySeederTest extends TestCase
 {
     public function test_it_contains_all_expected_insurance_categories(): void
     {
-        $path = dirname(__DIR__, 2) . '/database/seeders/InsuranceCategorySeeder.php';
+        $path = dirname(__DIR__, 2) . '/database/seeders/Financial/InsuranceCategorySeeder.php';
 
         $this->assertFileExists($path);
 
@@ -61,4 +61,3 @@ class InsuranceCategorySeederTest extends TestCase
         $this->assertTrue(class_exists(InsuranceCategorySeeder::class));
     }
 }
-

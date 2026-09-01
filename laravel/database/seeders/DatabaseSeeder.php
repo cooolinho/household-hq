@@ -2,26 +2,50 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\Core\ContactPersonSeeder;
+use Database\Seeders\Core\TagSeeder;
+use Database\Seeders\Core\UserSeeder;
+use Database\Seeders\EnergyTracker\EnergyTrackerSeeder;
+use Database\Seeders\EnergyTracker\MeasurementDeviceContractSeeder;
+use Database\Seeders\Financial\BankAccountSeeder;
+use Database\Seeders\Financial\FixedCostCategorySeeder;
+use Database\Seeders\Financial\FixedCostSeeder;
+use Database\Seeders\Financial\InsuranceCategorySeeder;
+use Database\Seeders\Financial\InsuranceSeeder;
+use Database\Seeders\Financial\TransactionCategorySeeder;
+use Database\Seeders\Financial\TransactionSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
+    public static function description(): string
+    {
+        return 'Führt alle Demo-Seeder in Abhängigkeitsreihenfolge aus';
+    }
+
     /**
-     * Seed the application's database.
+     * @return list<class-string<Seeder>>
      */
+    public static function dependencies(): array
+    {
+        return [];
+    }
+
     public function run(): void
     {
-        $this->call(UserSeeder::class);
-        $this->call(EnergyTrackerSeeder::class);
-        $this->call(TagSeeder::class);
-        $this->call(ContactPersonSeeder::class);
-        $this->call(MeasurementDeviceContractSeeder::class);
-        $this->call(BankAccountSeeder::class);
-        $this->call(InsuranceCategorySeeder::class);
-        $this->call(InsuranceSeeder::class);
-        $this->call(FixedCostCategorySeeder::class);
-        $this->call(FixedCostSeeder::class);
-        $this->call(TransactionSeeder::class);
-        $this->call(TransactionCategorySeeder::class);
+        $this->call([
+            UserSeeder::class,
+            ContactPersonSeeder::class,
+            TagSeeder::class,
+            EnergyTrackerSeeder::class,
+            MeasurementDeviceContractSeeder::class,
+            BankAccountSeeder::class,
+            InsuranceCategorySeeder::class,
+            InsuranceSeeder::class,
+            FixedCostCategorySeeder::class,
+            FixedCostSeeder::class,
+            TransactionCategorySeeder::class,
+            TransactionSeeder::class,
+        ]);
     }
 }
