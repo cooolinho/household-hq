@@ -27,6 +27,13 @@ class TransactionCategoriesTable
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('transactions_count')
+                    ->label('Transaktionen')
+                    ->state(fn(TransactionCategory $record): int => $record->getTransactionCountIncludingDescendants((int)auth()->id()))
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
+
                 TextColumn::make(TransactionCategory::belongs_to_parent . '.' . TransactionCategory::name)
                     ->label('Hauptkategorie')
                     ->badge()

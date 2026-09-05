@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\Financial\FixedCosts\Schemas;
 
+use App\Models\Enums\FixedCostIntervalEnum;
+use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\FixedCost;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
@@ -20,7 +22,8 @@ class FixedCostInfolist
                     ->badge()
                     ->placeholder('Nicht kategorisiert'),
                 TextEntry::make(FixedCost::interval)
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(fn(FixedCost $record): string => self::formatInterval($record)),
                 TextEntry::make(FixedCost::ends_mode)
                     ->badge(),
                 TextEntry::make(FixedCost::ends_date)
@@ -30,7 +33,8 @@ class FixedCostInfolist
                     ->date()
                     ->placeholder('-'),
                 TextEntry::make(FixedCost::extended_interval)
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(fn(FixedCost $record): string => self::formatInterval($record, true)),
                 TextEntry::make(FixedCost::next_booking_date)
                     ->label('Nächste Buchung am')
                     ->date()
@@ -44,5 +48,28 @@ class FixedCostInfolist
                     ->dateTime()
                     ->placeholder('-'),
             ]);
+    }
+
+    private static function formatInterval(FixedCost $record, bool $extended = false): string
+    {
+        $interval = (string)($extended
+            ? $record->{FixedCost::extended_interval}
+            : $record->{FixedCost::interval});
+
+        if ($interval !== FixedCostIntervalEnum::CUSTOM->name) {
+            return FixedCostIntervalEnum::tryFrom($interval)?->label() ?? $interval;
+        }
+
+        $value = $extended
+            ? $record->{FixedCost::custom_extended_interval_value}
+            : $record->{FixedCost::custom_interval_value};
+        $unit = $extended
+            ? $record->{FixedCost::custom_extended_interval_unit}
+            : $record->{FixedCost::custom_interval_unit};
+        $unitLabel = FixedCostIntervalUnitEnum::tryFrom((string)$unit)?->label();
+
+        return $value !== null && $unitLabel !== null
+            ? sprintf('Alle %d %s', $value, $unitLabel)
+            : FixedCostIntervalEnum::CUSTOM->label();
     }
 }

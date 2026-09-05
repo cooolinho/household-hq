@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Financial\FixedCosts\Tables;
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
+use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\FixedCostCategory;
 use Closure;
@@ -22,11 +23,11 @@ use Illuminate\Database\Eloquent\Builder;
 class FixedCostsTable
 {
     public static function configure(
-        Table    $table,
+        Table  $table,
         ?Closure $modifyQueryUsing = null,
-        string   $amountSortDirection = 'desc',
-        bool     $withToolbarActions = true,
-        bool     $withAmountDirectionFilters = true,
+        string $amountSortDirection = 'desc',
+        bool   $withToolbarActions = true,
+        bool   $withAmountDirectionFilters = true,
     ): Table
     {
         $table = $table
@@ -47,7 +48,7 @@ class FixedCostsTable
                 TextColumn::make(FixedCost::interval)
                     ->label('Intervall')
                     ->badge()
-                    ->formatStateUsing(fn(?string $state): string => FixedCostIntervalEnum::tryFrom((string)$state)?->label() ?? (string)$state),
+                    ->formatStateUsing(fn(FixedCost $record): string => self::formatInterval($record)),
                 TextColumn::make(FixedCost::ends_mode)
                     ->label('Endmodus')
                     ->badge()
@@ -59,7 +60,7 @@ class FixedCostsTable
                 TextColumn::make(FixedCost::extended_interval)
                     ->label('Verl. Intervall')
                     ->badge()
-                    ->formatStateUsing(fn(?string $state): string => FixedCostIntervalEnum::tryFrom((string)$state)?->label() ?? (string)$state)
+                    ->formatStateUsing(fn(FixedCost $record): string => self::formatInterval($record, true))
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make(FixedCost::ends_date)
                     ->label('Enddatum')
@@ -85,7 +86,7 @@ class FixedCostsTable
                         ->icon(Heroicon::Eye)
                         ->url(fn(FixedCost $record): string => FixedCostResource::getViewUrl($record->id)),
                     EditAction::make(),
-                ])
+                ]),
             ]);
 
         $filters = [
@@ -136,5 +137,29 @@ class FixedCostsTable
         }
 
         return $table;
+    }
+
+    private static function formatInterval(FixedCost $record, bool $extended = false): string
+    {
+        $interval = (string)($extended
+            ? $record->{FixedCost::extended_interval}
+            : $record->{FixedCost::interval});
+        $intervalEnum = FixedCostIntervalEnum::tryFrom($interval);
+
+        if ($interval !== FixedCostIntervalEnum::CUSTOM->name) {
+            return $intervalEnum?->label() ?? $interval;
+        }
+
+        $value = $extended
+            ? $record->{FixedCost::custom_extended_interval_value}
+            : $record->{FixedCost::custom_interval_value};
+        $unit = $extended
+            ? $record->{FixedCost::custom_extended_interval_unit}
+            : $record->{FixedCost::custom_interval_unit};
+        $unitLabel = FixedCostIntervalUnitEnum::tryFrom((string)$unit)?->label();
+
+        return $value !== null && $unitLabel !== null
+            ? sprintf('Alle %d %s', $value, $unitLabel)
+            : FixedCostIntervalEnum::CUSTOM->label();
     }
 }

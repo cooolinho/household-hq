@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Contracts\FinancialTransactionCategory;
 use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
 use App\Models\Financial\TransactionCategoryRuleUserSetting;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class TransactionCategorizationService
 {
@@ -18,7 +20,74 @@ class TransactionCategorizationService
      */
     public function categorizeUncategorized(int $userId): array
     {
-        $categories = TransactionCategory::query()
+        $categories = $this->getCategoriesForUser($userId);
+
+        if ($categories->isEmpty()) {
+            return $this->emptyResults();
+        }
+
+        $transactions = Transaction::query()
+            ->where(Transaction::user_id, $userId)
+            ->whereDoesntHave(Transaction::belongs_to_many_transaction_categories)
+            ->get();
+
+        return $this->categorizeTransactions($transactions, $categories);
+    }
+
+    /**
+     * Ergänzt passende Kategorien bei bereits kategorisierten Transaktionen.
+     *
+     * @return array{processed: int, categorized: int, skipped: int}
+     */
+    public function recategorizeCategorized(int $userId): array
+    {
+        $categories = $this->getCategoriesForUser($userId);
+
+        if ($categories->isEmpty()) {
+            return $this->emptyResults();
+        }
+
+        $transactions = Transaction::query()
+            ->where(Transaction::user_id, $userId)
+            ->whereHas(Transaction::belongs_to_many_transaction_categories)
+            ->get();
+
+        return $this->categorizeTransactions($transactions, $categories);
+    }
+
+    /**
+     * Entfernt alle Zuordnungen und kategorisiert sämtliche Transaktionen neu.
+     *
+     * @return array{processed: int, categorized: int, skipped: int}
+     */
+    public function recategorizeAll(int $userId): array
+    {
+        $categories = $this->getCategoriesForUser($userId);
+        $transactions = Transaction::query()
+            ->where(Transaction::user_id, $userId)
+            ->get();
+
+        $transactionIds = $transactions
+            ->pluck(Transaction::id)
+            ->all();
+
+        return DB::transaction(function () use ($transactionIds, $transactions, $categories): array {
+            if ($transactionIds !== []) {
+                DB::table(FinancialTransactionCategory::PIVOT_TABLE)
+                    ->whereIn(FinancialTransactionCategory::TRANSACTION_ID, $transactionIds)
+                    ->delete();
+            }
+
+            return $this->categorizeTransactions($transactions, $categories);
+        });
+    }
+
+    /**
+     * @return Collection<int, TransactionCategory>
+     */
+    private function getCategoriesForUser(int $userId): Collection
+    {
+        return TransactionCategory::query()
             ->visibleForUser($userId)
             ->where(TransactionCategory::active, true)
             ->with([
@@ -37,16 +106,15 @@ class TransactionCategorizationService
                 },
             ])
             ->get();
+    }
 
-        if ($categories->isEmpty()) {
-            return ['processed' => 0, 'categorized' => 0, 'skipped' => 0];
-        }
-
-        $transactions = Transaction::query()
-            ->where(Transaction::user_id, $userId)
-            ->whereDoesntHave(Transaction::belongs_to_many_transaction_categories)
-            ->get();
-
+    /**
+     * @param Collection<int, Transaction> $transactions
+     * @param Collection<int, TransactionCategory> $categories
+     * @return array{processed: int, categorized: int, skipped: int}
+     */
+    private function categorizeTransactions(Collection $transactions, Collection $categories): array
+    {
         $processed = 0;
         $categorized = 0;
         $skipped = 0;
@@ -58,15 +126,25 @@ class TransactionCategorizationService
 
             if ($matchingCategories->isEmpty()) {
                 $skipped++;
-            } else {
-                $transaction->transactionCategories()->syncWithoutDetaching(
-                    $matchingCategories->pluck(TransactionCategory::id)->toArray()
-                );
-                $categorized++;
+
+                continue;
             }
+
+            $transaction->transactionCategories()->syncWithoutDetaching(
+                $matchingCategories->pluck(TransactionCategory::id)->toArray()
+            );
+            $categorized++;
         }
 
         return compact('processed', 'categorized', 'skipped');
+    }
+
+    /**
+     * @return array{processed: int, categorized: int, skipped: int}
+     */
+    private function emptyResults(): array
+    {
+        return ['processed' => 0, 'categorized' => 0, 'skipped' => 0];
     }
 
     /**
@@ -133,6 +211,7 @@ class TransactionCategorizationService
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -247,6 +326,7 @@ class TransactionCategorizationService
         }
 
         $val = (float)$fieldValue;
+
         return $val >= (float)$min && $val <= (float)$max;
     }
 }

@@ -6,11 +6,26 @@ use App\Models\Financial\Transaction;
 use App\Models\User;
 use App\Services\DemoSeederRunner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class SeedDemoDataCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Carbon::setTestNow(Carbon::create(2026, 9, 5)->startOfDay());
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
 
     public function test_it_lists_seeders_and_supports_abort(): void
     {
@@ -41,6 +56,6 @@ class SeedDemoDataCommandTest extends TestCase
             ->assertSuccessful();
 
         self::assertSame(2, User::query()->count());
-        self::assertSame(31, Transaction::query()->count());
+        self::assertSame(159, Transaction::query()->count());
     }
 }

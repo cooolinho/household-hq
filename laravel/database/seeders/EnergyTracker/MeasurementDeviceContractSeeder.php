@@ -16,8 +16,6 @@ use Illuminate\Database\Seeder;
 
 class MeasurementDeviceContractSeeder extends Seeder
 {
-    private const string DEMO_ANCHOR_DATE = '2026-07-29';
-
     public static function description(): string
     {
         return 'Legt Demo-Energieverträge, Preisstände und Ansprechpartner an';
@@ -46,7 +44,7 @@ class MeasurementDeviceContractSeeder extends Seeder
         }
 
         $contacts = $this->seedContacts($user);
-        $today = CarbonImmutable::parse(self::DEMO_ANCHOR_DATE);
+        $startDate = CarbonImmutable::now()->startOfDay();
 
         $electricity = MeasurementDevice::query()
             ->where(MeasurementDevice::user_id, $user->getKey())
@@ -63,15 +61,15 @@ class MeasurementDeviceContractSeeder extends Seeder
                 'Stadtwerke Strom Flex',
                 'Stadtwerke München',
                 'STROM-2026-001',
-                $today->subMonths(8)->startOfMonth(),
+                $startDate->subMonths(8)->startOfMonth(),
                 null,
                 14.90,
                 EnergyTrackerContractBasePriceIntervalEnum::MONTHLY->name,
                 true,
             );
-            $this->seedPrice($currentElectricityContract, $today->subMonths(8)->startOfMonth(), 0.32);
-            $this->seedPrice($currentElectricityContract, $today->subMonths(2)->startOfMonth(), 0.35);
-            $this->seedPrice($currentElectricityContract, $today->addMonths(3)->startOfMonth(), 0.39);
+            $this->seedPrice($currentElectricityContract, $startDate->subMonths(8)->startOfMonth(), 0.32);
+            $this->seedPrice($currentElectricityContract, $startDate->subMonths(2)->startOfMonth(), 0.35);
+            $this->seedPrice($currentElectricityContract, $startDate->addMonths(3)->startOfMonth(), 0.39);
             $currentElectricityContract->contacts()->syncWithoutDetaching([
                 $contacts['private']->getKey(),
                 $contacts['business']->getKey(),
@@ -82,14 +80,14 @@ class MeasurementDeviceContractSeeder extends Seeder
                 'Stadtwerke Strom Klassik',
                 'Stadtwerke München',
                 'STROM-2024-017',
-                $today->subYears(2)->startOfMonth(),
-                $today->subMonths(9)->endOfMonth(),
+                $startDate->subYears(2)->startOfMonth(),
+                $startDate->subMonths(9)->endOfMonth(),
                 12.50,
                 EnergyTrackerContractBasePriceIntervalEnum::MONTHLY->name,
                 false,
             );
-            $this->seedPrice($historicElectricityContract, $today->subYears(2)->startOfMonth(), 0.28);
-            $this->seedPrice($historicElectricityContract, $today->subYear()->startOfMonth(), 0.31);
+            $this->seedPrice($historicElectricityContract, $startDate->subYears(2)->startOfMonth(), 0.28);
+            $this->seedPrice($historicElectricityContract, $startDate->subYear()->startOfMonth(), 0.31);
             $historicElectricityContract->contacts()->syncWithoutDetaching([
                 $contacts['business']->getKey(),
             ]);
@@ -101,14 +99,14 @@ class MeasurementDeviceContractSeeder extends Seeder
                 'Stadtwerke Gas Komfort',
                 'Stadtwerke München',
                 'GAS-2026-004',
-                $today->subMonths(6)->startOfMonth(),
+                $startDate->subMonths(6)->startOfMonth(),
                 null,
                 11.50,
                 EnergyTrackerContractBasePriceIntervalEnum::YEARLY->name,
                 true,
             );
-            $this->seedPrice($gasContract, $today->subMonths(6)->startOfMonth(), 0.11);
-            $this->seedPrice($gasContract, $today->addMonths(2)->startOfMonth(), 0.125);
+            $this->seedPrice($gasContract, $startDate->subMonths(6)->startOfMonth(), 0.11);
+            $this->seedPrice($gasContract, $startDate->addMonths(2)->startOfMonth(), 0.125);
             $gasContract->contacts()->syncWithoutDetaching([
                 $contacts['business']->getKey(),
             ]);

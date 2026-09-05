@@ -21,6 +21,7 @@ use Spatie\Tags\HasTags;
  * Class FixedCost
  *
  * Columns
+ *
  * @property int $id
  * @property int $user_id
  * @property string $name
@@ -32,6 +33,10 @@ use Spatie\Tags\HasTags;
  * @property Carbon|null $ends_date
  * @property Carbon|null $extended_date
  * @property FixedCostIntervalEnum|null $extended_interval
+ * @property int|null $custom_interval_value
+ * @property string|null $custom_interval_unit
+ * @property int|null $custom_extended_interval_value
+ * @property string|null $custom_extended_interval_unit
  * @property int $insurance_id
  * @property Carbon|null $next_booking_date
  * @property Carbon|null $created_at
@@ -39,7 +44,7 @@ use Spatie\Tags\HasTags;
  *
  * Relations
  * @property User $user
- * @property \App\Models\Financial\FixedCostCategory|null $category
+ * @property FixedCostCategory|null $category
  * @property Collection|Document[] $documents
  * @property Insurance|null $insurance
  * @property Collection|Transaction[] $transactions
@@ -56,32 +61,63 @@ class FixedCost extends Model implements CommentableInterface
 
     // columns
     const string user_id = 'user_id';
+
     const string id = 'id';
+
     const string name = 'name';
+
     const string notes = 'notes';
+
     const string amount = 'amount';
+
     // legacy column used in historical migration only
     const string category = 'category';
+
     const string category_id = 'category_id';
+
     const string interval = 'interval';
+
+    const string custom_interval_value = 'custom_interval_value';
+
+    const string custom_interval_unit = 'custom_interval_unit';
+
     const string ends_mode = 'ends_mode';
+
     const string ends_date = 'ends_date';
+
     const string extended_date = 'extended_date';
+
     const string extended_interval = 'extended_interval';
+
+    const string custom_extended_interval_value = 'custom_extended_interval_value';
+
+    const string custom_extended_interval_unit = 'custom_extended_interval_unit';
+
     const string insurance_id = 'insurance_id';
+
     const string next_booking_date = 'next_booking_date';
+
     const string created_at = Model::CREATED_AT;
+
     const string updated_at = Model::UPDATED_AT;
 
     // relations
     const string has_many_documents = 'documents';
+
     const string has_many_transactions = 'transactions';
+
     const string has_many_matching_suggestions = 'matchingSuggestions';
+
     const string has_many_matching_rules = 'matchingRules';
+
     const string has_many_reminders = 'reminders';
+
     const string belongs_to_user = 'user';
+
     const string belongs_to_insurance = 'insurance';
+
     const string belongs_to_category = 'category';
+
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -93,18 +129,24 @@ class FixedCost extends Model implements CommentableInterface
         self::amount,
         self::category_id,
         self::interval,
+        self::custom_interval_value,
+        self::custom_interval_unit,
         self::ends_mode,
         self::ends_date,
         self::extended_date,
         self::extended_interval,
+        self::custom_extended_interval_value,
+        self::custom_extended_interval_unit,
         self::insurance_id,
         self::next_booking_date,
     ];
 
     protected $casts = [
         self::amount => 'decimal:2',
+        self::custom_interval_value => 'integer',
         self::ends_date => 'date',
         self::extended_date => 'date',
+        self::custom_extended_interval_value => 'integer',
         self::next_booking_date => 'date',
     ];
 
@@ -120,7 +162,7 @@ class FixedCost extends Model implements CommentableInterface
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Financial\FixedCostCategory::class, self::category_id);
+        return $this->belongsTo(FixedCostCategory::class, self::category_id);
     }
 
     public function documents(): MorphToMany

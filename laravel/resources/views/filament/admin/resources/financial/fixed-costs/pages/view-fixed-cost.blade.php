@@ -4,6 +4,7 @@
     use App\Filament\Admin\Resources\Financial\Transactions\TransactionResource;
     use App\Models\Enums\FixedCostEndsModeEnum;
     use App\Models\Enums\FixedCostIntervalEnum;
+    use App\Models\Enums\FixedCostIntervalUnitEnum;
     use App\Models\Financial\FixedCostReminder;
     use App\Models\Financial\Transaction;
 
@@ -17,6 +18,12 @@
 
     $categoryLabel = $fixedCost->category?->name ?? 'Nicht kategorisiert';
     $intervalLabel = FixedCostIntervalEnum::tryFrom((string) $fixedCost->interval)?->label() ?? (string) $fixedCost->interval;
+    if ($fixedCost->interval === FixedCostIntervalEnum::CUSTOM->name) {
+        $unitLabel = FixedCostIntervalUnitEnum::tryFrom((string) $fixedCost->custom_interval_unit)?->label();
+        $intervalLabel = $fixedCost->custom_interval_value !== null && $unitLabel !== null
+            ? sprintf('Alle %d %s', $fixedCost->custom_interval_value, $unitLabel)
+            : FixedCostIntervalEnum::CUSTOM->label();
+    }
     $endsModeLabel = FixedCostEndsModeEnum::tryFrom((string) $fixedCost->ends_mode)?->label() ?? (string) $fixedCost->ends_mode;
 
     $documents = $fixedCost->documents()->get();
@@ -229,4 +236,3 @@
 
     @vite('resources/js/filament/admin/fixed-cost-view.js')
 </x-filament-panels::page>
-

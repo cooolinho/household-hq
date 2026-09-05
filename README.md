@@ -58,6 +58,15 @@ Choose a single seeder or a grouped domain such as `Financial` interactively:
 docker exec -it --user sail personal-home-portal sh -c "php artisan app:seed-demo-data"
 ```
 
+To replace outdated system transaction categories, run the interactive reset command:
+
+```bash
+docker exec -it --user sail personal-home-portal sh -c "php artisan app:reset-transaction-categories"
+```
+
+The command can delete only system categories or all categories, including user-created categories, and then runs only
+the `TransactionCategorySeeder`. Transactions remain, but their deleted category assignments are removed.
+
 ## Docs
 - [Project Definition](docs/index.md)
 - [TODO's](docs/todos.md)

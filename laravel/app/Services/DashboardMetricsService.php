@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\EnergyTracker\MeasurementDevice;
+use App\Models\Enums\FixedCostIntervalEnum;
+use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
@@ -12,6 +14,7 @@ use App\Models\ImportedEmail;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 class DashboardMetricsService
 {
@@ -49,17 +52,23 @@ class DashboardMetricsService
         $fixedCosts = FixedCost::query()
             ->where(FixedCost::user_id, $userId)
             ->whereNotNull(FixedCost::next_booking_date)
-            ->get([FixedCost::amount, FixedCost::interval]);
+            ->get([
+                FixedCost::amount,
+                FixedCost::interval,
+                FixedCost::custom_interval_value,
+                FixedCost::custom_interval_unit,
+            ]);
 
         $income = 0.0;
         $expenses = 0.0;
 
         foreach ($fixedCosts as $fixedCost) {
             $amount = (float)$fixedCost->amount;
-            $weightedAmount = abs($amount) * $this->monthlyFactor((string)$fixedCost->interval);
+            $weightedAmount = abs($amount) * $this->monthlyFactor($fixedCost);
 
             if ($amount > 0) {
                 $income += $weightedAmount;
+
                 continue;
             }
 
@@ -75,8 +84,14 @@ class DashboardMetricsService
         ];
     }
 
-    private function monthlyFactor(string $interval): float
+    private function monthlyFactor(FixedCost $fixedCost): float
     {
+        $interval = (string)$fixedCost->{FixedCost::interval};
+
+        if ($interval === FixedCostIntervalEnum::CUSTOM->name) {
+            return $this->customMonthlyFactor($fixedCost);
+        }
+
         return match ($interval) {
             'WEEKLY' => 52 / 12,
             'TWO_WEEKS' => 26 / 12,
@@ -86,6 +101,23 @@ class DashboardMetricsService
             'HALF_YEARLY' => 2 / 12,
             'YEARLY' => 1 / 12,
             default => 1.0,
+        };
+    }
+
+    private function customMonthlyFactor(FixedCost $fixedCost): float
+    {
+        $value = $fixedCost->{FixedCost::custom_interval_value};
+        $unit = FixedCostIntervalUnitEnum::tryFrom((string)$fixedCost->{FixedCost::custom_interval_unit});
+
+        if (!is_int($value) || $value < 1 || $unit === null) {
+            throw new InvalidArgumentException('Custom-Fixkostenintervalle benötigen einen positiven Wert und eine gültige Einheit.');
+        }
+
+        return match ($unit) {
+            FixedCostIntervalUnitEnum::DAY => 365.25 / 12 / $value,
+            FixedCostIntervalUnitEnum::WEEK => 52 / 12 / $value,
+            FixedCostIntervalUnitEnum::MONTH => 1 / $value,
+            FixedCostIntervalUnitEnum::YEAR => 1 / (12 * $value),
         };
     }
 
@@ -248,4 +280,3 @@ class DashboardMetricsService
             ->get();
     }
 }
-

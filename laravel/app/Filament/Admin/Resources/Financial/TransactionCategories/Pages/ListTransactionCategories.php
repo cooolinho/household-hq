@@ -7,23 +7,92 @@ use App\Filament\Admin\Resources\Financial\TransactionCategories\Actions\MoveCat
 use App\Filament\Admin\Resources\Financial\TransactionCategories\Actions\ViewCategoryTransactionsAction;
 use App\Filament\Admin\Resources\Financial\TransactionCategories\Support\TransactionCategoryBreadcrumbs;
 use App\Filament\Admin\Resources\Financial\TransactionCategories\TransactionCategoryResource;
+use App\Jobs\Financial\CategorizeUncategorizedTransactionsJob;
+use App\Jobs\Financial\RecategorizeAllTransactionsJob;
+use App\Jobs\Financial\RecategorizeCategorizedTransactionsJob;
 use App\Models\Financial\TransactionCategory;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListTransactionCategories extends ListRecords
 {
+    private const string FIELD_MODE = 'mode';
+
+    private const string MODE_RECATEGORIZE_CATEGORIZED = 'recategorize_categorized';
+
+    private const string MODE_CATEGORIZE_UNCATEGORIZED = 'categorize_uncategorized';
+
+    private const string MODE_RECATEGORIZE_ALL = 'recategorize_all';
+
     protected static string $resource = TransactionCategoryResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('categorizeTransactions')
+                ->label('Transaktionen kategorisieren')
+                ->icon(Heroicon::OutlinedTag)
+                ->modalHeading('Transaktionen kategorisieren')
+                ->modalDescription('Wähle aus, wie die Transaktionen des angemeldeten Benutzers verarbeitet werden sollen.')
+                ->modalSubmitActionLabel('Starten')
+                ->schema([
+                    Select::make(self::FIELD_MODE)
+                        ->label('Vorgehen')
+                        ->options([
+                            self::MODE_RECATEGORIZE_CATEGORIZED => 'Bereits kategorisierte Transaktionen erneut prüfen und passende Kategorien ergänzen',
+                            self::MODE_CATEGORIZE_UNCATEGORIZED => 'Nur noch nicht kategorisierten Transaktionen Kategorien zuweisen',
+                            self::MODE_RECATEGORIZE_ALL => 'Alle Kategorien entfernen und alle Transaktionen neu kategorisieren',
+                        ])
+                        ->required(),
+                ])
+                ->action(function (array $data): void {
+                    $userId = auth()->id();
+                    $mode = $data[self::FIELD_MODE] ?? null;
+
+                    if ($userId === null) {
+                        Notification::make()
+                            ->title('Kategorisierung konnte nicht gestartet werden.')
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
+                    switch ($mode) {
+                        case self::MODE_RECATEGORIZE_CATEGORIZED:
+                            RecategorizeCategorizedTransactionsJob::dispatch((int)$userId);
+                            break;
+                        case self::MODE_CATEGORIZE_UNCATEGORIZED:
+                            CategorizeUncategorizedTransactionsJob::dispatch((int)$userId);
+                            break;
+                        case self::MODE_RECATEGORIZE_ALL:
+                            RecategorizeAllTransactionsJob::dispatch((int)$userId);
+                            break;
+                        default:
+                            Notification::make()
+                                ->title('Bitte ein gültiges Vorgehen auswählen.')
+                                ->danger()
+                                ->send();
+
+                            return;
+                    }
+
+                    Notification::make()
+                        ->title('Kategorisierung gestartet')
+                        ->body('Die Transaktionen werden im Hintergrund verarbeitet.')
+                        ->success()
+                        ->send();
+                }),
             CreateAction::make()
                 ->label('Hauptkategorie erstellen')
                 ->visible(fn(): bool => $this->getCurrentParentCategory() === null),
@@ -89,5 +158,4 @@ class ListTransactionCategories extends ListRecords
 
         return $this->getCurrentParentCategory()?->{TransactionCategory::name} ?? 'Hauptkategorien';
     }
-
 }

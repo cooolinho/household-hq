@@ -134,6 +134,23 @@ class TransactionCategory extends Model
         )->withPivot('created_at');
     }
 
+    public function getTransactionCountIncludingDescendants(int $userId): int
+    {
+        $categoryIds = [
+            (int)$this->getKey(),
+            ...$this->getDescendantIds(),
+        ];
+
+        return Transaction::query()
+            ->where(Transaction::user_id, $userId)
+            ->whereHas(
+                Transaction::belongs_to_many_transaction_categories,
+                static fn(Builder $query): Builder => $query->whereIn(self::id, $categoryIds),
+            )
+            ->distinct(Transaction::id)
+            ->count(Transaction::id);
+    }
+
     public function getFullNameAttribute(): string
     {
         if ($this->parent_id !== null && $this->relationLoaded(self::belongs_to_parent) && $this->parent !== null) {

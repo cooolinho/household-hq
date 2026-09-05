@@ -14,6 +14,7 @@ enum FixedCostIntervalEnum
     case QUARTERLY;
     case HALF_YEARLY;
     case YEARLY;
+    case CUSTOM;
 
     public static function default(): string
     {
@@ -30,6 +31,7 @@ enum FixedCostIntervalEnum
             self::QUARTERLY => 'Vierteljährlich',
             self::HALF_YEARLY => 'Halbjährlich',
             self::YEARLY => 'Jährlich',
+            self::CUSTOM => 'Benutzerdefiniert',
         };
     }
 }

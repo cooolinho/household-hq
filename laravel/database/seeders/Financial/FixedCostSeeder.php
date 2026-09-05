@@ -4,6 +4,7 @@ namespace Database\Seeders\Financial;
 
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
+use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
 use App\Models\User;
@@ -50,6 +51,7 @@ class FixedCostSeeder extends Seeder
             return;
         }
 
+        $startDate = Carbon::now()->startOfDay();
         $fixedCosts = [
             [
                 FixedCost::name => 'Gehalt',
@@ -57,7 +59,7 @@ class FixedCostSeeder extends Seeder
                 FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::notes => 'Demo-Fixkosten: Gehalt',
-                FixedCost::next_booking_date => Carbon::now()->endOfMonth()->startOfDay(),
+                FixedCost::next_booking_date => $startDate->copy()->endOfMonth()->startOfDay(),
             ],
             [
                 FixedCost::name => 'Miete',
@@ -65,7 +67,7 @@ class FixedCostSeeder extends Seeder
                 FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::notes => 'Demo-Fixkosten: Miete',
-                FixedCost::next_booking_date => Carbon::now()->addMonth()->startOfMonth(),
+                FixedCost::next_booking_date => $startDate->copy()->addMonth()->startOfMonth(),
             ],
             [
                 FixedCost::name => 'Hausrat-Versicherung',
@@ -74,7 +76,7 @@ class FixedCostSeeder extends Seeder
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::insurance_id => $insurance->getKey(),
                 FixedCost::notes => 'Demo-Fixkosten: Hausrat',
-                FixedCost::next_booking_date => Carbon::now()->addMonth()->startOfMonth(),
+                FixedCost::next_booking_date => $startDate->copy()->addMonth()->startOfMonth(),
             ],
             [
                 FixedCost::name => 'Spotify',
@@ -82,7 +84,7 @@ class FixedCostSeeder extends Seeder
                 FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::notes => 'Demo-Matching: Spotify',
-                FixedCost::next_booking_date => Carbon::now()->startOfDay(),
+                FixedCost::next_booking_date => $startDate->copy(),
             ],
             [
                 FixedCost::name => 'Netflix',
@@ -90,7 +92,7 @@ class FixedCostSeeder extends Seeder
                 FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::notes => 'Demo-Matching: Netflix',
-                FixedCost::next_booking_date => Carbon::now()->addMonth()->startOfMonth(),
+                FixedCost::next_booking_date => $startDate->copy()->addMonth()->startOfMonth(),
             ],
             [
                 FixedCost::name => 'Strom',
@@ -98,7 +100,17 @@ class FixedCostSeeder extends Seeder
                 FixedCost::interval => FixedCostIntervalEnum::TWO_MONTHS,
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::notes => 'Demo-Matching: Strom',
-                FixedCost::next_booking_date => Carbon::parse('2026-08-15'),
+                FixedCost::next_booking_date => $startDate->copy(),
+            ],
+            [
+                FixedCost::name => 'Wartungsvertrag',
+                FixedCost::amount => -120.00,
+                FixedCost::interval => FixedCostIntervalEnum::CUSTOM,
+                FixedCost::custom_interval_value => 4,
+                FixedCost::custom_interval_unit => FixedCostIntervalUnitEnum::MONTH->name,
+                FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
+                FixedCost::notes => 'Demo-Fixkosten: Custom alle 4 Monate',
+                FixedCost::next_booking_date => $startDate->copy()->addMonths(2)->startOfMonth(),
             ],
             [
                 FixedCost::name => 'Amazon Prime',
@@ -106,7 +118,7 @@ class FixedCostSeeder extends Seeder
                 FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::notes => 'Demo-Matching: Amazon Prime A',
-                FixedCost::next_booking_date => Carbon::now()->startOfDay(),
+                FixedCost::next_booking_date => $startDate->copy(),
             ],
             [
                 FixedCost::name => 'Amazon Prime',
@@ -114,7 +126,7 @@ class FixedCostSeeder extends Seeder
                 FixedCost::interval => FixedCostIntervalEnum::MONTHLY,
                 FixedCost::ends_mode => FixedCostEndsModeEnum::NONE,
                 FixedCost::notes => 'Demo-Matching: Amazon Prime B',
-                FixedCost::next_booking_date => Carbon::now()->startOfDay(),
+                FixedCost::next_booking_date => $startDate->copy(),
             ],
         ];
 

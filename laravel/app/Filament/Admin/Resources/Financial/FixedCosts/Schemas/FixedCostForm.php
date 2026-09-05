@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Financial\FixedCosts\Schemas;
 use App\Filament\Admin\Resources\Financial\FixedCostCategories\Schemas\FixedCostCategoryForm;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
+use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\FixedCostCategory;
 use App\Models\Financial\Insurance;
@@ -25,6 +26,7 @@ use Filament\Support\Icons\Heroicon;
 class FixedCostForm
 {
     private const string NO_CATEGORY_OPTION = '__none__';
+
     const string INPUT_ASSIGN_WITH_INSURANCE = 'assign_with_insurance';
 
     public static function configure(Schema $schema): Schema
@@ -67,9 +69,6 @@ class FixedCostForm
         ];
     }
 
-    /**
-     * @return array
-     */
     private static function getSectionBaseSchema(): array
     {
         return [
@@ -82,6 +81,7 @@ class FixedCostForm
                     if ($amount !== null && $amount < 0) {
                         return 'danger';
                     }
+
                     return 'success';
                 })
                 ->postfix('EUR')
@@ -91,6 +91,7 @@ class FixedCostForm
                         if ($amount !== null && $amount < 0) {
                             return Heroicon::MinusCircle;
                         }
+
                         return Heroicon::PlusCircle;
                     })
                     ->color(function (Get $get) {
@@ -98,6 +99,7 @@ class FixedCostForm
                         if ($amount !== null && $amount < 0) {
                             return 'danger';
                         }
+
                         return 'success';
                     })
                     ->action(function (Get $get, Set $set) {
@@ -107,21 +109,40 @@ class FixedCostForm
                         }
                     }))
                 ->numeric()
-                ->rule(new FixedCostAmountNotZeroRule()),
+                ->rule(new FixedCostAmountNotZeroRule),
             self::getBelongsToCategorySelect(),
         ];
     }
 
-    /**
-     * @return array
-     */
     private static function getSectionIntervalSchema(): array
     {
         return [
             Select::make(FixedCost::interval)
                 ->options(FixedCostIntervalEnum::options())
                 ->default(FixedCostIntervalEnum::default())
+                ->reactive()
+                ->afterStateUpdated(function (Set $set, ?string $state): void {
+                    if ($state !== FixedCostIntervalEnum::CUSTOM->name) {
+                        $set(FixedCost::custom_interval_value, null);
+                        $set(FixedCost::custom_interval_unit, null);
+                    }
+                })
                 ->required(),
+
+            TextInput::make(FixedCost::custom_interval_value)
+                ->label('Eigener Intervallwert')
+                ->numeric()
+                ->minValue(1)
+                ->step(1)
+                ->rule('integer')
+                ->visible(fn(Get $get): bool => $get(FixedCost::interval) === FixedCostIntervalEnum::CUSTOM->name)
+                ->required(fn(Get $get): bool => $get(FixedCost::interval) === FixedCostIntervalEnum::CUSTOM->name),
+
+            Select::make(FixedCost::custom_interval_unit)
+                ->label('Eigene Intervalleinheit')
+                ->options(FixedCostIntervalUnitEnum::options())
+                ->visible(fn(Get $get): bool => $get(FixedCost::interval) === FixedCostIntervalEnum::CUSTOM->name)
+                ->required(fn(Get $get): bool => $get(FixedCost::interval) === FixedCostIntervalEnum::CUSTOM->name),
 
             DatePicker::make(FixedCost::next_booking_date)
                 ->label('Nächste Buchung am')
@@ -130,9 +151,6 @@ class FixedCostForm
         ];
     }
 
-    /**
-     * @return array
-     */
     private static function getSectionEndingSchema(): array
     {
         return [
@@ -152,8 +170,34 @@ class FixedCostForm
             Select::make(FixedCost::extended_interval)
                 ->visible(fn(Get $get) => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::EXTENDED->name)
                 ->options(FixedCostIntervalEnum::options())
+                ->reactive()
+                ->afterStateUpdated(function (Set $set, ?string $state): void {
+                    if ($state !== FixedCostIntervalEnum::CUSTOM->name) {
+                        $set(FixedCost::custom_extended_interval_value, null);
+                        $set(FixedCost::custom_extended_interval_unit, null);
+                    }
+                })
                 ->default(FixedCostIntervalEnum::default())
                 ->required(),
+
+            TextInput::make(FixedCost::custom_extended_interval_value)
+                ->label('Eigenes Verlängerungsintervall')
+                ->numeric()
+                ->minValue(1)
+                ->step(1)
+                ->rule('integer')
+                ->visible(fn(Get $get): bool => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::EXTENDED->name
+                    && $get(FixedCost::extended_interval) === FixedCostIntervalEnum::CUSTOM->name)
+                ->required(fn(Get $get): bool => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::EXTENDED->name
+                    && $get(FixedCost::extended_interval) === FixedCostIntervalEnum::CUSTOM->name),
+
+            Select::make(FixedCost::custom_extended_interval_unit)
+                ->label('Eigene Verlängerungseinheit')
+                ->options(FixedCostIntervalUnitEnum::options())
+                ->visible(fn(Get $get): bool => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::EXTENDED->name
+                    && $get(FixedCost::extended_interval) === FixedCostIntervalEnum::CUSTOM->name)
+                ->required(fn(Get $get): bool => $get(FixedCost::ends_mode) === FixedCostEndsModeEnum::EXTENDED->name
+                    && $get(FixedCost::extended_interval) === FixedCostIntervalEnum::CUSTOM->name),
         ];
     }
 
@@ -240,7 +284,7 @@ class FixedCostForm
             })
             ->preload()
             ->searchable()
-            ->createOptionForm(FixedCostCategoryForm::configure(new Schema())->getComponents())
+            ->createOptionForm(FixedCostCategoryForm::configure(new Schema)->getComponents())
             ->createOptionUsing(function (array $data) {
                 return FixedCostCategory::query()->create($data)->id;
             })

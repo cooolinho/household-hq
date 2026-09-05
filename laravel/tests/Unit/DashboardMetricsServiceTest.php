@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Enums\FixedCostIntervalEnum;
+use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
@@ -116,14 +117,23 @@ class DashboardMetricsServiceTest extends TestCase
             FixedCost::next_booking_date => '2026-08-20',
         ]);
 
+        FixedCost::query()->create([
+            FixedCost::user_id => $user->id,
+            FixedCost::name => 'Wartung',
+            FixedCost::amount => -400,
+            FixedCost::interval => FixedCostIntervalEnum::CUSTOM->name,
+            FixedCost::custom_interval_value => 4,
+            FixedCost::custom_interval_unit => FixedCostIntervalUnitEnum::MONTH->name,
+            FixedCost::next_booking_date => '2026-08-20',
+        ]);
+
         $data = app(DashboardMetricsService::class)
             ->getMonthlyBalanceData($user->id, 'EUR', CarbonImmutable::parse('2026-08-10'));
 
-        $expectedExpenses = 1200 + (52 * (52 / 12));
+        $expectedExpenses = 1200 + (52 * (52 / 12)) + 100;
 
         $this->assertSame(120.0, round($data['forecast']['income'], 2));
         $this->assertSame(round($expectedExpenses, 2), round($data['forecast']['expenses'], 2));
         $this->assertSame(round(120 - $expectedExpenses, 2), round($data['forecast']['balance'], 2));
     }
 }
-
