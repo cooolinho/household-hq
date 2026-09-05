@@ -15,5 +15,8 @@
             Speichern
         </x-filament::button>
     </form>
-</x-filament-panels::page>
 
+    <div>
+        {{ $this->table }}
+    </div>
+</x-filament-panels::page>

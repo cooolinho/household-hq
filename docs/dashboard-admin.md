@@ -8,6 +8,7 @@ klaren, informativen Übersicht mit der monatlichen Kostenbilanz als Hauptkennza
 - eine strukturierte Dashboard-Übersicht ohne Überladung
 - zentrale Darstellung der monatlichen Kostenbilanz
 - einfache Ein-/Ausblendung einzelner Widgets pro Nutzer
+- eigene Widgets aus sicheren Vorlagen pro Navigationsbereich
 
 ## Umsetzung
 
@@ -54,3 +55,39 @@ Im Settings-Cluster gibt es eine eigene Dashboard-Seite mit:
 - Auswahl des Bilanzmodus
 - Eingabe der bevorzugten Währung
 - Schnellaktionen zum Aktivieren oder Deaktivieren aller Widgets
+
+## Eigene Widgets
+
+Auf derselben Einstellungsseite können Benutzer eigene Dashboard-Widgets anlegen, bearbeiten, aktivieren/deaktivieren
+und löschen. Beim Anlegen wird zuerst eine `NavigationGroup` (z. B. `BANKS`) und danach eine verfügbare Vorlage dieses
+Bereichs ausgewählt. Die sechs vorhandenen Bereiche besitzen jeweils eine eigene Template-Klasse, sodass weitere
+Vorlagen ohne Änderungen an der zentralen Dashboard-Seite ergänzt werden können.
+
+Unterstützte Widget-Typen:
+
+- `chart`: Chart.js-Daten mit Labels und Datensätzen
+- `stat`: eine oder mehrere Filament-Stat-Karten
+- `table`: userbezogene Filament-Tabelle mit fest definierten Spalten
+
+Die Template-Formulare erzeugen die Konfiguration dynamisch. Benutzer bearbeiten niemals Raw-JSON; intern wird die
+normalisierte Konfiguration in `custom_dashboard_user_widgets.configuration` gespeichert. Ein Beispiel sieht
+konzeptionell
+so aus:
+
+```json
+{
+    "currency": "EUR",
+    "months": 6
+}
+```
+
+Template-Key, Widget-Typ, Breite (`1`, `2`, `4` oder `full`), Sortierung und Aktivstatus werden getrennt gespeichert.
+Die Ausgabe wird durch jeweils einen Renderer-Service für Chart-, Stat- und Table-Widgets erzeugt. Vorlagen akzeptieren
+keine freien Klassen-, PHP-, SQL- oder Query-Angaben; alle Datenabfragen bleiben serverseitig definiert und werden auf
+den
+angemeldeten Benutzer begrenzt.
+
+Zum Hinzufügen einer Vorlage wird die passende Bereichsklasse unter
+`laravel/app/Services/Dashboard/Widgets/Templates` erweitert. Das Template liefert dabei mindestens einen stabilen Key,
+ein dynamisches Filament-Formschema, Default-/Normalisierungswerte und die typisierte Datenausgabe beziehungsweise
+Tabellenkonfiguration.

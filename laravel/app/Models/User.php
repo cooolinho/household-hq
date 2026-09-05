@@ -72,6 +72,7 @@ class User extends Authenticatable implements FilamentUser
     const string has_many_imap_accounts = 'imapAccounts';
     const string has_many_imported_emails = 'importedEmails';
     const string has_one_dashboard_widget_preference = 'dashboardWidgetPreference';
+    const string has_many_custom_dashboard_user_widgets = 'customDashboardUserWidgets';
 
     protected $table = self::TABLE;
 
@@ -155,5 +156,10 @@ class User extends Authenticatable implements FilamentUser
     public function dashboardWidgetPreference(): HasOne
     {
         return $this->hasOne(DashboardWidgetPreference::class, DashboardWidgetPreference::user_id);
+    }
+
+    public function customDashboardUserWidgets(): HasMany
+    {
+        return $this->hasMany(CustomDashboardUserWidget::class, CustomDashboardUserWidget::user_id);
     }
 }
