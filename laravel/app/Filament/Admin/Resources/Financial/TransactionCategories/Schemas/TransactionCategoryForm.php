@@ -5,11 +5,14 @@ namespace App\Filament\Admin\Resources\Financial\TransactionCategories\Schemas;
 use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
-use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
@@ -24,25 +27,6 @@ class TransactionCategoryForm
                 ->maxLength(255)
                 ->disabled(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false),
 
-            Select::make(TransactionCategory::parent_id)
-                ->label('Hauptkategorie')
-                ->nullable()
-                ->placeholder('Keine (Hauptkategorie)')
-                ->searchable()
-                ->options(function (?TransactionCategory $record): array {
-                    $query = TransactionCategory::query()
-                        ->visibleForUser((int)auth()->id())
-                        ->whereNull(TransactionCategory::parent_id)
-                        ->orderBy(TransactionCategory::name);
-
-                    if ($record?->id) {
-                        $query->where(TransactionCategory::id, '!=', $record->id);
-                    }
-
-                    return $query->pluck(TransactionCategory::name, TransactionCategory::id)->toArray();
-                })
-                ->disabled(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false),
-
             Toggle::make(TransactionCategory::active)
                 ->label('Aktiv')
                 ->default(true)
@@ -52,14 +36,50 @@ class TransactionCategoryForm
 
             self::makeUserExtensionRulesRepeater(),
 
-            CheckboxList::make('disabled_global_rule_ids')
-                ->label('Globale Regeln deaktivieren')
-                ->helperText('Nur für dich deaktiviert. Andere User behalten die globalen Regeln unverändert.')
-                ->options(fn(?TransactionCategory $record): array => self::getGlobalRuleOptions($record))
-                ->columns(1)
-                ->visible(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false)
-                ->dehydrated(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false),
+            self::makeGlobalRulesRepeater(),
         ]);
+    }
+
+    private static function makeGlobalRulesRepeater(): Repeater
+    {
+        return Repeater::make('global_rule_settings')
+            ->label('Systemregeln')
+            ->helperText('Deaktiviere einzelne globale Regeln nur für deinen Account. Andere User bleiben unverändert.')
+            ->itemLabel(fn(array $state): string => 'Systemregel #' . ($state['rule_id'] ?? '?'))
+            ->schema([
+                Hidden::make('rule_id'),
+                Grid::make([
+                    'default' => 1,
+                    'lg' => 12,
+                ])->schema([
+                    Checkbox::make('disabled')
+                        ->label('Regel deaktivieren')
+                        ->helperText('Nur für dich deaktiviert.')
+                        ->columnSpan([
+                            'default' => 1,
+                            'lg' => 3,
+                        ]),
+                    ViewField::make('preview')
+                        ->hiddenLabel()
+                        ->view(
+                            'filament.admin.resources.financial.transaction-categories.actions.system-rule-preview',
+                            fn(Get $get): array => [
+                                'preview' => $get('preview') ?? [],
+                            ],
+                        )
+                        ->dehydrated(false)
+                        ->columnSpan([
+                            'default' => 1,
+                            'lg' => 9,
+                        ]),
+                ]),
+            ])
+            ->columns(1)
+            ->addable(false)
+            ->deletable(false)
+            ->reorderable(false)
+            ->visible(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false)
+            ->dehydrated(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false);
     }
 
     private static function makeManagedRulesRepeater(): Repeater
@@ -187,43 +207,5 @@ class TransactionCategoryForm
 
             $criteriaRepeater,
         ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private static function getGlobalRuleOptions(?TransactionCategory $record): array
-    {
-        if ($record === null || !$record->isGlobal()) {
-            return [];
-        }
-
-        return $record->rules()
-            ->whereNull(TransactionCategoryRule::user_id)
-            ->with(TransactionCategoryRule::has_many_criteria)
-            ->orderBy(TransactionCategoryRule::id)
-            ->get()
-            ->mapWithKeys(function (TransactionCategoryRule $rule): array {
-                $criteriaSummary = $rule->criteria
-                    ->map(function (TransactionCategoryCriterion $criterion): string {
-                        return sprintf(
-                            '%s %s "%s"',
-                            $criterion->field,
-                            $criterion->operator,
-                            $criterion->value,
-                        );
-                    })
-                    ->implode(' | ');
-
-                $label = sprintf(
-                    'Regel #%d (%s)%s',
-                    $rule->id,
-                    $rule->operator,
-                    $criteriaSummary !== '' ? ': ' . $criteriaSummary : '',
-                );
-
-                return [(string)$rule->id => $label];
-            })
-            ->toArray();
     }
 }

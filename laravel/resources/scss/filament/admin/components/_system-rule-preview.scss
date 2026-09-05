@@ -1,0 +1,107 @@
+@use '../abstracts/variables' as *;
+
+.ph-system-rule-preview {
+    margin-bottom: 0;
+
+    &__example-label {
+        padding: 0.75rem 1rem 0.25rem;
+        color: $ph-muted;
+        font-family: inherit;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    &__criteria {
+        margin-top: 0.5rem;
+        border-top: 1px solid $ph-border-light;
+        padding: 0.5rem 1rem 0;
+    }
+
+    &__criteria-heading {
+        margin-bottom: 0.25rem;
+        color: $ph-muted;
+        font-family: inherit;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    &__criterion {
+        display: grid;
+        grid-template-columns: 10rem 1fr;
+        gap: 0.5rem;
+        padding: 0.4rem 0;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid $ph-border-light;
+        }
+    }
+
+    &__case-note {
+        color: $ph-muted;
+        font-size: 0.6875rem;
+    }
+
+    &__match {
+        background-color: $ph-highlight-light;
+        border-radius: 0.2rem;
+        color: $ph-highlight-light-text;
+        font-weight: 700;
+        padding: 0 0.15rem;
+        text-decoration: underline;
+        text-decoration-thickness: 0.1em;
+        text-underline-offset: 0.12em;
+    }
+
+    &__legend {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 1rem 0.65rem;
+        color: $ph-muted;
+        font-family: inherit;
+        font-size: 0.6875rem;
+    }
+
+    &__legend-marker {
+        flex: 0 0 auto;
+        width: 0.75rem;
+        height: 0.75rem;
+        border: 1px solid $ph-highlight-light-text;
+        border-radius: 0.2rem;
+        background-color: $ph-highlight-light;
+    }
+}
+
+.dark .ph-system-rule-preview {
+    &__criteria {
+        border-top-color: $ph-border-dark;
+    }
+
+    &__criterion:not(:last-child) {
+        border-bottom-color: $ph-border-dark;
+    }
+
+    &__match {
+        background-color: $ph-highlight-dark;
+        color: $ph-highlight-dark-text;
+    }
+
+    &__legend-marker {
+        border-color: $ph-highlight-dark-text;
+        background-color: $ph-highlight-dark;
+    }
+}
+
+@media (max-width: 40rem) {
+    .ph-system-rule-preview {
+        .ph-transaction-statement__row,
+        &__criterion {
+            grid-template-columns: 1fr;
+            gap: 0.2rem;
+        }
+    }
+}

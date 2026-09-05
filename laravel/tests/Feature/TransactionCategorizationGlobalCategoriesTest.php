@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Admin\Resources\Financial\TransactionCategories\Pages\EditTransactionCategory;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionCategory;
@@ -11,6 +12,7 @@ use App\Models\Financial\TransactionCategoryRuleUserSetting;
 use App\Models\User;
 use App\Services\TransactionCategorizationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TransactionCategorizationGlobalCategoriesTest extends TestCase
@@ -103,6 +105,65 @@ class TransactionCategorizationGlobalCategoriesTest extends TestCase
         self::assertDatabaseHas('financial_transaction_transaction_category', [
             'transaction_id' => $spotifyForUserB->id,
             'transaction_category_id' => $globalCategory->id,
+        ]);
+    }
+
+    public function test_global_rule_preview_keeps_per_user_disable_behavior(): void
+    {
+        $user = User::factory()->create();
+        $category = TransactionCategory::query()->create([
+            TransactionCategory::user_id => null,
+            TransactionCategory::name => 'Streaming',
+            TransactionCategory::parent_id => null,
+            TransactionCategory::active => true,
+        ]);
+        $rule = TransactionCategoryRule::query()->create([
+            TransactionCategoryRule::transaction_category_id => $category->id,
+            TransactionCategoryRule::user_id => null,
+            TransactionCategoryRule::operator => TransactionCategoryRule::OPERATOR_OR,
+            TransactionCategoryRule::active => true,
+        ]);
+        TransactionCategoryCriterion::query()->create([
+            TransactionCategoryCriterion::transaction_category_rule_id => $rule->id,
+            TransactionCategoryCriterion::field => TransactionCategoryCriterion::FIELD_PURPOSE,
+            TransactionCategoryCriterion::operator => TransactionCategoryCriterion::OP_CONTAINS,
+            TransactionCategoryCriterion::value => 'streaming',
+            TransactionCategoryCriterion::case_sensitive => false,
+        ]);
+
+        $component = Livewire::actingAs($user)->test(EditTransactionCategory::class, [
+            'record' => $category->getKey(),
+        ]);
+
+        $component
+            ->assertSee('Systemregel #' . $rule->id)
+            ->assertSee('Verwendungszweck')
+            ->assertSee('Beispieltransaktion')
+            ->assertSee('streaming')
+            ->assertSee('Regel deaktivieren')
+            ->assertSee('<mark class="ph-system-rule-preview__match">streaming</mark>', false);
+
+        $ruleStateKey = array_key_first($component->get('data.global_rule_settings'));
+
+        $component
+            ->set('data.global_rule_settings.' . $ruleStateKey . '.disabled', true)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        self::assertDatabaseHas(TransactionCategoryRuleUserSetting::TABLE, [
+            TransactionCategoryRuleUserSetting::user_id => $user->id,
+            TransactionCategoryRuleUserSetting::transaction_category_rule_id => $rule->id,
+            TransactionCategoryRuleUserSetting::active => false,
+        ]);
+
+        $component
+            ->set('data.global_rule_settings.' . $ruleStateKey . '.disabled', false)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        self::assertDatabaseMissing(TransactionCategoryRuleUserSetting::TABLE, [
+            TransactionCategoryRuleUserSetting::user_id => $user->id,
+            TransactionCategoryRuleUserSetting::transaction_category_rule_id => $rule->id,
         ]);
     }
 

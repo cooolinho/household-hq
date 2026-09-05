@@ -10,25 +10,88 @@ use Illuminate\Database\Seeder;
 /**
  * TransactionCategorySeeder
  *
- * Erstellt Demo-Transaktionskategorien mit Regeln und Kriterien.
+ * Erstellt die Transaktionskategorien mit ihren Unterkategorien.
+ *
+ * Als Default-Kriterium erhält jede Unterkategorie eine Regel, die prüft, ob der
+ * Name der Unterkategorie im Verwendungszweck (purpose) enthalten ist.
  *
  * Struktur (Hauptkategorie > Unterkategorien):
- *  - Abonnements > Musik Streaming
- *  - Abonnements > Video Streaming
- *  - Abonnements > Cloud Dienste
- *  - Finanzen > PayPal
- *  - Finanzen > Amazon
- *  - Einkommen > Gehalt
- *  - Einkommen > Sonstige Einnahmen
- *  - Energie & Wohnen > Strom
- *  - Energie & Wohnen > Miete
- *  - Energie & Wohnen > Internet
+ *  - Finanzen & Versicherungen > Bankgebühren, Beruf & Gewerbe, Dienstleistungen,
+ *      Geldautomat, Immobilien, Kindergeld & Unterhalt, Kredite & Finanzierungen,
+ *      Lohn & Gehalt, Sparen, Umbuchung, Versicherungen, Zinsen & Investitionen
+ *  - Freizeit & Unterhaltung > Ausflüge & Aktivität, Glücksspiel, Hobby,
+ *      Kunst & Kultur, Medien, Sport, Streaming, Urlaub, Vereine
+ *  - Lebenshaltung > Baumarkt & Gartencenter, Gastronomie, Geschenke, Gesundheit,
+ *      Handy & Internet, Haustier, Kinder, Körperpflege & Wellness,
+ *      Lebensmittel & Getränke, Möbel & Einrichtung, Shopping, Wohnen & Wohnnebenkosten
+ *  - Mobilität > Auto & Motorrad, Fahrrad & Scooter, Tank- & Ladestelle, Verkehrsmittel
+ *  - Staat & Behörde > Amts- & Verwaltungsgebühren, Rundfunkbeitrag,
+ *      Sozialleistungen, Steuer
  */
 class TransactionCategorySeeder extends Seeder
 {
+    /**
+     * Hauptkategorie => Liste der Unterkategorien.
+     *
+     * @var array<string, list<string>>
+     */
+    private const array STRUCTURE = [
+        'Finanzen & Versicherungen' => [
+            'Bankgebühren',
+            'Beruf & Gewerbe',
+            'Dienstleistungen',
+            'Geldautomat',
+            'Immobilien',
+            'Kindergeld & Unterhalt',
+            'Kredite & Finanzierungen',
+            'Lohn & Gehalt',
+            'Sparen',
+            'Umbuchung',
+            'Versicherungen',
+            'Zinsen & Investitionen',
+        ],
+        'Freizeit & Unterhaltung' => [
+            'Ausflüge & Aktivität',
+            'Glücksspiel',
+            'Hobby',
+            'Kunst & Kultur',
+            'Medien',
+            'Sport',
+            'Streaming',
+            'Urlaub',
+            'Vereine',
+        ],
+        'Lebenshaltung' => [
+            'Baumarkt & Gartencenter',
+            'Gastronomie',
+            'Geschenke',
+            'Gesundheit',
+            'Handy & Internet',
+            'Haustier',
+            'Kinder',
+            'Körperpflege & Wellness',
+            'Lebensmittel & Getränke',
+            'Möbel & Einrichtung',
+            'Shopping',
+            'Wohnen & Wohnnebenkosten',
+        ],
+        'Mobilität' => [
+            'Auto & Motorrad',
+            'Fahrrad & Scooter',
+            'Tank- & Ladestelle',
+            'Verkehrsmittel',
+        ],
+        'Staat & Behörde' => [
+            'Amts- & Verwaltungsgebühren',
+            'Rundfunkbeitrag',
+            'Sozialleistungen',
+            'Steuer',
+        ],
+    ];
+
     public static function description(): string
     {
-        return 'Legt Demo-Transaktionskategorien mit Regeln und Kriterien an';
+        return 'Legt die Transaktionskategorien mit ihren Unterkategorien und Default-Kriterien an';
     }
 
     /**
@@ -41,172 +104,56 @@ class TransactionCategorySeeder extends Seeder
 
     public function run(): void
     {
-        $structure = [
-            'Abonnements' => [
-                'Musik Streaming' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'spotify'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'spotify'],
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'apple music'],
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'deezer'],
-                        ],
-                    ],
-                ],
-                'Video Streaming' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'netflix'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'netflix'],
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'disney'],
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'amazon prime'],
-                        ],
-                    ],
-                ],
-                'Cloud Dienste' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'google one'],
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'dropbox'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'icloud'],
-                        ],
-                    ],
-                ],
-            ],
-            'Finanzen' => [
-                'PayPal' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'paypal'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'paypal'],
-                        ],
-                    ],
-                ],
-                'Amazon' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'amazon'],
-                        ],
-                    ],
-                ],
-            ],
-            'Einkommen' => [
-                'Gehalt' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'gehalt'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'lohn'],
-                            [TransactionCategoryCriterion::FIELD_DESCRIPTION, TransactionCategoryCriterion::OP_CONTAINS, 'lohnzahlung'],
-                            [TransactionCategoryCriterion::FIELD_DESCRIPTION, TransactionCategoryCriterion::OP_CONTAINS, 'gehaltszahlung'],
-                        ],
-                    ],
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_AND,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_AMOUNT, TransactionCategoryCriterion::OP_GREATER_THAN, '1000'],
-                            [TransactionCategoryCriterion::FIELD_DESCRIPTION, TransactionCategoryCriterion::OP_CONTAINS, 'überweisung'],
-                        ],
-                    ],
-                ],
-                'Sonstige Einnahmen' => [],
-            ],
-            'Energie & Wohnen' => [
-                'Strom' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_AND,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'stadtwerke'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'strom'],
-                        ],
-                    ],
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'stromabschlag'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'strom abschlag'],
-                        ],
-                    ],
-                ],
-                'Miete' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'miete'],
-                            [TransactionCategoryCriterion::FIELD_DESCRIPTION, TransactionCategoryCriterion::OP_CONTAINS, 'dauerauftrag'],
-                        ],
-                    ],
-                ],
-                'Internet' => [
-                    [
-                        'operator' => TransactionCategoryRule::OPERATOR_OR,
-                        'criteria' => [
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'telekom'],
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'unitymedia'],
-                            [TransactionCategoryCriterion::FIELD_PAYER, TransactionCategoryCriterion::OP_CONTAINS, 'vodafone'],
-                            [TransactionCategoryCriterion::FIELD_PURPOSE, TransactionCategoryCriterion::OP_CONTAINS, 'internet'],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        foreach (self::STRUCTURE as $parentName => $children) {
+            $parent = $this->createCategory($parentName, null);
 
-        foreach ($structure as $parentName => $children) {
-            $parent = TransactionCategory::query()->firstOrCreate(
-                [
-                    TransactionCategory::user_id => null,
-                    TransactionCategory::name => $parentName,
-                    TransactionCategory::parent_id => null,
-                ],
-                [
-                    TransactionCategory::active => true,
-                ],
-            );
-
-            foreach ($children as $childName => $rules) {
-                $child = TransactionCategory::query()->firstOrCreate(
-                    [
-                        TransactionCategory::user_id => null,
-                        TransactionCategory::name => $childName,
-                        TransactionCategory::parent_id => $parent->id,
-                    ],
-                    [
-                        TransactionCategory::active => true,
-                    ],
-                );
-
-                foreach ($rules as $ruleDef) {
-                    $rule = TransactionCategoryRule::query()->firstOrCreate(
-                        [
-                            TransactionCategoryRule::transaction_category_id => $child->getKey(),
-                            TransactionCategoryRule::user_id => null,
-                            TransactionCategoryRule::operator => $ruleDef['operator'],
-                        ],
-                        [
-                            TransactionCategoryRule::active => true,
-                        ],
-                    );
-
-                    foreach ($ruleDef['criteria'] as [$field, $operator, $value]) {
-                        TransactionCategoryCriterion::query()->firstOrCreate(
-                            [
-                                TransactionCategoryCriterion::transaction_category_rule_id => $rule->getKey(),
-                                TransactionCategoryCriterion::field => $field,
-                                TransactionCategoryCriterion::operator => $operator,
-                                TransactionCategoryCriterion::value => $value,
-                            ],
-                            [
-                                TransactionCategoryCriterion::case_sensitive => false,
-                            ],
-                        );
-                    }
-                }
+            foreach ($children as $childName) {
+                $child = $this->createCategory($childName, $parent->getKey());
+                $this->createDefaultRule($child, $childName);
             }
         }
+    }
+
+    private function createCategory(string $name, ?int $parentId): TransactionCategory
+    {
+        return TransactionCategory::query()->firstOrCreate(
+            [
+                TransactionCategory::user_id => null,
+                TransactionCategory::name => $name,
+                TransactionCategory::parent_id => $parentId,
+            ],
+            [
+                TransactionCategory::active => true,
+            ],
+        );
+    }
+
+    /**
+     * Default-Kriterium: Der Name der Kategorie muss im Verwendungszweck enthalten sein.
+     */
+    private function createDefaultRule(TransactionCategory $category, string $name): void
+    {
+        $rule = TransactionCategoryRule::query()->firstOrCreate(
+            [
+                TransactionCategoryRule::transaction_category_id => $category->getKey(),
+                TransactionCategoryRule::user_id => null,
+                TransactionCategoryRule::operator => TransactionCategoryRule::OPERATOR_OR,
+            ],
+            [
+                TransactionCategoryRule::active => true,
+            ],
+        );
+
+        TransactionCategoryCriterion::query()->firstOrCreate(
+            [
+                TransactionCategoryCriterion::transaction_category_rule_id => $rule->getKey(),
+                TransactionCategoryCriterion::field => TransactionCategoryCriterion::FIELD_PURPOSE,
+                TransactionCategoryCriterion::operator => TransactionCategoryCriterion::OP_CONTAINS,
+                TransactionCategoryCriterion::value => mb_strtolower($name),
+            ],
+            [
+                TransactionCategoryCriterion::case_sensitive => false,
+            ],
+        );
     }
 }

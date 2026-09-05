@@ -2,9 +2,13 @@
 
 namespace App\Filament\Admin\Resources\Financial\TransactionCategories\Tables;
 
+use App\Filament\Admin\Resources\Financial\TransactionCategories\Actions\CreateSubcategoryAction;
+use App\Filament\Admin\Resources\Financial\TransactionCategories\Actions\MoveCategoryAction;
+use App\Filament\Admin\Resources\Financial\TransactionCategories\Actions\ViewCategoryTransactionsAction;
 use App\Models\Financial\TransactionCategory;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -27,7 +31,26 @@ class TransactionCategoriesTable
                     ->label('Hauptkategorie')
                     ->badge()
                     ->placeholder('—')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make(TransactionCategory::has_many_children . '_count')
+                    ->label('Unterkategorien')
+                    ->state(function (TransactionCategory $record): int {
+                        $descendantIds = $record->getDescendantIds();
+
+                        if ($descendantIds === []) {
+                            return 0;
+                        }
+
+                        return TransactionCategory::query()
+                            ->visibleForUser((int)auth()->id())
+                            ->whereIn(TransactionCategory::id, $descendantIds)
+                            ->count();
+                    })
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
 
                 TextColumn::make(TransactionCategory::has_many_rules . '_count')
                     ->label('Regeln')
@@ -44,19 +67,23 @@ class TransactionCategoriesTable
                         return $query->count();
                     })
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->toggleable(),
 
-                BadgeColumn::make(TransactionCategory::user_id)
+                TextColumn::make(TransactionCategory::user_id)
                     ->label('Quelle')
+                    ->badge()
                     ->formatStateUsing(fn(?int $state): string => $state === null ? 'Global' : 'Eigene')
                     ->colors([
                         'primary' => static fn(?int $state): bool => $state === null,
                         'success' => static fn(?int $state): bool => $state !== null,
-                    ]),
+                    ])
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 IconColumn::make(TransactionCategory::active)
                     ->label('Aktiv')
-                    ->boolean(),
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make(TransactionCategory::created_at)
                     ->label('Erstellt')
@@ -72,14 +99,20 @@ class TransactionCategoriesTable
                     ->label('Hauptkategorie')
                     ->options(fn() => TransactionCategory::query()
                         ->visibleForUser((int)auth()->id())
-                        ->whereNull(TransactionCategory::parent_id)
                         ->orderBy(TransactionCategory::name)
                         ->pluck(TransactionCategory::name, TransactionCategory::id)
                         ->toArray())
                     ->searchable(),
             ])
             ->recordActions([
-                EditAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->visible(fn(TransactionCategory $record): bool => !$record->isGlobal()),
+                    ViewCategoryTransactionsAction::make(),
+                    CreateSubcategoryAction::make(),
+                    MoveCategoryAction::make(),
+                ]),
             ]);
     }
 }

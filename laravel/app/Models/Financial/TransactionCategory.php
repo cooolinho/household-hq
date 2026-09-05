@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * Class TransactionCategory
  *
  * Columns
+ *
  * @property int $id
  * @property int|null $user_id
  * @property string $name
@@ -36,18 +37,28 @@ class TransactionCategory extends Model
 
     // columns
     const string id = 'id';
+
     const string user_id = 'user_id';
+
     const string name = 'name';
+
     const string parent_id = 'parent_id';
+
     const string active = 'active';
+
     const string created_at = Model::CREATED_AT;
+
     const string updated_at = Model::UPDATED_AT;
 
     // relations
     const string belongs_to_user = 'user';
+
     const string belongs_to_parent = 'parent';
+
     const string has_many_children = 'children';
+
     const string has_many_rules = 'rules';
+
     const string belongs_to_many_transactions = 'transactions';
 
     protected $table = self::TABLE;
@@ -76,6 +87,36 @@ class TransactionCategory extends Model
     public function children(): HasMany
     {
         return $this->hasMany(TransactionCategory::class, self::parent_id);
+    }
+
+    /**
+     * @return array<int>
+     */
+    public function getDescendantIds(): array
+    {
+        $categoryId = (int)$this->getKey();
+        $visitedIds = [$categoryId];
+        $descendantIds = [];
+        $parentIds = [$categoryId];
+
+        while ($parentIds !== []) {
+            $childIds = self::query()
+                ->whereIn(self::parent_id, $parentIds)
+                ->pluck(self::id)
+                ->map(static fn(int|string $id): int => (int)$id)
+                ->all();
+            $childIds = array_values(array_diff($childIds, $visitedIds));
+
+            if ($childIds === []) {
+                break;
+            }
+
+            $visitedIds = [...$visitedIds, ...$childIds];
+            $descendantIds = [...$descendantIds, ...$childIds];
+            $parentIds = $childIds;
+        }
+
+        return $descendantIds;
     }
 
     public function rules(): HasMany

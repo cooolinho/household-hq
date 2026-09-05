@@ -2,11 +2,13 @@
 
 namespace App\Filament\Admin\Resources\Financial\TransactionCategories\Pages;
 
+use App\Filament\Admin\Resources\Financial\TransactionCategories\Support\TransactionCategoryBreadcrumbs;
 use App\Filament\Admin\Resources\Financial\TransactionCategories\TransactionCategoryResource;
 use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
 use App\Models\Financial\TransactionCategoryRuleUserSetting;
+use App\Services\TransactionCategoryRulePreviewService;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -55,16 +57,30 @@ class EditTransactionCategory extends EditRecord
             })
             ->toArray();
 
-        $globalRuleIds = $this->record->rules()
+        $globalRules = $this->record->rules()
             ->whereNull(TransactionCategoryRule::user_id)
-            ->pluck(TransactionCategoryRule::id);
+            ->with(TransactionCategoryRule::has_many_criteria)
+            ->orderBy(TransactionCategoryRule::id)
+            ->get();
 
-        $data['disabled_global_rule_ids'] = TransactionCategoryRuleUserSetting::query()
+        $disabledGlobalRuleIds = TransactionCategoryRuleUserSetting::query()
             ->where(TransactionCategoryRuleUserSetting::user_id, $userId)
             ->where(TransactionCategoryRuleUserSetting::active, false)
-            ->whereIn(TransactionCategoryRuleUserSetting::transaction_category_rule_id, $globalRuleIds)
+            ->whereIn(
+                TransactionCategoryRuleUserSetting::transaction_category_rule_id,
+                $globalRules->modelKeys(),
+            )
             ->pluck(TransactionCategoryRuleUserSetting::transaction_category_rule_id)
-            ->map(fn(int $id): string => (string)$id)
+            ->map(fn(int $id): int => (int)$id);
+
+        $previewService = app(TransactionCategoryRulePreviewService::class);
+
+        $data['global_rule_settings'] = $globalRules
+            ->map(fn(TransactionCategoryRule $rule): array => [
+                'rule_id' => (string)$rule->getKey(),
+                'disabled' => $disabledGlobalRuleIds->containsStrict((int)$rule->getKey()),
+                'preview' => $previewService->build($rule),
+            ])
             ->toArray();
 
         return $data;
@@ -74,14 +90,14 @@ class EditTransactionCategory extends EditRecord
     {
         /** @var TransactionCategory $record */
         if (!$record->isGlobal()) {
-            unset($data['user_extension_rules'], $data['disabled_global_rule_ids']);
+            unset($data['user_extension_rules'], $data['global_rule_settings']);
 
             return parent::handleRecordUpdate($record, $data);
         }
 
         DB::transaction(function () use ($record, $data): void {
             $this->syncUserExtensionRules($record, $data['user_extension_rules'] ?? []);
-            $this->syncGlobalRuleSettings($record, $data['disabled_global_rule_ids'] ?? []);
+            $this->syncGlobalRuleSettings($record, $data['global_rule_settings'] ?? []);
         });
 
         return $record->refresh();
@@ -118,9 +134,9 @@ class EditTransactionCategory extends EditRecord
     }
 
     /**
-     * @param array<int, string|int> $disabledGlobalRuleIds
+     * @param array<int, array<string, mixed>> $globalRuleSettings
      */
-    private function syncGlobalRuleSettings(TransactionCategory $record, array $disabledGlobalRuleIds): void
+    private function syncGlobalRuleSettings(TransactionCategory $record, array $globalRuleSettings): void
     {
         $userId = (int)auth()->id();
         $globalRuleIds = $record->rules()
@@ -133,9 +149,11 @@ class EditTransactionCategory extends EditRecord
             ->whereIn(TransactionCategoryRuleUserSetting::transaction_category_rule_id, $globalRuleIds)
             ->delete();
 
-        $disabledRuleIds = collect($disabledGlobalRuleIds)
-            ->map(fn(string|int $id): int => (int)$id)
+        $disabledRuleIds = collect($globalRuleSettings)
+            ->filter(fn(mixed $setting): bool => is_array($setting) && (bool)($setting['disabled'] ?? false))
+            ->map(fn(mixed $setting): int => (int)($setting['rule_id'] ?? 0))
             ->filter(fn(int $id): bool => in_array($id, $globalRuleIds, true))
+            ->unique()
             ->values();
 
         foreach ($disabledRuleIds as $ruleId) {
@@ -145,5 +163,13 @@ class EditTransactionCategory extends EditRecord
                 TransactionCategoryRuleUserSetting::active => false,
             ]);
         }
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        /** @var TransactionCategory $record */
+        $record = $this->getRecord();
+
+        return TransactionCategoryBreadcrumbs::forEdit($record);
     }
 }
