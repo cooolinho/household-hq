@@ -4,13 +4,15 @@ namespace App\Filament\Admin\Resources\Financial\Transactions\Tables;
 
 use App\Filament\Admin\Resources\Financial\Transactions\Actions\CategorizeTransactionAction;
 use App\Filament\Admin\Resources\Financial\Transactions\Actions\CreateFixedCostAction;
+use App\Filament\Admin\Resources\Financial\Transactions\Actions\UploadTransactionDocumentAction;
+use App\Filament\Admin\Resources\Financial\Transactions\TransactionResource;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionCategory;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
@@ -29,15 +31,18 @@ class TransactionsTable
                 TextColumn::make(Transaction::date)
                     ->label('Buchung')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make(Transaction::payer)
                     ->label('Auftraggeber')
                     ->limit(40)
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make(Transaction::purpose)
                     ->label('Verwendungszweck')
                     ->searchable()
-                    ->limit(70),
+                    ->limit(70)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make(Transaction::amount)
                     ->label('Betrag')
                     ->formatStateUsing(fn(Transaction $record): string => number_format($record->amount, 2, ',', '.') . ' ' . $record->amount_currency)
@@ -50,13 +55,15 @@ class TransactionsTable
                     ->placeholder('—')
                     ->badge()
                     ->color('success')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make(Transaction::belongs_to_many_transaction_categories . '.' . TransactionCategory::name)
                     ->label('Kategorien')
                     ->placeholder('—')
                     ->badge()
                     ->color('primary')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make(Transaction::value_date)
                     ->label('Wertstellung')
                     ->date()
@@ -206,17 +213,30 @@ class TransactionsTable
             ])
             ->recordAction('view')
             ->recordActions([
-                ViewAction::make()
-                    ->label('Details')
-                    ->modalHeading('Transaktionsdetails')
-                    ->modalSubmitAction(false)
-                    ->modalWidth('4xl')
-                    ->extraModalFooterActions([
-                        CreateFixedCostAction::make(),
-                        CategorizeTransactionAction::make(),
-                    ]),
                 ActionGroup::make([
-                    EditAction::make(),
+                    ViewAction::make()
+                        ->label('Vorschau')
+                        ->modalHeading('Transaktionsdetails')
+                        ->schema([])
+                        ->modalContent(fn(Transaction $record) => view(
+                            'filament.admin.resources.financial.transactions.actions.transaction-statement',
+                            ['record' => $record],
+                        ))
+                        ->modalSubmitAction(false)
+                        ->modalWidth('4xl')
+                        ->extraModalFooterActions([
+                            Action::make('openTransactionDetails')
+                                ->label('Detailseite öffnen')
+                                ->icon('heroicon-o-arrow-top-right-on-square')
+                                ->color('primary')
+                                ->url(fn(Transaction $record): string => TransactionResource::getUrl('view', [
+                                    'record' => $record,
+                                ])),
+                            CreateFixedCostAction::make(),
+                            CategorizeTransactionAction::make(),
+                            UploadTransactionDocumentAction::make(),
+                        ]),
+                    UploadTransactionDocumentAction::make(),
                     CreateFixedCostAction::make(),
                     CategorizeTransactionAction::make(),
                 ]),

@@ -19,6 +19,9 @@ class DocumentInfolist
                 TextEntry::make(Document::type)
                     ->label(__('admin.resource.document.fields.type'))
                     ->placeholder(__('admin.resource.document.placeholders.empty')),
+                TextEntry::make(Document::download_filename)
+                    ->label(__('admin.resource.document.fields.download_filename'))
+                    ->placeholder(__('admin.resource.document.placeholders.empty')),
                 TextEntry::make(Document::filename)
                     ->label(__('admin.resource.document.fields.filename'))
                     ->placeholder(__('admin.resource.document.placeholders.empty')),

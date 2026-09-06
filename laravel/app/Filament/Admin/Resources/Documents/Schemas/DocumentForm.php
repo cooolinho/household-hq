@@ -55,6 +55,9 @@ class DocumentForm
     protected static function getMainSchema(): array
     {
         return [
+            TextInput::make(Document::download_filename)
+                ->label(__('admin.resource.document.fields.download_filename'))
+                ->maxLength(255),
             FileUpload::make(Document::path)
                 ->disk(Document::STORAGE_DISK)
                 ->acceptedFileTypes([

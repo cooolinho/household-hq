@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Documents\Support;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDeviceContracts\MeasurementDeviceContractResource;
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
+use App\Filament\Admin\Resources\Financial\Transactions\TransactionResource;
 use App\Filament\Admin\Resources\Inventory\Articles\ArticleResource;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
@@ -12,6 +13,7 @@ use App\Models\EnergyTracker\MeasurementDevice;
 use App\Models\EnergyTracker\MeasurementDeviceContract;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
+use App\Models\Financial\Transaction;
 use App\Models\Inventory\Article;
 use App\Models\Inventory\Collection;
 use App\Models\Inventory\Location;
@@ -27,6 +29,7 @@ class DocumentOwnerRegistry
     const string TYPE_INSURANCE = 'insurance';
     const string TYPE_ARTICLE = 'article';
     const string TYPE_MEASUREMENT_DEVICE_CONTRACT = 'measurement_device_contract';
+    const string TYPE_TRANSACTION = 'transaction';
 
     public static function getRelationshipName(Model|string $owner): ?string
     {
@@ -35,6 +38,7 @@ class DocumentOwnerRegistry
             FixedCost::class => FixedCost::has_many_documents,
             Article::class => Article::has_many_documents,
             MeasurementDeviceContract::class => MeasurementDeviceContract::has_many_documents,
+            Transaction::class => Transaction::has_many_documents,
             default => null,
         };
     }
@@ -51,6 +55,7 @@ class DocumentOwnerRegistry
             self::TYPE_INSURANCE => self::getLabel(Insurance::class),
             self::TYPE_ARTICLE => self::getLabel(Article::class),
             self::TYPE_MEASUREMENT_DEVICE_CONTRACT => self::getLabel(MeasurementDeviceContract::class),
+            self::TYPE_TRANSACTION => self::getLabel(Transaction::class),
         ];
     }
 
@@ -61,6 +66,7 @@ class DocumentOwnerRegistry
             self::TYPE_INSURANCE => Insurance::class,
             self::TYPE_ARTICLE => Article::class,
             self::TYPE_MEASUREMENT_DEVICE_CONTRACT => MeasurementDeviceContract::class,
+            self::TYPE_TRANSACTION => Transaction::class,
             default => null,
         };
     }
@@ -72,6 +78,7 @@ class DocumentOwnerRegistry
             Insurance::class => self::TYPE_INSURANCE,
             Article::class => self::TYPE_ARTICLE,
             MeasurementDeviceContract::class => self::TYPE_MEASUREMENT_DEVICE_CONTRACT,
+            Transaction::class => self::TYPE_TRANSACTION,
             default => null,
         };
     }
@@ -83,6 +90,7 @@ class DocumentOwnerRegistry
             FixedCost::class => FixedCostResource::class,
             Article::class => ArticleResource::class,
             MeasurementDeviceContract::class => MeasurementDeviceContractResource::class,
+            Transaction::class => TransactionResource::class,
             default => null,
         };
     }
@@ -100,6 +108,7 @@ class DocumentOwnerRegistry
                     fn(Builder $query) => $query->where(Collection::user_id, auth()->id())
                 )
                 ->exists(),
+            Transaction::class => TransactionResource::canView($owner),
             default => false,
         };
     }
@@ -132,6 +141,7 @@ class DocumentOwnerRegistry
             FixedCost::class => 'Fixkosten',
             Article::class => 'Artikel',
             MeasurementDeviceContract::class => 'Vertrag',
+            Transaction::class => 'Transaktion',
             default => null,
         };
     }
@@ -143,6 +153,8 @@ class DocumentOwnerRegistry
             FixedCost::class => $owner->{FixedCost::name},
             Article::class => $owner->{Article::name},
             MeasurementDeviceContract::class => $owner->{MeasurementDeviceContract::name},
+            Transaction::class => $owner->{Transaction::purpose}
+                ?: ($owner->{Transaction::payer} ?: sprintf('Transaktion #%s', $owner->getKey())),
             default => null,
         };
 
@@ -170,6 +182,7 @@ class DocumentOwnerRegistry
             FixedCost::class => FixedCostResource::getUrl('view', ['record' => $owner->getKey()]),
             Article::class => ArticleResource::getUrl('view', ['record' => $owner->getKey()]),
             MeasurementDeviceContract::class => MeasurementDeviceContractResource::getUrl('view', ['record' => $owner->getKey()]),
+            Transaction::class => TransactionResource::getUrl('view', ['record' => $owner->getKey()]),
             default => null,
         };
     }
@@ -183,7 +196,10 @@ class DocumentOwnerRegistry
         ]);
 
         if ($document->exists) {
-            $document->loadMissing(Document::morphed_by_many_measurement_device_contracts);
+            $document->loadMissing([
+                Document::morphed_by_many_measurement_device_contracts,
+                Document::morphed_by_many_transactions,
+            ]);
         }
 
         $fixedCosts = self::mapOwners($document->{Document::morphed_by_many_fixed_costs});
@@ -192,11 +208,15 @@ class DocumentOwnerRegistry
         $contracts = $document->relationLoaded(Document::morphed_by_many_measurement_device_contracts)
             ? self::mapOwners($document->{Document::morphed_by_many_measurement_device_contracts})
             : collect();
+        $transactions = $document->relationLoaded(Document::morphed_by_many_transactions)
+            ? self::mapOwners($document->{Document::morphed_by_many_transactions})
+            : collect();
 
         return $fixedCosts
             ->merge($insurances)
             ->merge($articles)
             ->merge($contracts)
+            ->merge($transactions)
             ->sortBy('label')
             ->values();
     }
@@ -207,9 +227,10 @@ class DocumentOwnerRegistry
         $insurancesCount = $document->getAttribute('linked_insurances_count');
         $articlesCount = $document->getAttribute('linked_articles_count');
         $contractsCount = $document->getAttribute('linked_measurement_device_contracts_count');
+        $transactionsCount = $document->getAttribute('linked_transactions_count');
 
-        if ($fixedCostsCount !== null || $insurancesCount !== null || $articlesCount !== null || $contractsCount !== null) {
-            return (int)$fixedCostsCount + (int)$insurancesCount + (int)$articlesCount + (int)$contractsCount;
+        if ($fixedCostsCount !== null || $insurancesCount !== null || $articlesCount !== null || $contractsCount !== null || $transactionsCount !== null) {
+            return (int)$fixedCostsCount + (int)$insurancesCount + (int)$articlesCount + (int)$contractsCount + (int)$transactionsCount;
         }
 
         if (!$document->exists) {
@@ -329,6 +350,7 @@ class DocumentOwnerRegistry
                 MeasurementDeviceContract::belongs_to_measurement_device,
                 fn(Builder $query) => $query->where(MeasurementDevice::user_id, auth()->id())
             ),
+            Transaction::class => Transaction::query()->where(Transaction::user_id, auth()->id()),
             default => Insurance::query()->whereRaw('1 = 0'),
         };
     }

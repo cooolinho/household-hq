@@ -2,6 +2,10 @@
 
 namespace App\Models\Financial;
 
+use App\Models\CommentableInterface;
+use App\Models\Concerns\HasComments;
+use App\Models\Contracts\Documentables;
+use App\Models\Document;
 use App\Models\User;
 use Database\Factories\Financial\TransactionFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Spatie\Tags\HasTags;
 
 /**
@@ -36,11 +41,13 @@ use Spatie\Tags\HasTags;
  * @property FixedCost|null $fixedCost
  * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
  * @property Collection|RecurringTransactionSuggestion[] $recurringSuggestions
+ * @property Collection|Document[] $documents
  */
-class Transaction extends Model
+class Transaction extends Model implements CommentableInterface
 {
     /** @use HasFactory<TransactionFactory> */
     use HasFactory;
+    use HasComments;
     use HasTags;
 
     const string TABLE = 'financial_transactions';
@@ -67,6 +74,7 @@ class Transaction extends Model
     const string belongs_to_bank_account = 'bankAccount';
     const string belongs_to_user = 'user';
     const string belongs_to_fixed_cost = 'fixedCost';
+    const string has_many_documents = 'documents';
     const string has_many_matching_suggestions = 'matchingSuggestions';
     const string has_many_recurring_suggestions = 'recurringSuggestions';
     const string morph_to_many_tags = 'tags';
@@ -120,6 +128,19 @@ class Transaction extends Model
     public function fixedCost(): BelongsTo
     {
         return $this->belongsTo(FixedCost::class, self::fixed_cost_id);
+    }
+
+    public function documents(): MorphToMany
+    {
+        return $this->morphToMany(
+            Document::class,
+            Document::morph_to_documentable,
+            Documentables::TABLE,
+            Documentables::documentable_id,
+            Documentables::document_id,
+        )
+            ->orderBy(Document::sort, 'asc')
+            ->orderBy(Document::id, 'asc');
     }
 
     public function matchingSuggestions(): HasMany

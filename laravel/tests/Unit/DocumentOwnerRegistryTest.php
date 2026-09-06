@@ -8,6 +8,7 @@ use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
+use App\Models\Financial\Transaction;
 use App\Models\Inventory\Article;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,17 @@ class DocumentOwnerRegistryTest extends TestCase
         $this->assertTrue(DocumentOwnerRegistry::canAccess($fixedCost));
     }
 
+    public function test_it_resolves_transaction_document_ownership(): void
+    {
+        $transaction = new Transaction([
+            Transaction::purpose => 'Quittung',
+            Transaction::user_id => 77,
+        ]);
+
+        $this->assertSame(Transaction::has_many_documents, DocumentOwnerRegistry::getRelationshipName($transaction));
+        $this->assertSame('Transaktion: Quittung', DocumentOwnerRegistry::getOwnerContextLabel($transaction));
+    }
+
     public function test_it_summarizes_document_context_when_loaded(): void
     {
         $insurance = (new Insurance([
@@ -89,4 +101,3 @@ class DocumentOwnerRegistryTest extends TestCase
         $this->assertSame(1, DocumentOwnerRegistry::getDocumentLinksCount($document));
     }
 }
-

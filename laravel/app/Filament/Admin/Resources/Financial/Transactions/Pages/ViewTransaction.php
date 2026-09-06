@@ -3,17 +3,17 @@
 namespace App\Filament\Admin\Resources\Financial\Transactions\Pages;
 
 use App\Filament\Admin\Resources\Financial\Transactions\TransactionResource;
-use Filament\Actions\EditAction;
+use App\Filament\Admin\Widgets\CommentsWidget;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewTransaction extends ViewRecord
 {
     protected static string $resource = TransactionResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getFooterWidgets(): array
     {
         return [
-            EditAction::make(),
+            CommentsWidget::class,
         ];
     }
 }

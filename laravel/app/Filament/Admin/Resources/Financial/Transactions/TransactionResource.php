@@ -2,9 +2,9 @@
 
 namespace App\Filament\Admin\Resources\Financial\Transactions;
 
-use App\Filament\Admin\Resources\Financial\Transactions\Pages\EditTransaction;
 use App\Filament\Admin\Resources\Financial\Transactions\Pages\ListTransactions;
 use App\Filament\Admin\Resources\Financial\Transactions\Pages\ViewTransaction;
+use App\Filament\Admin\Resources\Financial\Transactions\RelationManagers\DocumentsRelationManager;
 use App\Filament\Admin\Resources\Financial\Transactions\Schemas\TransactionForm;
 use App\Filament\Admin\Resources\Financial\Transactions\Schemas\TransactionInfolist;
 use App\Filament\Admin\Resources\Financial\Transactions\Tables\TransactionsTable;
@@ -62,7 +62,7 @@ class TransactionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DocumentsRelationManager::class,
         ];
     }
 
@@ -71,13 +71,12 @@ class TransactionResource extends Resource
         return [
             'index' => ListTransactions::route('/'),
             'view' => ViewTransaction::route('/{record}'),
-            'edit' => EditTransaction::route('/{record}/edit'),
         ];
     }
 
     public static function canEdit(Model $record): bool
     {
-        return self::canView($record);
+        return false;
     }
 
     public static function canView(Model $record): bool

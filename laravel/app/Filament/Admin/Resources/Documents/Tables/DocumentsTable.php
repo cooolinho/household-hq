@@ -8,6 +8,7 @@ use App\Models\Document;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -27,6 +28,7 @@ class DocumentsTable
                 Document::morphed_by_many_insurances,
                 Document::morphed_by_many_articles,
                 Document::morphed_by_many_measurement_device_contracts,
+                Document::morphed_by_many_transactions,
             ]))
             ->columns(self::getTableColumns())
             ->filters(self::getFilters())
@@ -37,6 +39,7 @@ class DocumentsTable
                     ManageDocumentLinksAction::make(),
                     ViewAction::make(),
                     EditAction::make(),
+                    DeleteAction::make(),
                 ])->button(),
             ])
             ->toolbarActions([
@@ -52,6 +55,10 @@ class DocumentsTable
     private static function getTableColumns(): array
     {
         return [
+            TextColumn::make(Document::download_filename)
+                ->label(__('admin.resource.document.fields.download_filename'))
+                ->placeholder(__('admin.resource.document.placeholders.empty'))
+                ->searchable(),
             TextColumn::make(Document::filename)
                 ->label('Datei')
                 ->searchable(),
@@ -62,6 +69,16 @@ class DocumentsTable
                 ->label('Verknüpft mit')
                 ->state(fn(Document $record): int => DocumentOwnerRegistry::getDocumentLinksCount($record))
                 ->badge(),
+            TextColumn::make(Document::description)
+                ->label(__('admin.resource.document.fields.description'))
+                ->limit(60)
+                ->placeholder(__('admin.resource.document.placeholders.empty'))
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make(Document::created_at)
+                ->label(__('admin.resource.document.fields.created_at'))
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
         ];
     }
 

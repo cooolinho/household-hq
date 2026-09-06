@@ -22,9 +22,12 @@ class DocumentDownloadController extends Controller
                 abort(404, 'Datei nicht gefunden');
             }
 
+            $downloadFilename = $document->download_filename
+                ?: ($document->filename ?: basename($document->path));
+
             return $disk->download(
                 $document->path,
-                $document->filename ?? basename($document->path)
+                $downloadFilename
             );
 
         } catch (\Exception $e) {

@@ -7,6 +7,7 @@ use App\Models\Contracts\Documentables;
 use App\Models\EnergyTracker\MeasurementDeviceContract;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
+use App\Models\Financial\Transaction;
 use App\Models\Inventory\Article;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Spatie\Tags\HasTags;
 
 /**
@@ -30,6 +32,7 @@ use Spatie\Tags\HasTags;
  * @property-read Collection<int, FixedCost> $linkedFixedCosts
  * @property-read Collection<int, Insurance> $linkedInsurances
  * @property-read Collection<int, Article> $linkedArticles
+ * @property-read Collection<int, Transaction> $linkedTransactions
  * @property-read Collection<int, MeasurementDeviceContract> $linkedMeasurementDeviceContracts
  *
  * // comments
@@ -37,6 +40,7 @@ use Spatie\Tags\HasTags;
  *
  * // document data
  * @property string|null $type        // z.B. contract, invoice, sonstiges
+ * @property string|null $download_filename
  * @property string $path             // storage path oder URL
  * @property string|null $filename
  * @property string|null $description
@@ -68,6 +72,7 @@ class Document extends Model implements CommentableInterface
 
     // document data
     const string type = 'type';
+    const string download_filename = 'download_filename';
     const string path = 'path';
     const string filename = 'filename';
     const string description = 'description';
@@ -87,6 +92,7 @@ class Document extends Model implements CommentableInterface
     const string morphed_by_many_fixed_costs = 'linkedFixedCosts';
     const string morphed_by_many_insurances = 'linkedInsurances';
     const string morphed_by_many_articles = 'linkedArticles';
+    const string morphed_by_many_transactions = 'linkedTransactions';
     const string morphed_by_many_measurement_device_contracts = 'linkedMeasurementDeviceContracts';
     const string has_many_comments = 'comments';
     const string has_one_imported_email_attachment = 'importedEmailAttachment';
@@ -102,6 +108,7 @@ class Document extends Model implements CommentableInterface
     protected $fillable = [
         self::user_id,
         self::type,
+        self::download_filename,
         self::path,
         self::filename,
         self::description,
@@ -126,6 +133,18 @@ class Document extends Model implements CommentableInterface
 
             if (empty($document->{self::filename}) && !empty($document->{self::path})) {
                 $document->{self::filename} = basename($document->{self::path});
+            }
+        });
+
+        static::deleting(function (Document $document): void {
+            $path = $document->{self::path};
+            if (!filled($path)) {
+                return;
+            }
+
+            $disk = Storage::disk(self::STORAGE_DISK);
+            if ($disk->exists($path) && !$disk->delete($path)) {
+                throw new RuntimeException(sprintf('Dokumentdatei konnte nicht gelöscht werden: %s', $path));
             }
         });
     }
@@ -191,6 +210,19 @@ class Document extends Model implements CommentableInterface
             Documentables::document_id,
             Documentables::documentable_id,
         )->orderBy(Article::name, 'asc');
+    }
+
+    public function linkedTransactions(): MorphToMany
+    {
+        return $this->morphedByMany(
+            Transaction::class,
+            Documentables::MORPH_NAME,
+            Documentables::TABLE,
+            Documentables::document_id,
+            Documentables::documentable_id,
+        )
+            ->orderBy(Transaction::date, 'desc')
+            ->orderBy(Transaction::id, 'desc');
     }
 
     public function linkedMeasurementDeviceContracts(): MorphToMany

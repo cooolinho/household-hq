@@ -21,6 +21,7 @@ return [
                 'advertising' => 'Werbeanzeige',
                 'advertising_id' => 'Werbeanzeige',
                 'type' => 'Typ',
+                'download_filename' => 'Download-Dateiname',
                 'filename' => 'Dateiname',
                 'path' => 'Datei',
                 'description' => 'Beschreibung',

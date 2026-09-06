@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Financial\BankAccounts\Schemas;
 use App\Models\Financial\BankAccount;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class BankAccountInfolist
 {
@@ -12,23 +13,15 @@ class BankAccountInfolist
     {
         return $schema
             ->components([
-                TextEntry::make(BankAccount::name),
-                TextEntry::make(BankAccount::account_holder),
-                TextEntry::make(BankAccount::iban),
-                TextEntry::make(BankAccount::bic),
-                TextEntry::make(BankAccount::bank_name),
-                TextEntry::make(BankAccount::balance),
-                TextEntry::make(BankAccount::balance_date),
-                TextEntry::make(BankAccount::type)
-                    ->state(function (BankAccount $record) {
-                        return $record->type->label();
-                    }),
-                TextEntry::make(BankAccount::created_at)
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make(BankAccount::updated_at)
-                    ->dateTime()
-                    ->placeholder('-'),
+                TextEntry::make('bank_account_details')
+                    ->hiddenLabel(true)
+                    ->html()
+                    ->columnSpanFull()
+                    ->state(fn(BankAccount $record): HtmlString => new HtmlString(
+                        view('filament.admin.resources.financial.bank-accounts.infolists.bank-account-details', [
+                            'record' => $record,
+                        ])->render()
+                    )),
             ]);
     }
 }
