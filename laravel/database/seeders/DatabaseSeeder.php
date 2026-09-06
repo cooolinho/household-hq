@@ -11,6 +11,7 @@ use Database\Seeders\Financial\BankAccountSeeder;
 use Database\Seeders\Financial\BudgetSeeder;
 use Database\Seeders\Financial\FixedCostCategorySeeder;
 use Database\Seeders\Financial\FixedCostSeeder;
+use Database\Seeders\Financial\GoalSeeder;
 use Database\Seeders\Financial\InsuranceCategorySeeder;
 use Database\Seeders\Financial\InsuranceSeeder;
 use Database\Seeders\Financial\TransactionCategorySeeder;
@@ -48,6 +49,7 @@ class DatabaseSeeder extends Seeder
             TransactionCategorySeeder::class,
             TransactionSeeder::class,
             BudgetSeeder::class,
+            GoalSeeder::class,
         ]);
     }
 }

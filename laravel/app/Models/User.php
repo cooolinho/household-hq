@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\AppConfig;
 use App\Models\Financial\Budget;
+use App\Models\Financial\Goal;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -75,6 +76,7 @@ class User extends Authenticatable implements FilamentUser
     const string has_one_dashboard_widget_preference = 'dashboardWidgetPreference';
     const string has_many_custom_dashboard_user_widgets = 'customDashboardUserWidgets';
     const string has_many_budgets = 'budgets';
+    const string has_many_goals = 'goals';
 
     protected $table = self::TABLE;
 
@@ -168,5 +170,10 @@ class User extends Authenticatable implements FilamentUser
     public function budgets(): HasMany
     {
         return $this->hasMany(Budget::class, Budget::user_id);
+    }
+
+    public function goals(): HasMany
+    {
+        return $this->hasMany(Goal::class, Goal::user_id);
     }
 }

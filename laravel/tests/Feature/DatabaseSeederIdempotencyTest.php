@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ContactPerson;
 use App\Models\Contracts\FinancialBudgetTransactionCategory;
+use App\Models\Contracts\FinancialGoalTransactionCategory;
 use App\Models\EnergyTracker\MeasurementDevice;
 use App\Models\EnergyTracker\MeasurementDeviceContract;
 use App\Models\EnergyTracker\MeasurementDeviceContractPrice;
@@ -13,6 +14,8 @@ use App\Models\Financial\Budget;
 use App\Models\Financial\CSVImportProfile;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\FixedCostCategory;
+use App\Models\Financial\Goal;
+use App\Models\Financial\GoalContribution;
 use App\Models\Financial\Insurance;
 use App\Models\Financial\InsuranceCategory;
 use App\Models\Financial\Transaction;
@@ -72,14 +75,17 @@ class DatabaseSeederIdempotencyTest extends TestCase
             'tags' => 10,
             'bank_accounts' => 1,
             'csv_import_profiles' => 1,
-            'transactions' => 164,
+            'transactions' => 167,
             'insurance_categories' => 21,
             'insurances' => 2,
             'fixed_cost_categories' => 50,
             'fixed_costs' => 9,
-            'transaction_categories' => 47,
+            'transaction_categories' => 48,
             'budgets' => 5,
             'budget_categories' => 5,
+            'goals' => 2,
+            'goal_categories' => 1,
+            'goal_contributions' => 3,
             'measurement_devices' => 2,
             'reading_entries' => 12,
             'contracts' => 3,
@@ -229,6 +235,9 @@ class DatabaseSeederIdempotencyTest extends TestCase
             'transaction_categories' => TransactionCategory::query()->count(),
             'budgets' => Budget::query()->count(),
             'budget_categories' => DB::table(FinancialBudgetTransactionCategory::PIVOT_TABLE)->count(),
+            'goals' => Goal::query()->count(),
+            'goal_categories' => DB::table(FinancialGoalTransactionCategory::PIVOT_TABLE)->count(),
+            'goal_contributions' => GoalContribution::query()->count(),
             'transaction_category_rules' => TransactionCategoryRule::query()->count(),
             'transaction_category_criteria' => TransactionCategoryCriterion::query()->count(),
             'measurement_devices' => MeasurementDevice::query()->count(),

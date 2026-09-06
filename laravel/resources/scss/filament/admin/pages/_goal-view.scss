@@ -1,0 +1,242 @@
+@use '../abstracts/variables' as *;
+
+// Ziel-Detailseite: Foto-Hero (Motivation), Fortschritt, Kennzahlen und Prognose.
+
+.ph-goal-details {
+    --ph-goal-accent: #{$ph-goal-primary};
+
+    display: grid;
+    gap: 1.5rem;
+
+    &--success {
+        --ph-goal-accent: #{$ph-goal-success};
+    }
+
+    &--warning {
+        --ph-goal-accent: #{$ph-goal-warning};
+    }
+
+    &__hero {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        overflow: hidden;
+        border: 1px solid $ph-border-light;
+        border-left: 4px solid var(--ph-goal-accent);
+        border-radius: 0.75rem;
+        background-color: color-mix(in srgb, var(--ph-goal-accent) 6%, transparent);
+        background-position: center;
+        background-size: cover;
+
+        &--photo {
+            color: rgb(255, 255, 255);
+
+            &::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(to right, rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.35));
+            }
+
+            > * {
+                position: relative;
+            }
+        }
+    }
+
+    &--photo &__eyebrow,
+    &--photo &__description {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    &__icon {
+        display: grid;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.75rem;
+        background-color: color-mix(in srgb, var(--ph-goal-accent) 16%, transparent);
+        color: var(--ph-goal-accent);
+
+        svg {
+            width: 1.625rem;
+            height: 1.625rem;
+        }
+    }
+
+    &__intro {
+        min-width: 0;
+    }
+
+    &__eyebrow {
+        margin: 0;
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: $ph-muted;
+    }
+
+    &__title {
+        margin: 0.125rem 0 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    &__description {
+        margin: 0.375rem 0 0;
+        font-size: 0.875rem;
+        color: $ph-muted;
+    }
+
+    &__status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 999px;
+        background-color: color-mix(in srgb, var(--ph-goal-accent) 14%, transparent);
+        color: var(--ph-goal-accent);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        white-space: nowrap;
+
+        svg {
+            width: 1.125rem;
+            height: 1.125rem;
+        }
+    }
+
+    &--photo &__status {
+        background-color: rgba(255, 255, 255, 0.16);
+        color: rgb(255, 255, 255);
+    }
+
+    &__progress {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    &__progress-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.5rem;
+
+        strong {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        span {
+            font-size: 0.875rem;
+            color: $ph-muted;
+        }
+    }
+
+    &__progress-percentage {
+        margin-left: auto;
+        font-weight: 600;
+        color: var(--ph-goal-accent) !important;
+    }
+
+    &__bar {
+        overflow: hidden;
+        height: 0.75rem;
+        border-radius: 999px;
+        background-color: rgba(148, 163, 184, 0.25);
+    }
+
+    &__bar-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background-color: var(--ph-goal-accent);
+    }
+
+    &__range {
+        margin: 0;
+        font-size: 0.75rem;
+        color: $ph-muted;
+    }
+
+    &__metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        gap: 0.75rem;
+    }
+
+    &__metric {
+        display: grid;
+        gap: 0.25rem;
+        padding: 0.875rem 1rem;
+        border: 1px solid $ph-border-light;
+        border-radius: 0.625rem;
+    }
+
+    &__label {
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: $ph-muted;
+    }
+
+    &__value {
+        font-size: 1rem;
+        font-weight: 600;
+
+        &--warn {
+            color: $ph-goal-warning;
+        }
+    }
+
+    &__columns {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+        gap: 0.75rem;
+    }
+
+    &__panel {
+        display: grid;
+        align-content: start;
+        gap: 0.625rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid $ph-border-light;
+        border-radius: 0.625rem;
+    }
+
+    &__panel-title {
+        margin: 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: $ph-muted;
+    }
+
+    &__categories {
+        display: grid;
+        gap: 0.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.875rem;
+    }
+
+    &__muted {
+        margin: 0;
+        font-size: 0.75rem;
+        color: $ph-muted;
+    }
+}
+
+.dark {
+    .ph-goal-details__hero:not(.ph-goal-details__hero--photo),
+    .ph-goal-details__metric,
+    .ph-goal-details__panel {
+        border-color: $ph-border-dark;
+    }
+}

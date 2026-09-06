@@ -56,6 +56,6 @@ class SeedDemoDataCommandTest extends TestCase
             ->assertSuccessful();
 
         self::assertSame(2, User::query()->count());
-        self::assertSame(164, Transaction::query()->count());
+        self::assertSame(167, Transaction::query()->count());
     }
 }

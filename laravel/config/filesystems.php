@@ -108,6 +108,15 @@ return [
             'throw' => false,
             'report' => false,
         ],
+
+        \App\AppConfig::FILESYSTEM_GOAL_IMAGES => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/goals'),
+            'url' => env('APP_URL') . '/storage/goals',
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
     ],
 
     /*
