@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $transaction_category_id
  * @property int|null $user_id
+ * @property string|null $key  Stabiler Slug systemseitig geseedeter Regeln (null = manuell angelegt)
  * @property string $operator  AND|OR
  * @property bool $active
  * @property Carbon|null $created_at
@@ -38,6 +39,7 @@ class TransactionCategoryRule extends Model
     const string id = 'id';
     const string transaction_category_id = 'transaction_category_id';
     const string user_id = 'user_id';
+    const string key = 'key';
     const string operator = 'operator';
     const string active = 'active';
     const string created_at = Model::CREATED_AT;
@@ -54,6 +56,7 @@ class TransactionCategoryRule extends Model
     protected $fillable = [
         self::transaction_category_id,
         self::user_id,
+        self::key,
         self::operator,
         self::active,
     ];

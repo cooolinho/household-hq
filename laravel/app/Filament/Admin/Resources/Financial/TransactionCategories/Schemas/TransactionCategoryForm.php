@@ -40,14 +40,34 @@ class TransactionCategoryForm
         ]);
     }
 
+    /**
+     * Zeigt bei geseedeten Systemregeln den lesbar aufbereiteten Key,
+     * bei manuell angelegten Regeln die ID.
+     *
+     * @param array<string, mixed> $state
+     */
+    private static function globalRuleLabel(array $state): string
+    {
+        $key = $state['rule_key'] ?? null;
+
+        if (is_string($key) && $key !== '') {
+            return 'Systemregel: ' . str_replace(['.', '-'], [' › ', ' '], $key);
+        }
+
+        return 'Systemregel #' . ($state['rule_id'] ?? '?');
+    }
+
     private static function makeGlobalRulesRepeater(): Repeater
     {
         return Repeater::make('global_rule_settings')
             ->label('Systemregeln')
+            ->columnSpanFull()
+            ->collapsed()
             ->helperText('Deaktiviere einzelne globale Regeln nur für deinen Account. Andere User bleiben unverändert.')
-            ->itemLabel(fn(array $state): string => 'Systemregel #' . ($state['rule_id'] ?? '?'))
+            ->itemLabel(fn(array $state): string => self::globalRuleLabel($state))
             ->schema([
                 Hidden::make('rule_id'),
+                Hidden::make('rule_key'),
                 Grid::make([
                     'default' => 1,
                     'lg' => 12,

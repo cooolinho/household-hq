@@ -22,12 +22,26 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\Financial\TransactionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class DatabaseSeederIdempotencyTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Counts driven by the curated rule catalog in
+     * {@see \Database\Seeders\Financial\CategoryRules\CategoryRuleProvider}.
+     * They change whenever keywords are tuned, so they are only checked for
+     * idempotency instead of an exact value.
+     *
+     * @var list<string>
+     */
+    private const array CATALOG_DRIVEN_COUNTS = [
+        'transaction_category_rules',
+        'transaction_category_criteria',
+    ];
 
     protected function setUp(): void
     {
@@ -61,15 +75,21 @@ class DatabaseSeederIdempotencyTest extends TestCase
             'fixed_cost_categories' => 50,
             'fixed_costs' => 9,
             'transaction_categories' => 46,
-            'transaction_category_rules' => 41,
-            'transaction_category_criteria' => 41,
             'measurement_devices' => 2,
             'reading_entries' => 12,
             'contracts' => 3,
             'contract_prices' => 7,
-        ], $firstRunCounts);
+        ], Arr::except($firstRunCounts, self::CATALOG_DRIVEN_COUNTS));
         self::assertSame(46, TransactionCategory::query()->whereNull(TransactionCategory::user_id)->count());
-        self::assertSame(41, TransactionCategoryRule::query()->whereNull(TransactionCategoryRule::user_id)->count());
+        self::assertGreaterThan(0, $firstRunCounts['transaction_category_rules']);
+        self::assertGreaterThanOrEqual(
+            $firstRunCounts['transaction_category_rules'],
+            $firstRunCounts['transaction_category_criteria'],
+        );
+        self::assertSame(
+            $firstRunCounts['transaction_category_rules'],
+            TransactionCategoryRule::query()->whereNull(TransactionCategoryRule::user_id)->count(),
+        );
         self::assertSame(
             TransactionSeeder::UNCATEGORIZED_TRANSACTION_COUNT,
             Transaction::query()

@@ -7,7 +7,7 @@ DOCKER_BIN="${DOCKER_BIN:-docker}"
 CONTAINER_WORKDIR="/var/www/html"
 APP_CONTAINER_NAME="personal-home-portal"
 
-MODE="dev"
+MODE=""
 PULL_CHANGES=true
 
 read_env_value() {
@@ -33,15 +33,14 @@ read_env_value() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [dev|prod] [--no-pull]
+  $(basename "$0") <dev|prod> [--no-pull]
 
 Examples:
-  $(basename "$0")
   $(basename "$0") dev --no-pull
   $(basename "$0") prod
 
 Options:
-  dev                 Use docker-compose.yml (default)
+  dev                 Use docker-compose.yml
   prod                Use docker-compose.prod.yml
   --no-pull           Skip git pull --ff-only
   -h, --help          Show this help
@@ -61,6 +60,9 @@ parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             dev|prod)
+                if [[ -n "$MODE" ]]; then
+                    fail "MODE was specified more than once: $MODE and $1"
+                fi
                 MODE="$1"
                 ;;
             --no-pull)
@@ -76,6 +78,11 @@ parse_args() {
         esac
         shift
     done
+
+    if [[ -z "$MODE" ]]; then
+        usage >&2
+        fail "Missing MODE. Please specify dev or prod."
+    fi
 }
 
 compose_file() {

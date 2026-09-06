@@ -5,93 +5,34 @@ namespace Database\Seeders\Financial;
 use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
+use Database\Seeders\Financial\CategoryRules\CategoryRuleProvider;
+use Database\Seeders\Financial\CategoryRules\RuleDefinition;
+use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Seeder;
 
 /**
  * TransactionCategorySeeder
  *
- * Erstellt die Transaktionskategorien mit ihren Unterkategorien.
+ * Legt die globalen Transaktionskategorien inklusive ihrer Erkennungsregeln an.
  *
- * Als Default-Kriterium erhält jede Unterkategorie eine Regel, die prüft, ob der
- * Name der Unterkategorie im Verwendungszweck (purpose) enthalten ist.
+ * Die Fachdaten liegen nicht hier, sondern in je einer Provider-Klasse pro
+ * Hauptkategorie unter Database\Seeders\Financial\CategoryRules:
+ *  - FinanceInsuranceRules      → Finanzen & Versicherungen
+ *  - LeisureEntertainmentRules  → Freizeit & Unterhaltung
+ *  - LivingExpensesRules        → Lebenshaltung
+ *  - MobilityRules              → Mobilität
+ *  - GovernmentRules            → Staat & Behörde
  *
- * Struktur (Hauptkategorie > Unterkategorien):
- *  - Finanzen & Versicherungen > Bankgebühren, Beruf & Gewerbe, Dienstleistungen,
- *      Geldautomat, Immobilien, Kindergeld & Unterhalt, Kredite & Finanzierungen,
- *      Lohn & Gehalt, Sparen, Umbuchung, Versicherungen, Zinsen & Investitionen
- *  - Freizeit & Unterhaltung > Ausflüge & Aktivität, Glücksspiel, Hobby,
- *      Kunst & Kultur, Medien, Sport, Streaming, Urlaub, Vereine
- *  - Lebenshaltung > Baumarkt & Gartencenter, Gastronomie, Geschenke, Gesundheit,
- *      Handy & Internet, Haustier, Kinder, Körperpflege & Wellness,
- *      Lebensmittel & Getränke, Möbel & Einrichtung, Shopping, Wohnen & Wohnnebenkosten
- *  - Mobilität > Auto & Motorrad, Fahrrad & Scooter, Tank- & Ladestelle, Verkehrsmittel
- *  - Staat & Behörde > Amts- & Verwaltungsgebühren, Rundfunkbeitrag,
- *      Sozialleistungen, Steuer
+ * Regeln werden über ihren stabilen Key synchronisiert: bestehende Systemregeln
+ * behalten ihre ID (und damit die nutzerseitigen Deaktivierungen), veraltete
+ * Systemregeln werden entfernt. Manuell angelegte Regeln (key = null) bleiben
+ * unangetastet.
  */
 class TransactionCategorySeeder extends Seeder
 {
-    /**
-     * Hauptkategorie => Liste der Unterkategorien.
-     *
-     * @var array<string, list<string>>
-     */
-    private const array STRUCTURE = [
-        'Finanzen & Versicherungen' => [
-            'Bankgebühren',
-            'Beruf & Gewerbe',
-            'Dienstleistungen',
-            'Geldautomat',
-            'Immobilien',
-            'Kindergeld & Unterhalt',
-            'Kredite & Finanzierungen',
-            'Lohn & Gehalt',
-            'Sparen',
-            'Umbuchung',
-            'Versicherungen',
-            'Zinsen & Investitionen',
-        ],
-        'Freizeit & Unterhaltung' => [
-            'Ausflüge & Aktivität',
-            'Glücksspiel',
-            'Hobby',
-            'Kunst & Kultur',
-            'Medien',
-            'Sport',
-            'Streaming',
-            'Urlaub',
-            'Vereine',
-        ],
-        'Lebenshaltung' => [
-            'Baumarkt & Gartencenter',
-            'Gastronomie',
-            'Geschenke',
-            'Gesundheit',
-            'Handy & Internet',
-            'Haustier',
-            'Kinder',
-            'Körperpflege & Wellness',
-            'Lebensmittel & Getränke',
-            'Möbel & Einrichtung',
-            'Shopping',
-            'Wohnen & Wohnnebenkosten',
-        ],
-        'Mobilität' => [
-            'Auto & Motorrad',
-            'Fahrrad & Scooter',
-            'Tank- & Ladestelle',
-            'Verkehrsmittel',
-        ],
-        'Staat & Behörde' => [
-            'Amts- & Verwaltungsgebühren',
-            'Rundfunkbeitrag',
-            'Sozialleistungen',
-            'Steuer',
-        ],
-    ];
-
     public static function description(): string
     {
-        return 'Legt die Transaktionskategorien mit ihren Unterkategorien und Default-Kriterien an';
+        return 'Legt die Transaktionskategorien mit ihren Unterkategorien und Erkennungsregeln an';
     }
 
     /**
@@ -104,12 +45,12 @@ class TransactionCategorySeeder extends Seeder
 
     public function run(): void
     {
-        foreach (self::STRUCTURE as $parentName => $children) {
-            $parent = $this->createCategory($parentName, null);
+        foreach (CategoryRuleProvider::all() as $provider) {
+            $parent = $this->createCategory($provider::parentName(), null);
 
-            foreach ($children as $childName) {
+            foreach (array_keys($provider::subcategories()) as $childName) {
                 $child = $this->createCategory($childName, $parent->getKey());
-                $this->createDefaultRule($child, $childName);
+                $this->syncRules($child, $provider::rulesFor($childName));
             }
         }
     }
@@ -129,31 +70,87 @@ class TransactionCategorySeeder extends Seeder
     }
 
     /**
-     * Default-Kriterium: Der Name der Kategorie muss im Verwendungszweck enthalten sein.
+     * @param list<RuleDefinition> $definitions
      */
-    private function createDefaultRule(TransactionCategory $category, string $name): void
+    private function syncRules(TransactionCategory $category, array $definitions): void
     {
-        $rule = TransactionCategoryRule::query()->firstOrCreate(
-            [
-                TransactionCategoryRule::transaction_category_id => $category->getKey(),
-                TransactionCategoryRule::user_id => null,
-                TransactionCategoryRule::operator => TransactionCategoryRule::OPERATOR_OR,
-            ],
-            [
-                TransactionCategoryRule::active => true,
-            ],
+        $keys = [];
+
+        foreach ($definitions as $definition) {
+            $rule = TransactionCategoryRule::query()->updateOrCreate(
+                [
+                    TransactionCategoryRule::key => $definition->key,
+                ],
+                [
+                    TransactionCategoryRule::transaction_category_id => $category->getKey(),
+                    TransactionCategoryRule::user_id => null,
+                    TransactionCategoryRule::operator => $definition->operator,
+                ],
+            );
+
+            $this->replaceCriteria($rule, $definition);
+            $keys[] = $definition->key;
+        }
+
+        $this->deleteObsoleteRules($category, $keys);
+    }
+
+    /**
+     * Kriterien besitzen keine eigene Identität und werden daher komplett ersetzt –
+     * allerdings nur, wenn sie sich tatsächlich unterscheiden, damit unveränderte
+     * Regeln keine überflüssigen Schreibvorgänge auslösen.
+     */
+    private function replaceCriteria(TransactionCategoryRule $rule, RuleDefinition $definition): void
+    {
+        $target = array_map(
+            static fn($criterion): array => $criterion->toAttributes(),
+            $definition->criteria,
         );
 
-        TransactionCategoryCriterion::query()->firstOrCreate(
-            [
+        $current = TransactionCategoryCriterion::query()
+            ->where(TransactionCategoryCriterion::transaction_category_rule_id, $rule->getKey())
+            ->orderBy(TransactionCategoryCriterion::id)
+            ->get()
+            ->map(static fn(TransactionCategoryCriterion $criterion): array => [
+                TransactionCategoryCriterion::field => $criterion->field,
+                TransactionCategoryCriterion::operator => $criterion->operator,
+                TransactionCategoryCriterion::value => $criterion->value,
+                TransactionCategoryCriterion::value_secondary => $criterion->value_secondary,
+                TransactionCategoryCriterion::case_sensitive => $criterion->case_sensitive,
+            ])
+            ->all();
+
+        if ($current === $target) {
+            return;
+        }
+
+        TransactionCategoryCriterion::query()
+            ->where(TransactionCategoryCriterion::transaction_category_rule_id, $rule->getKey())
+            ->delete();
+
+        foreach ($target as $attributes) {
+            TransactionCategoryCriterion::query()->create([
                 TransactionCategoryCriterion::transaction_category_rule_id => $rule->getKey(),
-                TransactionCategoryCriterion::field => TransactionCategoryCriterion::FIELD_PURPOSE,
-                TransactionCategoryCriterion::operator => TransactionCategoryCriterion::OP_CONTAINS,
-                TransactionCategoryCriterion::value => mb_strtolower($name),
-            ],
-            [
-                TransactionCategoryCriterion::case_sensitive => false,
-            ],
-        );
+                ...$attributes,
+            ]);
+        }
+    }
+
+    /**
+     * Entfernt Systemregeln der Kategorie, die es in der aktuellen Definition nicht mehr gibt.
+     * Manuell angelegte Regeln (key = null) bleiben erhalten.
+     *
+     * @param list<string> $keys
+     */
+    private function deleteObsoleteRules(TransactionCategory $category, array $keys): void
+    {
+        TransactionCategoryRule::query()
+            ->where(TransactionCategoryRule::transaction_category_id, $category->getKey())
+            ->whereNotNull(TransactionCategoryRule::key)
+            ->when(
+                $keys !== [],
+                static fn(Builder $query): Builder => $query->whereNotIn(TransactionCategoryRule::key, $keys),
+            )
+            ->delete();
     }
 }

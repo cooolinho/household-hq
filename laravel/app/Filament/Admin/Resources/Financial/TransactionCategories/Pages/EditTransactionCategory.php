@@ -78,6 +78,7 @@ class EditTransactionCategory extends EditRecord
         $data['global_rule_settings'] = $globalRules
             ->map(fn(TransactionCategoryRule $rule): array => [
                 'rule_id' => (string)$rule->getKey(),
+                'rule_key' => $rule->key,
                 'disabled' => $disabledGlobalRuleIds->containsStrict((int)$rule->getKey()),
                 'preview' => $previewService->build($rule),
             ])
