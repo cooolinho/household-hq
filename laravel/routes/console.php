@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\Scheduled\CheckBudgetThresholdsJob;
 use App\Jobs\Scheduled\FetchImapDocumentsJob;
 use App\Jobs\Scheduled\FixedCostJob;
 use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
@@ -59,4 +60,8 @@ if ($imapImportSettings->enabled) {
 // Refresh transaction statistics cache nightly
 Schedule::job(new RefreshTransactionStatisticsJob())
     ->dailyAt('03:00');
+
+// Check budget thresholds and send notifications
+Schedule::job(new CheckBudgetThresholdsJob())
+    ->dailyAt('07:00');
 

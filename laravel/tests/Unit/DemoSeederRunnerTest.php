@@ -16,7 +16,7 @@ class DemoSeederRunnerTest extends TestCase
     {
         $seeders = app(DemoSeederRunner::class)->all();
 
-        self::assertCount(13, $seeders);
+        self::assertCount(14, $seeders);
         self::assertSame(DatabaseSeeder::class, $seeders->first()['class']);
         self::assertContains(UserSeeder::class, $seeders->pluck('class')->all());
         self::assertContains(EnergyTrackerSeeder::class, $seeders->pluck('class')->all());

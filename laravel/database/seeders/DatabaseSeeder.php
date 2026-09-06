@@ -8,6 +8,7 @@ use Database\Seeders\Core\UserSeeder;
 use Database\Seeders\EnergyTracker\EnergyTrackerSeeder;
 use Database\Seeders\EnergyTracker\MeasurementDeviceContractSeeder;
 use Database\Seeders\Financial\BankAccountSeeder;
+use Database\Seeders\Financial\BudgetSeeder;
 use Database\Seeders\Financial\FixedCostCategorySeeder;
 use Database\Seeders\Financial\FixedCostSeeder;
 use Database\Seeders\Financial\InsuranceCategorySeeder;
@@ -46,6 +47,7 @@ class DatabaseSeeder extends Seeder
             FixedCostSeeder::class,
             TransactionCategorySeeder::class,
             TransactionSeeder::class,
+            BudgetSeeder::class,
         ]);
     }
 }

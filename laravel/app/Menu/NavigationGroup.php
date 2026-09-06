@@ -22,7 +22,7 @@ enum NavigationGroup implements HasIcon, HasLabel, Collapsible
     {
         return match ($this) {
             self::INSURANCES => __('Versicherungen'),
-            self::BANKS => __('Banken'),
+            self::BANKS => __('Finanzen'),
             self::FIXED_COSTS => __('Fixkosten'),
             self::ENERGY_TRACKER => __('Energy Tracker'),
             self::INVENTORY => __('Inventar'),

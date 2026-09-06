@@ -1,0 +1,206 @@
+@use '../abstracts/variables' as *;
+
+// Budget-Übersicht: Karten-Grid mit Ampelindikator (grün/gelb/rot).
+// Basis-Styles = Light Mode, `.dark`-Overrides = Dark Mode (Filament-Theme-Switch).
+
+.ph-budget-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+}
+
+.ph-budget-card {
+    --ph-budget-accent: #{$ph-budget-success};
+
+    display: grid;
+    gap: 0.875rem;
+    padding: 1.25rem;
+    border: 1px solid $ph-border-light;
+    border-radius: 0.75rem;
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    color: inherit;
+    text-decoration: none;
+    transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--ph-budget-accent);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        transform: translateY(-1px);
+    }
+
+    &--warning {
+        --ph-budget-accent: #{$ph-budget-warning};
+    }
+
+    &--danger {
+        --ph-budget-accent: #{$ph-budget-danger};
+    }
+
+    &__header {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    &__icon {
+        display: grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.625rem;
+        background-color: color-mix(in srgb, var(--ph-budget-accent) 14%, transparent);
+        color: var(--ph-budget-accent);
+
+        svg {
+            width: 1.375rem;
+            height: 1.375rem;
+        }
+    }
+
+    &__heading {
+        min-width: 0;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__period {
+        margin: 0;
+        font-size: 0.75rem;
+        color: $ph-muted;
+    }
+
+    &__badge {
+        padding: 0.125rem 0.5rem;
+        border-radius: 999px;
+        background-color: color-mix(in srgb, var(--ph-budget-accent) 14%, transparent);
+        color: var(--ph-budget-accent);
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    &__bar {
+        overflow: hidden;
+        height: 0.5rem;
+        border-radius: 999px;
+        background-color: rgba(148, 163, 184, 0.25);
+    }
+
+    &__bar-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background-color: var(--ph-budget-accent);
+        transition: width 0.2s ease;
+    }
+
+    &__figures {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+        margin: 0;
+
+        div {
+            min-width: 0;
+        }
+
+        dt {
+            margin: 0;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: $ph-muted;
+        }
+
+        dd {
+            margin: 0.125rem 0 0;
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+    }
+
+    &__remaining {
+        color: var(--ph-budget-accent);
+    }
+
+    &__footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid $ph-border-light;
+        font-size: 0.75rem;
+        color: $ph-muted;
+    }
+
+    &__status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-weight: 600;
+        color: var(--ph-budget-accent);
+
+        svg {
+            width: 1rem;
+            height: 1rem;
+        }
+    }
+}
+
+.ph-budget-empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    padding: 3rem 1.5rem;
+    border: 1px dashed $ph-border-light;
+    border-radius: 0.75rem;
+    text-align: center;
+
+    &__icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        color: $ph-muted;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    &__text {
+        max-width: 32rem;
+        margin: 0;
+        font-size: 0.875rem;
+        color: $ph-muted;
+    }
+}
+
+.dark {
+    .ph-budget-card {
+        border-color: $ph-border-dark;
+        background-color: rgba(15, 23, 42, 0.6);
+        box-shadow: none;
+    }
+
+    .ph-budget-card__footer {
+        border-top-color: $ph-border-dark;
+    }
+
+    .ph-budget-empty {
+        border-color: $ph-border-dark;
+    }
+}

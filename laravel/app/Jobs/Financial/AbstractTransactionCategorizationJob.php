@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Financial;
 
+use App\Jobs\Scheduled\CheckBudgetThresholdsJob;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -45,6 +46,9 @@ abstract class AbstractTransactionCategorizationJob implements ShouldQueue
      */
     protected function notifyCompleted(array $results): void
     {
+        // Kategorien haben sich geändert – Budget-Schwellwerte neu bewerten.
+        CheckBudgetThresholdsJob::dispatch($this->userId);
+
         $user = $this->getUserForNotification();
 
         if ($user === null) {
