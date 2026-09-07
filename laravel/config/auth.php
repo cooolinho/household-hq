@@ -112,4 +112,20 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Registration
+    |--------------------------------------------------------------------------
+    |
+    | Registration is only ever exposed on the App-Panel (see
+    | AppPanelProvider). The Admin-Panel never enables it, regardless of
+    | this value. Defaults to off so the portal is not accidentally left
+    | open for self-signup.
+    |
+    */
+
+    'registration' => [
+        'enabled' => env('AUTH_REGISTRATION_ENABLED', false),
+    ],
+
 ];

@@ -1,0 +1,7 @@
+@use '../abstracts/variables' as vars;
+
+// Markiert die Topbar optisch als Admin-Panel, damit sofort erkennbar ist,
+// in welchem Panel man sich befindet.
+.fi-topbar {
+    border-bottom: 3px solid vars.$ph-admin-accent;
+}

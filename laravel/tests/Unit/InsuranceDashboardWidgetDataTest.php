@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Filament\Admin\Resources\Financial\Insurances\Widgets\InsuranceDashboardWidget;
+use App\Filament\App\Resources\Financial\Insurances\Widgets\InsuranceDashboardWidget;
 use App\Models\Financial\Insurance;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;

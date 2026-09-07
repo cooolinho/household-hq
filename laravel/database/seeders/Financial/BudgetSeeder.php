@@ -47,7 +47,7 @@ class BudgetSeeder extends Seeder
 
     public function run(): void
     {
-        $user = UserSeeder::getAdminUser();
+        $user = UserSeeder::getAppUser();
 
         if (!$user instanceof User) {
             $this->command?->warn('BudgetSeeder: Admin-Benutzer fehlt.');

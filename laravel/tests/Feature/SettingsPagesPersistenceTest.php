@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Admin\Clusters\Settings\Pages\DashboardSettingsPage;
-use App\Filament\Admin\Clusters\Settings\Pages\FixedCostSettingsPage;
-use App\Filament\Admin\Clusters\Settings\Pages\ImapSettingsPage;
-use App\Filament\Admin\Clusters\Settings\Pages\ReminderSettingsPage;
+use App\Filament\App\Clusters\Settings\Pages\DashboardSettingsPage;
+use App\Filament\App\Clusters\Settings\Pages\FixedCostSettingsPage;
+use App\Filament\App\Clusters\Settings\Pages\ImapSettingsPage;
+use App\Filament\App\Clusters\Settings\Pages\ReminderSettingsPage;
 use App\Models\DashboardWidgetPreference;
 use App\Models\User;
 use App\Settings\FixedCostSettings;

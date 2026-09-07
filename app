@@ -3,34 +3,27 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/.env}"
+LARAVEL_ENV_FILE="${LARAVEL_ENV_FILE:-${SCRIPT_DIR}/laravel/.env}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 DEFAULT_CONTAINER_NAME="personal-home-portal"
 CONTAINER_WORKDIR="/var/www/html"
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
 COMMANDS=(
-    "sail|yarn build"
-    "sail|php artisan migrate"
-    "sail|php artisan test"
-    "sail|php artisan auth:clear-resets"
-    "sail|php artisan cache:clear"
-    "sail|php artisan config:clear"
-    "sail|php artisan event:clear"
-    "sail|php artisan filament:clear-cached-components"
-    "sail|php artisan icons:clear"
-    "sail|php artisan optimize:clear"
-    "sail|php artisan queue:clear"
-    "sail|php artisan route:clear"
-    "sail|php artisan schedule:clear-cache"
-    "sail|php artisan settings:clear-cache"
-    "sail|php artisan settings:clear-discovered"
-    "sail|php artisan view:clear"
-    "sail|php artisan route:list"
-    "sail|php artisan queue:work"
-    "sail|php artisan tinker"
-    "sail|php artisan migrate:fresh --seed"
-    "sail|php artisan"
-    "root|chmod -R 777 /var/www/html"
-    "root|chown -R sail:sail /var/www/html"
+    "sail|yarn build|false"
+    "sail|php artisan migrate|false"
+    "sail|php artisan test|false"
+    "sail|php artisan optimize:clear|false"
+    "sail|php artisan horizon|false"
+    "sail|php artisan tinker|false"
+    "sail|php artisan migrate:fresh --seed|true"
+    "sail|php artisan|false"
+    "sail|bash|false"
 )
 
 declare -A SHORTCUTS=(
@@ -38,8 +31,7 @@ declare -A SHORTCUTS=(
     [test]="sail|php artisan test"
     [tinker]="sail|php artisan tinker"
     [artisan]="sail|php artisan"
-    [chmod]="root|chmod -R 777 /var/www/html"
-    [chown]="root|chown -R sail:sail /var/www/html"
+    [fix-permissions]="root|chmod -R 777 /var/www/html && chown -R sail:sail /var/www/html"
     [bash]="sail|bash"
     [bash-root]="root|bash"
 )
@@ -66,6 +58,31 @@ read_env_value() {
 
 APP_CONTAINER_NAME="$(read_env_value APP_CONTAINER_NAME "$ENV_FILE" || true)"
 APP_CONTAINER_NAME="${APP_CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}"
+
+APP_ENV_VALUE="$(read_env_value APP_ENV "$LARAVEL_ENV_FILE" || true)"
+APP_ENV_VALUE="${APP_ENV_VALUE:-production}"
+
+APP_URL="$(read_env_value APP_URL "$LARAVEL_ENV_FILE" || true)"
+APP_URL="${APP_URL:-http://localhost}"
+
+show_environment_banner() {
+    if [[ "$APP_ENV_VALUE" == "production" ]]; then
+        echo ""
+        echo -e "${BOLD}${RED}╔══════════════════════════════════════════════════════╗${RESET}"
+        echo -e "${BOLD}${RED}║   ⚠  PRODUKTIONSUMGEBUNG (APP_ENV=production)  ⚠     ║${RESET}"
+        echo -e "${BOLD}${RED}║   Befehle wirken auf echte, produktive Daten!        ║${RESET}"
+        echo -e "${BOLD}${RED}║   URL: ${APP_URL}${RESET}"
+        echo -e "${BOLD}${RED}╚══════════════════════════════════════════════════════╝${RESET}"
+        echo ""
+    else
+        echo ""
+        echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════════════════╗${RESET}"
+        echo -e "${BOLD}${GREEN}║   Entwicklungsumgebung (APP_ENV=${APP_ENV_VALUE})${RESET}"
+        echo -e "${BOLD}${GREEN}║   URL: ${APP_URL}${RESET}"
+        echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════════╝${RESET}"
+        echo ""
+    fi
+}
 
 usage() {
     cat <<EOF
@@ -127,6 +144,23 @@ run_shell_command_as_root() {
     "$DOCKER_BIN" exec -it -u root -w "$CONTAINER_WORKDIR" "$APP_CONTAINER_NAME" bash -lc "$command"
 }
 
+confirm_critical_command() {
+    local command="$1"
+    local answer
+
+    if [[ "$APP_ENV_VALUE" == "production" ]]; then
+        echo ""
+        echo -e "${BOLD}${RED}╔══════════════════════════════════════════════════════╗${RESET}"
+        echo -e "${BOLD}${RED}║   ⚠  PRODUKTIONSUMGEBUNG - KRITISCHER BEFEHL  ⚠      ║${RESET}"
+        echo -e "${BOLD}${RED}║   URL: ${APP_URL}${RESET}"
+        echo -e "${BOLD}${RED}╚══════════════════════════════════════════════════════╝${RESET}"
+        echo ""
+    fi
+    echo -e "${YELLOW}Kritischer Befehl:${RESET} ${command}"
+    read -rp "Wirklich ausführen? [y/N]: " answer
+    [[ "$answer" =~ ^[Yy]$ ]]
+}
+
 run_command_spec() {
     local spec="$1"
     shift
@@ -137,8 +171,17 @@ run_command_spec() {
     fi
 
     local execution_user="${spec%%|*}"
-    local command="${spec#*|}"
+    local rest="${spec#*|}"
+    local command
+    local requires_confirmation="false"
     local argument
+
+    if [[ "$rest" == *"|"* ]]; then
+        command="${rest%|*}"
+        requires_confirmation="${rest##*|}"
+    else
+        command="$rest"
+    fi
 
     if [[ -z "$command" ]]; then
         echo "Command specification has no command: '$spec'." >&2
@@ -148,6 +191,13 @@ run_command_spec() {
     for argument in "$@"; do
         printf -v command '%s %q' "$command" "$argument"
     done
+
+    if [[ "$requires_confirmation" == "true" ]]; then
+        if ! confirm_critical_command "$command"; then
+            echo "Abgebrochen."
+            return 1
+        fi
+    fi
 
     if [[ "$command" == "bash" && $# -eq 0 ]]; then
         case "$execution_user" in
@@ -185,9 +235,11 @@ EOF
 
     local choice=1
     local spec
+    local rest
     local command
     for spec in "${COMMANDS[@]}"; do
-        command="${spec#*|}"
+        rest="${spec#*|}"
+        command="${rest%|*}"
         printf '  %d) %s\n' "$choice" "$command"
         choice=$((choice + 1))
     done
@@ -224,6 +276,8 @@ run_menu_selection() {
 
 main() {
     local command="${1:-}"
+
+    show_environment_banner
 
     if [[ "$command" =~ ^[a-z0-9-]+$ ]] && [[ -n "${SHORTCUTS[$command]+set}" ]]; then
         shift

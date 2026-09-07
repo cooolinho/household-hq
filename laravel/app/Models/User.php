@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\AppConfig;
+use App\Enums\Role;
 use App\Models\Financial\Budget;
 use App\Models\Financial\Goal;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,6 +28,8 @@ use Illuminate\Support\Facades\Storage;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property Role $role
+ * @property bool $is_active
  * @property string|null $remember_token
  * @property string|null $firstname
  * @property string|null $lastname
@@ -41,7 +44,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     const string TABLE = 'users';
 
@@ -54,6 +57,8 @@ class User extends Authenticatable implements FilamentUser
     const string email = 'email';
     const string email_verified_at = 'email_verified_at';
     const string password = 'password';
+    const string role = 'role';
+    const string is_active = 'is_active';
     const string remember_token = 'remember_token';
     const string created_at = Model::CREATED_AT;
     const string updated_at = Model::UPDATED_AT;
@@ -90,6 +95,8 @@ class User extends Authenticatable implements FilamentUser
         self::email,
         self::password,
         self::email_verified_at,
+        self::role,
+        self::is_active,
         self::remember_token,
         self::firstname,
         self::lastname,
@@ -124,6 +131,8 @@ class User extends Authenticatable implements FilamentUser
             self::email_verified_at => 'datetime',
             self::password => 'hashed',
             self::date_of_birth => 'date',
+            self::role => Role::class,
+            self::is_active => 'boolean',
         ];
     }
 
@@ -142,9 +151,18 @@ class User extends Authenticatable implements FilamentUser
         return null;
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->role === Role::ADMIN;
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        if (!$this->is_active) {
+            return false;
+        }
+
+        return $panel->getId() === 'admin' ? $this->isAdmin() : true;
     }
 
     public function imapAccounts(): HasMany

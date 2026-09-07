@@ -2,12 +2,14 @@
 
 namespace Database\Seeders\Core;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
     const string ADMIN_EMAIL = 'admin@example.com';
+    const string APP_EMAIL = 'user@example.com';
 
     public static function description(): string
     {
@@ -29,13 +31,20 @@ class UserSeeder extends Seeder
             ->first();
     }
 
-    public function run(): void
+    public static function getAppUser(): ?User
     {
-        $this->createUserIfMissing(self::ADMIN_EMAIL, 'Administrator');
-        $this->createUserIfMissing('user@example.com', 'User');
+        return User::query()
+            ->where(User::email, self::APP_EMAIL)
+            ->first();
     }
 
-    private function createUserIfMissing(string $email, string $name): void
+    public function run(): void
+    {
+        $this->createUserIfMissing(self::ADMIN_EMAIL, 'Administrator', Role::ADMIN);
+        $this->createUserIfMissing(self::APP_EMAIL, 'User', Role::USER);
+    }
+
+    private function createUserIfMissing(string $email, string $name, Role $role): void
     {
         User::query()->firstOrCreate(
             [
@@ -45,6 +54,8 @@ class UserSeeder extends Seeder
                 User::name => $name,
                 User::email_verified_at => now(),
                 User::password => 'secret',
+                User::role => $role,
+                User::is_active => true,
             ],
         );
     }

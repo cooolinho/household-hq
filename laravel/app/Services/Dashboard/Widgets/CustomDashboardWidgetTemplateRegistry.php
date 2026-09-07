@@ -2,9 +2,9 @@
 
 namespace App\Services\Dashboard\Widgets;
 
-use App\Filament\Admin\Widgets\Dashboard\CustomDashboardChartWidget;
-use App\Filament\Admin\Widgets\Dashboard\CustomDashboardStatsWidget;
-use App\Filament\Admin\Widgets\Dashboard\CustomDashboardTableWidget;
+use App\Filament\App\Widgets\Dashboard\CustomDashboardChartWidget;
+use App\Filament\App\Widgets\Dashboard\CustomDashboardStatsWidget;
+use App\Filament\App\Widgets\Dashboard\CustomDashboardTableWidget;
 use App\Menu\NavigationGroup;
 use App\Models\CustomDashboardUserWidget;
 use App\Models\Enums\CustomDashboardWidgetTypeEnum;

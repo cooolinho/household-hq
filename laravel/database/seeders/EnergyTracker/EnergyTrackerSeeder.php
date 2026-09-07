@@ -30,7 +30,7 @@ class EnergyTrackerSeeder extends Seeder
 
     public function run(): void
     {
-        $user = UserSeeder::getAdminUser();
+        $user = UserSeeder::getAppUser();
 
         if (!$user instanceof User) {
             $this->command?->warn('EnergyTrackerSeeder: Admin-Benutzer fehlt.');

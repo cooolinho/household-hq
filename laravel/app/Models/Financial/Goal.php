@@ -214,7 +214,7 @@ class Goal extends Model
             return null;
         }
 
-        return route('admin.goals.image', ['goal' => $this->getKey()]);
+        return route('app.goals.image', ['goal' => $this->getKey()]);
     }
 
     protected function casts(): array

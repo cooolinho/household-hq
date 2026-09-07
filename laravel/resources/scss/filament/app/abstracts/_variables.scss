@@ -1,0 +1,5 @@
+// Reicht die geteilten $ph-* Variablen aus _shared/abstracts weiter, damit
+// Komponenten/Seiten weiterhin @use '../abstracts/variables' nutzen koennen.
+@forward '../../_shared/abstracts/variables';
+
+// App-Panel-spezifische Variablen-Overrides koennen hier ergaenzt werden.

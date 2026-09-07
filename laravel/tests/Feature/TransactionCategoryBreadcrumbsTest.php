@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Admin\Resources\Financial\TransactionCategories\Support\TransactionCategoryBreadcrumbs;
-use App\Filament\Admin\Resources\Financial\TransactionCategories\TransactionCategoryResource;
+use App\Filament\App\Resources\Financial\TransactionCategories\Support\TransactionCategoryBreadcrumbs;
+use App\Filament\App\Resources\Financial\TransactionCategories\TransactionCategoryResource;
 use App\Models\Financial\TransactionCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

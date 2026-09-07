@@ -1,16 +1,6 @@
-$ph-border-light: rgba(148, 163, 184, 0.3);
-$ph-border-dark: rgba(71, 85, 105, 0.5);
-$ph-muted: rgb(100, 116, 139);
-$ph-link: rgb(59, 130, 246);
-$ph-negative: rgb(220, 38, 38);
-$ph-positive: rgb(22, 163, 74);
-$ph-highlight-light: rgb(254, 240, 138);
-$ph-highlight-light-text: rgb(66, 32, 6);
-$ph-highlight-dark: rgb(161, 98, 7);
-$ph-highlight-dark-text: rgb(255, 251, 235);
-$ph-budget-success: rgb(22, 163, 74);
-$ph-budget-warning: rgb(217, 119, 6);
-$ph-budget-danger: rgb(220, 38, 38);
-$ph-goal-success: rgb(22, 163, 74);
-$ph-goal-warning: rgb(217, 119, 6);
-$ph-goal-primary: rgb(37, 99, 235);
+// Reicht die geteilten $ph-* Variablen aus _shared/abstracts weiter.
+@forward '../../_shared/abstracts/variables';
+
+// Admin-Panel Akzentfarben - ergaenzen die geteilten Variablen.
+$ph-admin-accent: rgb(220, 38, 38);
+$ph-admin-accent-text: rgb(254, 242, 242);

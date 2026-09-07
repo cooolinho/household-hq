@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Admin\Resources\Financial\Budgets\Pages\CreateBudget;
-use App\Filament\Admin\Resources\Financial\Budgets\Pages\EditBudget;
-use App\Filament\Admin\Resources\Financial\Budgets\Pages\ListBudgets;
-use App\Filament\Admin\Resources\Financial\Budgets\Pages\ViewBudget;
-use App\Filament\Admin\Resources\Financial\Budgets\RelationManagers\TransactionsRelationManager;
+use App\Filament\App\Resources\Financial\Budgets\Pages\CreateBudget;
+use App\Filament\App\Resources\Financial\Budgets\Pages\EditBudget;
+use App\Filament\App\Resources\Financial\Budgets\Pages\ListBudgets;
+use App\Filament\App\Resources\Financial\Budgets\Pages\ViewBudget;
+use App\Filament\App\Resources\Financial\Budgets\RelationManagers\TransactionsRelationManager;
 use App\Models\Enums\BankAccountTypeEnum;
 use App\Models\Enums\BudgetIconEnum;
 use App\Models\Enums\BudgetPeriodEnum;

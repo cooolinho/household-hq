@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Admin\Resources\Financial\TransactionCategories\Pages\ListTransactionCategories;
+use App\Filament\App\Resources\Financial\TransactionCategories\Pages\ListTransactionCategories;
 use App\Jobs\Financial\CategorizeUncategorizedTransactionsJob;
 use App\Jobs\Financial\RecategorizeAllTransactionsJob;
 use App\Jobs\Financial\RecategorizeCategorizedTransactionsJob;

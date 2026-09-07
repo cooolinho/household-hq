@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Filament\Admin\Resources\Documents\Support\DocumentOwnerRegistry;
+use App\Filament\App\Resources\Documents\Support\DocumentOwnerRegistry;
 use App\Models\Document;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;

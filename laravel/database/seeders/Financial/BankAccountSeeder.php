@@ -27,7 +27,7 @@ class BankAccountSeeder extends Seeder
 
     public static function getMainAccount(): ?BankAccount
     {
-        $user = UserSeeder::getAdminUser();
+        $user = UserSeeder::getAppUser();
 
         if (!$user instanceof User) {
             return null;
@@ -41,7 +41,7 @@ class BankAccountSeeder extends Seeder
 
     public function run(): void
     {
-        $user = UserSeeder::getAdminUser();
+        $user = UserSeeder::getAppUser();
 
         if (!$user instanceof User) {
             $this->command?->warn('BankAccountSeeder: Admin-Benutzer fehlt.');

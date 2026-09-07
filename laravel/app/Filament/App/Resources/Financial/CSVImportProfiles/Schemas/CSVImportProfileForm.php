@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Filament\App\Resources\Financial\CSVImportProfiles\Schemas;
+
+use App\Models\Financial\CSVImportProfile;
+use App\Models\Financial\Transaction;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
+
+class CSVImportProfileForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make(CSVImportProfile::name)
+                    ->required(),
+
+                TextInput::make(CSVImportProfile::bank),
+
+                Select::make(CSVImportProfile::delimiter)
+                    ->options([
+                        ';' => ';',
+                        ',' => ',',
+                        "\t" => 'TAB',
+                    ])
+                    ->required(),
+
+                TextInput::make(CSVImportProfile::enclosure)
+                    ->default('"')
+                    ->required(),
+
+                TextInput::make(CSVImportProfile::escape)
+                    ->default('\\')
+                    ->required(),
+
+                Select::make(CSVImportProfile::amount_format)
+                    ->label('Betragsformat')
+                    ->options([
+                        'de_de' => 'Deutsch (1.890,70)',
+                        'en_us' => 'Englisch (1,890.70)',
+                    ])
+                    ->default('de_de')
+                    ->helperText('Wählt das Zahlenformat der Beträge in der CSV-Datei.')
+                    ->required(),
+
+                TextInput::make(CSVImportProfile::offset_header)
+                    ->numeric()
+                    ->default(0)
+                    ->required(),
+
+                KeyValue::make(CSVImportProfile::mapping)
+                    ->keyLabel('Transaction Column')
+                    ->valueLabel('CSV Index')
+                    ->addable(false)
+                    ->editableKeys(false)
+                    ->default([
+                        Transaction::date => '',
+                        Transaction::value_date => '',
+                        Transaction::payer => '',
+                        Transaction::description => '',
+                        Transaction::purpose => '',
+                        Transaction::balance => '',
+                        Transaction::balance_currency => '',
+                        Transaction::amount => '',
+                        Transaction::amount_currency => '',
+                    ])
+            ]);
+    }
+}

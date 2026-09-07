@@ -2,10 +2,10 @@
 
 namespace App\Services\Reminder;
 
-use App\Filament\Admin\Resources\EnergyTracker\MeasurementDeviceContracts\MeasurementDeviceContractResource;
-use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
-use App\Filament\Admin\Resources\Financial\Insurances\InsuranceResource;
-use App\Filament\Admin\Resources\Inventory\Articles\ArticleResource;
+use App\Filament\App\Resources\EnergyTracker\MeasurementDeviceContracts\MeasurementDeviceContractResource;
+use App\Filament\App\Resources\Financial\FixedCosts\FixedCostResource;
+use App\Filament\App\Resources\Financial\Insurances\InsuranceResource;
+use App\Filament\App\Resources\Inventory\Articles\ArticleResource;
 use App\Models\EnergyTracker\MeasurementDevice;
 use App\Models\EnergyTracker\MeasurementDeviceContract;
 use App\Models\Financial\FixedCost;

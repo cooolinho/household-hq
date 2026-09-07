@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -29,6 +30,8 @@ class UserFactory extends Factory
             User::email => fake()->unique()->safeEmail(),
             User::email_verified_at => now(),
             User::password => static::$password ??= Hash::make('secret'),
+            User::role => Role::USER,
+            User::is_active => true,
             User::remember_token => Str::random(10),
         ];
     }
@@ -40,6 +43,26 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             User::email_verified_at => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an administrator with access to the admin panel.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            User::role => Role::ADMIN,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is blocked from logging in.
+     */
+    public function blocked(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            User::is_active => false,
         ]);
     }
 }

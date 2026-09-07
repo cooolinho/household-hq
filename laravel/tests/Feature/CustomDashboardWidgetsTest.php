@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Admin\Clusters\Settings\Pages\DashboardSettingsPage;
-use App\Filament\Admin\Pages\Dashboard;
+use App\Filament\App\Clusters\Settings\Pages\DashboardSettingsPage;
+use App\Filament\App\Pages\Dashboard;
 use App\Menu\NavigationGroup;
 use App\Models\CustomDashboardUserWidget;
 use App\Models\Enums\CustomDashboardWidgetTypeEnum;

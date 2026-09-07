@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/.env}"
+LARAVEL_ENV_FILE="${LARAVEL_ENV_FILE:-${SCRIPT_DIR}/laravel/.env}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 CONTAINER_WORKDIR="/var/www/html"
 APP_CONTAINER_NAME="personal-home-portal"
@@ -103,11 +104,18 @@ ensure_prerequisites() {
     command -v "$DOCKER_BIN" >/dev/null 2>&1 || fail "docker is required."
 }
 
-ensure_clean_worktree_for_pull() {
-    local status
+# Horizon replaced the old `queue:work` supervisor program and only reads
+# from the `redis` queue connection. If laravel/.env is still on `database`
+# (the pre-Horizon default), queued jobs would silently pile up unprocessed
+# after this deploy - fail loudly instead of shipping that.
+ensure_queue_ready_for_horizon() {
+    local queue_connection
 
-    status="$(git -C "$SCRIPT_DIR" status --porcelain)"
-    [[ -z "$status" ]] || fail "Git worktree is not clean. Commit/stash changes or rerun with --no-pull."
+    queue_connection="$(read_env_value "QUEUE_CONNECTION" "$LARAVEL_ENV_FILE" || true)"
+
+    if [[ "$queue_connection" != "redis" ]]; then
+        fail "laravel/.env: QUEUE_CONNECTION must be 'redis' for Horizon (currently: '${queue_connection:-unset}'). Set it, and if it was 'database' before, drain any pending jobs first: docker exec -it --user sail ${APP_CONTAINER_NAME} sh -c \"php artisan queue:work database --stop-when-empty\""
+    fi
 }
 
 update_repository() {
@@ -121,20 +129,59 @@ update_repository() {
     git -C "$SCRIPT_DIR" pull --ff-only
 }
 
+ensure_clean_worktree_for_pull() {
+    local status
+
+    status="$(git -C "$SCRIPT_DIR" status --porcelain)"
+    [[ -z "$status" ]] || fail "Git worktree is not clean. Commit/stash changes or rerun with --no-pull."
+}
+
 update_stack() {
     log_step "Refreshing ${MODE} Docker stack"
 
-    # In prod the application ships inside the image (vendor/ and the compiled
-    # assets are baked in by ./build-image), so there is nothing to build here.
     if [[ "$MODE" == "prod" ]]; then
-        # --ignore-pull-failures keeps a locally built image (./build-image
-        # without --push) working instead of aborting the deployment.
+        # --ignore-pull-failures keeps a locally built image working instead
+        # of aborting the deployment when no image registry is configured.
         compose pull --ignore-pull-failures
         compose up -d
-        return
+    else
+        compose up -d --build
     fi
 
-    compose up -d --build
+    reconcile_supervisor_programs
+}
+
+# docker/supervisord.conf is bind-mounted, so an edited file (e.g. the
+# worker -> horizon swap in this change) is visible inside the container
+# immediately - but supervisord itself only acts on it once told to. Without
+# this, `compose up -d` (no --build, as in prod) leaves the OLD program set
+# running until the container is next recreated from scratch.
+reconcile_supervisor_programs() {
+    log_step "Reconciling supervisor programs with docker/supervisord.conf"
+
+    wait_for_supervisor_socket
+
+    # supervisorctl's control socket is chmod 0700 root-owned (see
+    # docker/supervisord.conf [unix_http_server]) - must run as root, not
+    # via run_in_app_container (which always uses -u sail).
+    "$DOCKER_BIN" exec "$APP_CONTAINER_NAME" supervisorctl reread
+    "$DOCKER_BIN" exec "$APP_CONTAINER_NAME" supervisorctl update
+}
+
+# Right after `compose up -d`/`--build` (re)creates the container, supervisord
+# needs a moment to create its control socket; calling supervisorctl too
+# early fails with a FileNotFoundError on /var/run/supervisor.sock.
+wait_for_supervisor_socket() {
+    local attempt
+
+    for attempt in $(seq 1 20); do
+        if "$DOCKER_BIN" exec "$APP_CONTAINER_NAME" test -S /var/run/supervisor.sock 2>/dev/null; then
+            return
+        fi
+        sleep 0.5
+    done
+
+    fail "supervisord did not create its control socket in time inside ${APP_CONTAINER_NAME}."
 }
 
 run_in_app_container() {
@@ -145,41 +192,41 @@ run_in_app_container() {
 }
 
 install_php_dependencies() {
-    if [[ "$MODE" == "prod" ]]; then
-        log_step "Skipping composer install (vendor/ ships inside the image)"
-        return
-    fi
-
     run_in_app_container "composer install --no-interaction"
 }
 
 install_frontend_dependencies() {
-    if [[ "$MODE" == "prod" ]]; then
-        log_step "Skipping yarn install (assets ship inside the image)"
-        return
-    fi
-
     run_in_app_container "yarn install"
 }
 
 run_laravel_maintenance() {
     run_in_app_container "php artisan optimize:clear"
     run_in_app_container "php artisan storage:link --force"
+    run_in_app_container "php artisan filament:assets"
+    run_in_app_container "yarn build"
 
     if [[ "$MODE" == "prod" ]]; then
         run_in_app_container "php artisan migrate --force"
         run_in_app_container "php artisan optimize"
-        return
+    else
+        run_in_app_container "php artisan migrate"
     fi
 
-    run_in_app_container "php artisan migrate"
-    run_in_app_container "php artisan filament:assets"
-    run_in_app_container "yarn build"
+    restart_horizon
+}
+
+restart_horizon() {
+    # Horizon workers are long-running and would otherwise keep executing
+    # the pre-deploy code. `horizon:terminate` waits for the current job on
+    # each worker to finish, then exits; supervisor's autorestart=true
+    # immediately relaunches it with the new code.
+    run_in_app_container "php artisan horizon:terminate"
 }
 
 main() {
     parse_args "$@"
     ensure_prerequisites
+    ensure_queue_ready_for_horizon
     update_repository
     update_stack
     install_php_dependencies

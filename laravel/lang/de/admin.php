@@ -236,5 +236,23 @@ return [
             'model_label' => 'Erinnerung',
             'plural_model_label' => 'Erinnerungen',
         ],
+
+        // User / Benutzer
+        'user' => [
+            'navigation_label' => 'Benutzer',
+            'model_label' => 'Benutzer',
+            'plural_model_label' => 'Benutzer',
+
+            'fields' => [
+                'name' => 'Name',
+                'email' => 'E-Mail',
+                'password' => 'Passwort',
+                'role' => 'Rolle',
+                'is_active' => 'Aktiv',
+                'email_verified_at' => 'E-Mail bestätigt',
+                'created_at' => 'Erstellt',
+                'mark_email_verified' => 'E-Mail als bestätigt markieren',
+            ],
+        ],
     ],
 ];

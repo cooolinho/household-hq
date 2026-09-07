@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Admin\Resources\Financial\TransactionCategories\Pages\EditTransactionCategory;
+use App\Filament\App\Resources\Financial\TransactionCategories\Pages\EditTransactionCategory;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\Transaction;
 use App\Models\Financial\TransactionCategory;

@@ -54,7 +54,7 @@ class TransactionSeeder extends Seeder
 
     public function run(): void
     {
-        $user = UserSeeder::getAdminUser();
+        $user = UserSeeder::getAppUser();
         $bankAccount = BankAccountSeeder::getMainAccount();
 
         if (!$user || !$bankAccount) {

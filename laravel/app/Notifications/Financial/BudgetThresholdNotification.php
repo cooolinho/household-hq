@@ -2,7 +2,7 @@
 
 namespace App\Notifications\Financial;
 
-use App\Filament\Admin\Resources\Financial\Budgets\BudgetResource;
+use App\Filament\App\Resources\Financial\Budgets\BudgetResource;
 use App\Mail\BudgetThresholdMail;
 use App\Models\Financial\Budget;
 use App\Models\User;

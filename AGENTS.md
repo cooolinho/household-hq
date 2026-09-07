@@ -3,9 +3,9 @@
 ## Stack
 
 - **PHP 8.5 / Laravel 13** – backend (`laravel/`)
-- **Filament 5** – admin UI
+- **Filament 5** – two panels, App (`/app`) and Admin (`/admin`)
 - **MySQL 8** – primary database
-- **Redis** – caching
+- **Redis** – caching and queue (via Laravel Horizon)
 - **Mailpit** – dev email testing (dashboard: `http://localhost:8025`)
 - **Yarn** – frontend build tool (NOT npm)
 
@@ -50,23 +50,48 @@ class User extends Authenticatable {
 
 Reference constants instead of raw strings in queries and Filament forms.
 
-## Filament Panel
+## Filament Panels
 
-| Panel       | Path     | Provider             |
-|-------------|----------|----------------------|
-| Admin-Panel | `/admin` | `AdminPanelProvider` |
+| Panel     | Path     | Provider            | Who                                                    |
+|-----------|----------|----------------------|--------------------------------------------------------|
+| App-Panel | `/app`   | `AppPanelProvider`   | every active user (`ROLE_USER`, `ROLE_ADMIN`) - default panel, holds the central login |
+| Admin-Panel | `/admin` | `AdminPanelProvider` | `ROLE_ADMIN` only (`User::canAccessPanel()`)          |
 
-Panel providers live in `app/Providers/Filament/`. Resources auto-discovered from `app/Filament/Admin/Resources`, pages
-from `app/Filament/Admin/Pages`, widgets from `app/Filament/Admin/Widgets`.
+Panel providers live in `app/Providers/Filament/`. App-Panel resources/pages/widgets/clusters are auto-discovered from
+`app/Filament/App/{Resources,Pages,Widgets,Clusters}`; Admin-Panel ones from `app/Filament/Admin/{Resources,Pages,Widgets,Clusters}`
+(currently just the `UserResource` for user management).
+
+There is no separate login route per panel: `/login` and unauthenticated `/admin`/`/horizon` requests all redirect to
+`/app/login`. After login, `App\Http\Responses\LoginResponse` sends `ROLE_ADMIN` to `/admin` and everyone else to `/app`
+(see `App\Support\PanelRouter`).
+
+Registration (`/app/register`) only ever exists on the App-Panel and is toggled via `AUTH_REGISTRATION_ENABLED`
+(`config('auth.registration.enabled')`, default `false`). New self-registered users are unverified `ROLE_USER`s.
+
+### Roles
+
+`App\Enums\Role` (`ROLE_USER` / `ROLE_ADMIN`) backs the `users.role` column; `users.is_active` gates login and panel
+access independently of role (`User::canAccessPanel()`). Admins manage both, plus manual verification, via the
+Admin-Panel's `UserResource`.
+
+### Themes
+
+Each panel has its own 7-1 SASS tree under `resources/scss/filament/{app,admin}/`, sharing common variables/mixins/the
+Filament vendor import via `resources/scss/filament/_shared/`. See the `abstracts/_variables.scss` `@forward` pattern in
+either tree before adding a third panel.
 
 ## Key Files
 
 | File                                                    | Purpose                                                                             |
 |---------------------------------------------------------|-------------------------------------------------------------------------------------|
 | `laravel/init.sh`                                       | First-run setup: composer, yarn, key:generate, migrate, filament:assets, yarn build |
-| `laravel/app/Providers/Filament/AdminPanelProvider.php` | Admin-Panel config (theme, colors, middleware)                                      |
-| `supervisor.sh`                                         | Interactive control for Supervisor processes (`php`, `worker`, `scheduler`)         |
-| `docker/supervisord.conf`                               | Runtime process definitions for app server, queue worker, and scheduler             |
+| `laravel/app/Providers/Filament/AppPanelProvider.php`   | App-Panel config (theme, colors, login/registration/email verification, middleware) |
+| `laravel/app/Providers/Filament/AdminPanelProvider.php` | Admin-Panel config (theme, colors, middleware, Horizon nav item)                    |
+| `laravel/app/Providers/HorizonServiceProvider.php`      | Horizon's `viewHorizon` gate (active admins only, no `local`-env bypass)            |
+| `laravel/app/Support/PanelRouter.php`                   | Maps a user to their panel id/URL (login redirect, `/` redirect)                    |
+| `update`                                                | `./update dev\|prod` deploy script: pull, rebuild, reconcile supervisor programs, composer/yarn, migrate, restart Horizon |
+| `supervisor.sh`                                         | Interactive control for Supervisor processes (`php`, `horizon`, `scheduler`)        |
+| `docker/supervisord.conf`                               | Runtime process definitions for app server, Horizon, and scheduler                  |
 | `docs/index.md`                                         | Full domain documentation (roles, billing formula, workflow)                        |
 | `docs/todos.md`                                         | Phased implementation plan with exact resource/page names                           |
 | `docker-compose.yml`                                    | Service definitions (laravel, mysql, redis, mailpit)                                |
@@ -79,7 +104,9 @@ docker-compose build && docker-compose up -d
 docker exec -it personal-home-portal bash -c "chmod -R 777 /var/www/html"
 docker exec -it personal-home-portal bash -c "chown -R sail:sail /var/www/html"
 docker exec -it --user sail personal-home-portal sh -c "sh init.sh"
-docker exec -it --user sail personal-home-portal sh -c "php artisan filament:user --name=Admin --email=admin@example.com --password=secret --panel=admin"
+docker exec -it --user sail personal-home-portal sh -c "php artisan filament:user --name=Admin --email=admin@example.com --password=secret --panel=app"
+# filament:user always creates a ROLE_USER; promote it to ROLE_ADMIN to reach /admin:
+docker exec -it --user sail personal-home-portal sh -c "php artisan tinker --execute=\"App\\Models\\User::where('email','admin@example.com')->update(['role'=>'ROLE_ADMIN']);\""
 docker restart personal-home-portal
-# Admin UI: http://localhost/admin/login
+# Login (all roles): http://localhost/app/login - admins are redirected to /admin after signing in
 ```

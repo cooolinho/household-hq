@@ -1,6 +1,4 @@
-@mixin ph-card($border: rgba(148, 163, 184, 0.25), $bg: rgba(255, 255, 255, 0.75)) {
-    border: 1px solid $border;
-    border-radius: 0.9rem;
-    background: $bg;
-}
+// Reicht die geteilten Mixins aus _shared/abstracts weiter.
+@forward '../../_shared/abstracts/mixins';
 
+// Admin-Panel-spezifische Mixins koennen hier ergaenzt werden.

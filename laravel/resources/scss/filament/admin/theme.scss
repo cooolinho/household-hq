@@ -6,6 +6,5 @@
 @use 'pages';
 @use 'themes';
 
-@source '../../../../app/Filament/**/*';
-@source '../../../../resources/views/filament/**/*';
-
+@source '../../../../app/Filament/Admin/**/*';
+@source '../../../../resources/views/filament/admin/**/*';

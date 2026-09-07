@@ -2,17 +2,18 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Auth\Pages\EditProfile;
 use App\Filament\AvatarProviders\UserAvatarProvider;
-use App\Menu\NavigationGroup;
 use Filament\Enums\DatabaseNotificationsPosition;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
+use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -26,8 +27,6 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
-
             // base
             ->id('admin')
             ->path('admin')
@@ -38,13 +37,14 @@ class AdminPanelProvider extends PanelProvider
             ->darkMode()
 
             // auth
-            ->login()
-            ->passwordReset()
+            // Kein ->login(), ->registration() oder ->emailVerification() hier:
+            // Das Admin-Panel hat keine eigene Login-Seite. Nicht eingeloggte
+            // Zugriffe werden über die zentrale /login-Route zum App-Panel
+            // geleitet (siehe routes/web.php), Registrierung gibt es hier nicht.
             ->defaultAvatarProvider(UserAvatarProvider::class)
-            ->profile(EditProfile::class, false)
 
             // navigation
-            ->navigationGroups(NavigationGroup::class)
+            ->navigationItems($this->getNavigationItems())
             ->userMenuItems($this->getUserMenuItems())
             ->sidebarCollapsibleOnDesktop()
             ->sidebarFullyCollapsibleOnDesktop()
@@ -92,6 +92,19 @@ class AdminPanelProvider extends PanelProvider
     }
 
     /**
+     * @return array<NavigationItem>
+     */
+    private function getNavigationItems(): array
+    {
+        return [
+            NavigationItem::make('Horizon')
+                ->url(fn () => url(config('horizon.path')), shouldOpenInNewTab: true)
+                ->icon(Heroicon::OutlinedQueueList)
+                ->sort(10),
+        ];
+    }
+
+    /**
      * @return string[]
      */
     private function getWidgets(): array
@@ -128,11 +141,13 @@ class AdminPanelProvider extends PanelProvider
     }
 
     /**
-     * @return string[]
+     * @return array
      */
     private function getPages(): array
     {
-        return [];
+        return [
+            Dashboard::class,
+        ];
     }
 
     /**
@@ -141,7 +156,7 @@ class AdminPanelProvider extends PanelProvider
     private function getColors(): array
     {
         return [
-            'primary' => Color::Amber,
+            'primary' => Color::Red,
         ];
     }
 }
