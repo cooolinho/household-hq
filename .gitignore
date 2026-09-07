@@ -1,6 +1,5 @@
 /.idea/
 /vendor/
-composer.lock
 .env
 
 # Ignore log files but keep directory structure via .gitkeep

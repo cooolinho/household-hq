@@ -25,6 +25,4 @@ yarn.lock
 
 public/*/filament
 
-composer.lock
-package.lock
 .yarn/
