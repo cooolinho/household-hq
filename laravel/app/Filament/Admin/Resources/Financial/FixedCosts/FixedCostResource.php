@@ -7,18 +7,14 @@ use App\Filament\Admin\Resources\Financial\FixedCosts\Pages\EditFixedCost;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Pages\ListFixedCosts;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Pages\ViewFixedCost;
 use App\Filament\Admin\Resources\Financial\FixedCosts\RelationManagers\DocumentsRelationManager;
-use App\Filament\Admin\Resources\Financial\FixedCosts\RelationManagers\RemindersRelationManager;
 use App\Filament\Admin\Resources\Financial\FixedCosts\RelationManagers\TransactionsRelationManager;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostForm;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Schemas\FixedCostInfolist;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Tables\FixedCostsTable;
-use App\Jobs\Scheduled\SendUpcomingFixedCostsReminderJob;
+use App\Filament\Admin\Resources\Reminders\RelationManagers\RemindersRelationManager;
 use App\Menu\NavigationGroup;
 use App\Models\Financial\FixedCost;
-use App\Settings\FixedCostSettings;
 use BackedEnum;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -116,34 +112,5 @@ class FixedCostResource extends Resource
     public static function getNavigationBadgeColor(): string|array|null
     {
         return 'primary';
-    }
-
-    /**
-     * @return Action
-     */
-    public static function getSendFixedCostsReminderNowAction(): Action
-    {
-        return Action::make('send_fixed_costs_reminder_now')
-            ->label('Erinnerungen jetzt prüfen')
-            ->icon(Heroicon::OutlinedEnvelope)
-            ->color('warning')
-            ->requiresConfirmation()
-            ->action(function (): void {
-                if (!app(FixedCostSettings::class)->reminders_enabled) {
-                    Notification::make()
-                        ->warning()
-                        ->title('Erinnerungen sind global deaktiviert.')
-                        ->send();
-
-                    return;
-                }
-
-                SendUpcomingFixedCostsReminderJob::dispatchAfterResponse();
-
-                Notification::make()
-                    ->success()
-                    ->title('Erinnerungsprüfung wurde gestartet.')
-                    ->send();
-            });
     }
 }

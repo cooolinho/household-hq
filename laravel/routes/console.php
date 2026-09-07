@@ -6,9 +6,10 @@ use App\Jobs\Scheduled\FixedCostJob;
 use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
 use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
 use App\Jobs\Scheduled\RefreshTransactionStatisticsJob;
-use App\Jobs\Scheduled\SendUpcomingFixedCostsReminderJob;
+use App\Jobs\Scheduled\SendRemindersJob;
 use App\Settings\FixedCostSettings;
 use App\Settings\ImapImportSettings;
+use App\Settings\ReminderSettings;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -28,15 +29,17 @@ if (!Schema::hasTable('settings')) {
 
 $fixedCostSettings = app(FixedCostSettings::class);
 $imapImportSettings = app(ImapImportSettings::class);
+$reminderSettings = app(ReminderSettings::class);
 
 if ($fixedCostSettings->update_due_dates_enabled) {
     Schedule::job(new FixedCostJob())
         ->dailyAt($fixedCostSettings->update_schedule_time);
 }
 
-if ($fixedCostSettings->reminders_enabled) {
-    Schedule::job(new SendUpcomingFixedCostsReminderJob())
-        ->dailyAt($fixedCostSettings->reminders_schedule_time);
+if ($reminderSettings->enabled) {
+    Schedule::job(new SendRemindersJob())
+        ->hourly()
+        ->withoutOverlapping();
 }
 
 if ($fixedCostSettings->matching_enabled) {

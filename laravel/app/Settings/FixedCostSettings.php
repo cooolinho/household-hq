@@ -9,9 +9,6 @@ class FixedCostSettings extends Settings
     public bool $update_due_dates_enabled = true;
     public string $update_schedule_time;
 
-    public bool $reminders_enabled;
-    public string $reminders_schedule_time;
-
     public int $matching_threshold;
     public string $matching_schedule_time;
     public bool $matching_enabled;

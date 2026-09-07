@@ -3,6 +3,7 @@
 namespace App\Models\EnergyTracker;
 
 use App\Models\ContactPerson;
+use App\Models\Concerns\HasReminders;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use Carbon\CarbonImmutable;
@@ -34,6 +35,8 @@ use Illuminate\Support\Facades\DB;
  */
 class MeasurementDeviceContract extends Model
 {
+    use HasReminders;
+
     const string TABLE = 'energy_tracker_measurement_device_contracts';
 
     // columns
@@ -73,6 +76,8 @@ class MeasurementDeviceContract extends Model
     const string has_many_prices = 'prices';
 
     const string has_many_documents = 'documents';
+
+    const string has_many_reminders = 'reminders';
 
     const string belongs_to_many_contacts = 'contacts';
 

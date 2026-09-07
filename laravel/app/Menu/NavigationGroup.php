@@ -17,6 +17,7 @@ enum NavigationGroup implements HasIcon, HasLabel, Collapsible
     case ENERGY_TRACKER;
     case INVENTORY;
     case FEATURES;
+    case REMINDERS;
 
     public function getLabel(): string
     {
@@ -27,6 +28,7 @@ enum NavigationGroup implements HasIcon, HasLabel, Collapsible
             self::ENERGY_TRACKER => __('Energy Tracker'),
             self::INVENTORY => __('Inventar'),
             self::FEATURES => __('Features'),
+            self::REMINDERS => __('Erinnerungen'),
         };
     }
 
@@ -39,6 +41,7 @@ enum NavigationGroup implements HasIcon, HasLabel, Collapsible
             self::ENERGY_TRACKER => Heroicon::OutlinedBolt,
             self::INVENTORY => Heroicon::OutlinedArchiveBox,
             self::FEATURES => Heroicon::OutlinedPuzzlePiece,
+            self::REMINDERS => Heroicon::OutlinedBell,
         };
     }
 

@@ -11,6 +11,7 @@ use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleForm;
 use App\Filament\Admin\Resources\Inventory\Articles\Schemas\ArticleInfolist;
 use App\Filament\Admin\Resources\Inventory\Articles\Tables\ArticlesTable;
 use App\Filament\Admin\Resources\Inventory\Support\InventoryNavigationVisibility;
+use App\Filament\Admin\Resources\Reminders\RelationManagers\RemindersRelationManager;
 use App\Menu\NavigationGroup;
 use App\Models\Inventory\Article;
 use App\Models\Inventory\Collection;
@@ -91,6 +92,7 @@ class ArticleResource extends Resource
     {
         return [
             DocumentsRelationManager::class,
+            RemindersRelationManager::class,
         ];
     }
 

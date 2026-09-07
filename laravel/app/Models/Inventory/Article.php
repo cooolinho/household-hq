@@ -4,6 +4,7 @@ namespace App\Models\Inventory;
 
 use App\Models\CommentableInterface;
 use App\Models\Concerns\HasComments;
+use App\Models\Concerns\HasReminders;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use Illuminate\Database\Eloquent\Model;
@@ -43,6 +44,7 @@ class Article extends Model implements CommentableInterface
 {
     use HasTags;
     use HasComments;
+    use HasReminders;
 
     const string TABLE = 'inventory_articles';
 
@@ -76,6 +78,7 @@ class Article extends Model implements CommentableInterface
     const string belongs_to_location = 'location';
     const string has_many_preview_images = 'previewImages';
     const string has_many_documents = 'documents';
+    const string has_many_reminders = 'reminders';
     const string morph_to_many_tags = 'tags';
 
     protected $table = self::TABLE;
@@ -89,9 +92,30 @@ class Article extends Model implements CommentableInterface
         self::notes,
         self::insured,
         self::archived,
+        self::purchase_price,
+        self::purchase_place,
+        self::purchase_date,
+        self::warranty_lifetime,
+        self::warranty_until,
+        self::warranty_details,
+        self::sale_price,
+        self::sold_to,
+        self::sold_at,
         self::parent_id,
         self::location_id,
     ];
+
+    protected function casts(): array
+    {
+        return [
+            self::purchase_price => 'decimal:2',
+            self::purchase_date => 'date',
+            self::warranty_lifetime => 'integer',
+            self::warranty_until => 'date',
+            self::sale_price => 'decimal:2',
+            self::sold_at => 'date',
+        ];
+    }
 
     public function parent(): BelongsTo
     {

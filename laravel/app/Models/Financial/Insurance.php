@@ -4,6 +4,7 @@ namespace App\Models\Financial;
 
 use App\Models\CommentableInterface;
 use App\Models\Concerns\HasComments;
+use App\Models\Concerns\HasReminders;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use App\Models\User;
@@ -48,6 +49,7 @@ class Insurance extends Model implements CommentableInterface
 {
     use HasComments;
     use HasTags;
+    use HasReminders;
 
     const string TABLE = 'financial_insurances';
 
@@ -85,6 +87,7 @@ class Insurance extends Model implements CommentableInterface
     // relation method names
     const string has_many_documents = 'documents';
     const string has_many_fixed_costs = 'fixedCosts';
+    const string has_many_reminders = 'reminders';
     const string belongs_to_user = 'user';
     const string belongs_to_category = 'category';
     const string morph_to_many_tags = 'tags';

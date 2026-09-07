@@ -4,7 +4,6 @@ namespace App\Filament\Admin\Resources\Financial\FixedCosts\Pages;
 
 use App\Filament\Admin\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Filament\Admin\Resources\Financial\FixedCosts\Widgets\FixedCostsDashboardWidget;
-use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\EmbeddedTable;
@@ -21,10 +20,6 @@ class ListFixedCosts extends ListRecords
     {
         return [
             CreateAction::make(),
-            ActionGroup::make([
-                FixedCostResource::getSendFixedCostsReminderNowAction(),
-            ])
-            ->button(),
         ];
     }
 

@@ -5,8 +5,9 @@
     use App\Models\Enums\FixedCostEndsModeEnum;
     use App\Models\Enums\FixedCostIntervalEnum;
     use App\Models\Enums\FixedCostIntervalUnitEnum;
-    use App\Models\Financial\FixedCostReminder;
     use App\Models\Financial\Transaction;
+    use App\Models\Reminder;
+    use App\Models\ReminderSchedule;
 
     /** @var \App\Models\Financial\FixedCost $fixedCost */
     $fixedCost = $this->getRecord();
@@ -31,19 +32,21 @@
         ->orderByDesc(Transaction::date)
         ->get();
     $reminders = $fixedCost->reminders()
-        ->orderBy(FixedCostReminder::days_before)
+        ->with(Reminder::has_many_schedules)
+        ->orderBy(Reminder::name)
         ->get();
 
-    $reminderRows = $reminders->map(function (FixedCostReminder $reminder) use ($fixedCost): array {
-        $reminderDate = FixedCostReminder::calculateReminderDate($fixedCost->next_booking_date, (int) $reminder->{FixedCostReminder::days_before});
-
-        return [
-            'lead_time_label' => FixedCostReminder::leadTimeLabel((int) $reminder->{FixedCostReminder::days_before}),
-            'channels_label' => FixedCostReminder::channelsLabel((bool) $reminder->{FixedCostReminder::send_mail}, (bool) $reminder->{FixedCostReminder::send_notification}),
-            'enabled' => (bool) $reminder->{FixedCostReminder::enabled},
-            'next_reminder_date' => $reminderDate?->format('d.m.Y') ?? '-',
-            'last_sent_booking_date' => $reminder->{FixedCostReminder::last_sent_booking_date}?->format('d.m.Y') ?? '-',
-        ];
+    $reminderRows = $reminders->flatMap(function (Reminder $reminder): \Illuminate\Support\Collection {
+        return $reminder->{Reminder::has_many_schedules}->map(function (ReminderSchedule $schedule) use ($reminder): array {
+            return [
+                'name' => $reminder->{Reminder::name},
+                'schedule_label' => $schedule->label(),
+                'channels_label' => Reminder::channelsLabel((bool) $reminder->{Reminder::send_mail}, (bool) $reminder->{Reminder::send_notification}),
+                'enabled' => (bool) $reminder->{Reminder::enabled} && (bool) $schedule->{ReminderSchedule::enabled},
+                'next_due_at' => $schedule->{ReminderSchedule::next_due_at}?->format('d.m.Y H:i') ?? '-',
+                'last_sent_at' => $schedule->{ReminderSchedule::last_sent_at}?->format('d.m.Y H:i') ?? '-',
+            ];
+        });
     });
     $reminderCount = $reminderRows->count();
     $activeReminderCount = $reminderRows->where('enabled', true)->count();
@@ -215,17 +218,20 @@
                                     {{ $reminder['enabled'] ? 'Aktiv' : 'Inaktiv' }}
                                 </span>
                                 <span class="inline-flex rounded-full bg-primary-100 px-2 py-1 text-xs font-medium text-primary-800 dark:bg-primary-500/20 dark:text-primary-300">
-                                    {{ $reminder['lead_time_label'] }}
+                                    {{ $reminder['schedule_label'] }}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-700 dark:text-gray-300">
-                                <strong>Nächste Erinnerung:</strong> {{ $reminder['next_reminder_date'] }}
+                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {{ $reminder['name'] }}
+                            </p>
+                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Nächste Erinnerung:</strong> {{ $reminder['next_due_at'] }}
                             </p>
                             <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
                                 <strong>Kanäle:</strong> {{ $reminder['channels_label'] }}
                             </p>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Zuletzt gesendet für Buchung am {{ $reminder['last_sent_booking_date'] }}
+                                Zuletzt gesendet am {{ $reminder['last_sent_at'] }}
                             </p>
                         </article>
                     @endforeach

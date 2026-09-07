@@ -14,6 +14,7 @@ use App\Services\Dashboard\Widgets\Templates\FeaturesDashboardWidgetTemplates;
 use App\Services\Dashboard\Widgets\Templates\FixedCostsDashboardWidgetTemplates;
 use App\Services\Dashboard\Widgets\Templates\InsurancesDashboardWidgetTemplates;
 use App\Services\Dashboard\Widgets\Templates\InventoryDashboardWidgetTemplates;
+use App\Services\Dashboard\Widgets\Templates\RemindersDashboardWidgetTemplates;
 use Filament\Schemas\Components\Component;
 use Filament\Widgets\Widget;
 use InvalidArgumentException;
@@ -30,6 +31,7 @@ final class CustomDashboardWidgetTemplateRegistry
         'ENERGY_TRACKER' => EnergyTrackerDashboardWidgetTemplates::class,
         'INVENTORY' => InventoryDashboardWidgetTemplates::class,
         'FEATURES' => FeaturesDashboardWidgetTemplates::class,
+        'REMINDERS' => RemindersDashboardWidgetTemplates::class,
     ];
 
     /**

@@ -12,6 +12,7 @@ use App\Filament\Admin\Resources\EnergyTracker\MeasurementDeviceContracts\Relati
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDeviceContracts\Schemas\MeasurementDeviceContractForm;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDeviceContracts\Schemas\MeasurementDeviceContractInfolist;
 use App\Filament\Admin\Resources\EnergyTracker\MeasurementDeviceContracts\Tables\MeasurementDeviceContractsTable;
+use App\Filament\Admin\Resources\Reminders\RelationManagers\RemindersRelationManager;
 use App\Menu\NavigationGroup;
 use App\Models\EnergyTracker\MeasurementDevice;
 use App\Models\EnergyTracker\MeasurementDeviceContract;
@@ -94,6 +95,7 @@ class MeasurementDeviceContractResource extends Resource
             PricesRelationManager::class,
             DocumentsRelationManager::class,
             ContactsRelationManager::class,
+            RemindersRelationManager::class,
         ];
     }
 

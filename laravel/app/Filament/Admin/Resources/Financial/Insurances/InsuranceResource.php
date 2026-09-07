@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Financial\Insurances\RelationManagers\Documents
 use App\Filament\Admin\Resources\Financial\Insurances\Schemas\InsuranceForm;
 use App\Filament\Admin\Resources\Financial\Insurances\Schemas\InsuranceInfolist;
 use App\Filament\Admin\Resources\Financial\Insurances\Tables\InsurancesTable;
+use App\Filament\Admin\Resources\Reminders\RelationManagers\RemindersRelationManager;
 use App\Menu\NavigationGroup;
 use App\Models\Financial\Insurance;
 use BackedEnum;
@@ -58,6 +59,7 @@ class InsuranceResource extends Resource
     {
         return [
             DocumentsRelationManager::class,
+            RemindersRelationManager::class,
         ];
     }
 

@@ -4,6 +4,7 @@ namespace App\Models\Financial;
 
 use App\Models\CommentableInterface;
 use App\Models\Concerns\HasComments;
+use App\Models\Concerns\HasReminders;
 use App\Models\Contracts\Documentables;
 use App\Models\Document;
 use App\Models\Enums\FixedCostEndsModeEnum;
@@ -50,12 +51,13 @@ use Spatie\Tags\HasTags;
  * @property Collection|Transaction[] $transactions
  * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
  * @property Collection|FixedCostMatchingRule[] $matchingRules
- * @property Collection|FixedCostReminder[] $reminders
+ * @property Collection|\App\Models\Reminder[] $reminders
  */
 class FixedCost extends Model implements CommentableInterface
 {
     use HasComments;
     use HasTags;
+    use HasReminders;
 
     const string TABLE = 'financial_fixed_costs';
 
@@ -191,10 +193,5 @@ class FixedCost extends Model implements CommentableInterface
     public function matchingRules(): HasMany
     {
         return $this->hasMany(FixedCostMatchingRule::class, FixedCostMatchingRule::fixed_cost_id);
-    }
-
-    public function reminders(): HasMany
-    {
-        return $this->hasMany(FixedCostReminder::class, FixedCostReminder::fixed_cost_id);
     }
 }

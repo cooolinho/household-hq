@@ -6,7 +6,7 @@ use App\Jobs\Scheduled\FetchImapDocumentsJob;
 use App\Jobs\Scheduled\FixedCostJob;
 use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
 use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
-use App\Jobs\Scheduled\SendUpcomingFixedCostsReminderJob;
+use App\Jobs\Scheduled\SendRemindersJob;
 use App\Services\ScheduledJobRunner;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -22,7 +22,7 @@ class ScheduledJobRunnerTest extends TestCase
         self::assertContains(FixedCostJob::class, $classes);
         self::assertContains(FixedCostTransactionMatchingJob::class, $classes);
         self::assertContains(RecurringTransactionSuggestionDetectionJob::class, $classes);
-        self::assertContains(SendUpcomingFixedCostsReminderJob::class, $classes);
+        self::assertContains(SendRemindersJob::class, $classes);
     }
 
     public function test_it_can_run_a_job_by_class_name(): void

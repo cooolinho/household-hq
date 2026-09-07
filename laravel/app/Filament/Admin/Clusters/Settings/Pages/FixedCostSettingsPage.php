@@ -48,14 +48,6 @@ class FixedCostSettingsPage extends Page implements HasForms
                             ->helperText('Tägliche Uhrzeit für den Job, der Fixkosten aktualisiert.')
                             ->required()
                             ->rule('date_format:H:i'),
-                        Toggle::make('reminders_enabled')
-                            ->label('Reminder aktiviert')
-                            ->helperText('Schaltet den globalen Erinnerungsversand für Fixkosten ein oder aus.'),
-                        TextInput::make('reminders_schedule_time')
-                            ->label('Reminder Job (HH:MM)')
-                            ->helperText('Tägliche Uhrzeit, zu der Erinnerungen geprüft und versendet werden.')
-                            ->required()
-                            ->rule('date_format:H:i'),
                         Toggle::make('matching_enabled')
                             ->label('Matching aktiviert')
                             ->helperText('Aktiviert die automatische Zuordnung von Transaktionen zu Fixkosten.'),
@@ -171,8 +163,6 @@ class FixedCostSettingsPage extends Page implements HasForms
 
         $settings->update_due_dates_enabled = (string)$state['update_due_dates_enabled'];
         $settings->update_schedule_time = (string)$state['update_schedule_time'];
-        $settings->reminders_enabled = (bool)$state['reminders_enabled'];
-        $settings->reminders_schedule_time = (string)$state['reminders_schedule_time'];
         $settings->matching_threshold = (int)$state['matching_threshold'];
         $settings->matching_schedule_time = (string)$state['matching_schedule_time'];
         $settings->matching_enabled = (bool)$state['matching_enabled'];

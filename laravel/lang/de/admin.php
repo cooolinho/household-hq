@@ -229,5 +229,12 @@ return [
             'model_label' => 'Tag',
             'plural_model_label' => 'Tags',
         ],
+
+        // Reminder / Erinnerung
+        'reminder' => [
+            'navigation_label' => 'Erinnerungen',
+            'model_label' => 'Erinnerung',
+            'plural_model_label' => 'Erinnerungen',
+        ],
     ],
 ];
