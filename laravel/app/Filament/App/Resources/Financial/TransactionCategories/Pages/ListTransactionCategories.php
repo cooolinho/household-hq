@@ -4,6 +4,7 @@ namespace App\Filament\App\Resources\Financial\TransactionCategories\Pages;
 
 use App\Filament\App\Resources\Financial\TransactionCategories\Actions\CreateSubcategoryAction;
 use App\Filament\App\Resources\Financial\TransactionCategories\Actions\MoveCategoryAction;
+use App\Filament\App\Resources\Financial\TransactionCategories\Actions\SearchCategoriesAction;
 use App\Filament\App\Resources\Financial\TransactionCategories\Actions\ViewCategoryTransactionsAction;
 use App\Filament\App\Resources\Financial\TransactionCategories\Support\TransactionCategoryBreadcrumbs;
 use App\Filament\App\Resources\Financial\TransactionCategories\TransactionCategoryResource;
@@ -39,6 +40,7 @@ class ListTransactionCategories extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            SearchCategoriesAction::make(),
             Action::make('categorizeTransactions')
                 ->label('Transaktionen kategorisieren')
                 ->icon(Heroicon::OutlinedTag)
@@ -116,13 +118,18 @@ class ListTransactionCategories extends ListRecords
                 TransactionCategory::parent_id,
                 $this->getCurrentParentId()
             ))
-            ->recordUrl(fn(TransactionCategory $record): string => static::getResource()::getUrl('index', [
-                'filters' => [
-                    TransactionCategory::parent_id => [
-                        'value' => $record->{TransactionCategory::id},
-                    ],
+            ->recordUrl(fn(TransactionCategory $record): string => self::getRecordFilterIndexUrl($record));
+    }
+
+    public static function getRecordFilterIndexUrl(TransactionCategory $record)
+    {
+        return static::getResource()::getUrl('index', [
+            'filters' => [
+                TransactionCategory::parent_id => [
+                    'value' => $record->{TransactionCategory::id},
                 ],
-            ]));
+            ],
+        ]);
     }
 
     public function getBreadcrumbs(): array

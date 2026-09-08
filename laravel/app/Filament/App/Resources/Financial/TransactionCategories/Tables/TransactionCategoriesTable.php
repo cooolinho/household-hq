@@ -24,7 +24,6 @@ class TransactionCategoriesTable
             ->columns([
                 TextColumn::make(TransactionCategory::name)
                     ->label('Name')
-                    ->searchable()
                     ->sortable(),
 
                 TextColumn::make('transactions_count')
@@ -38,7 +37,6 @@ class TransactionCategoriesTable
                     ->label('Hauptkategorie')
                     ->badge()
                     ->placeholder('—')
-                    ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make(TransactionCategory::has_many_children . '_count')
