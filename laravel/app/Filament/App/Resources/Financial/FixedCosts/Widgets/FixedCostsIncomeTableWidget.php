@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class FixedCostsIncomeTableWidget extends TableWidget
 {
-    public int|string|array $columnSpan = 2;
+    public int|string|array $columnSpan = 1;
 
     public function table(Table $table): Table
     {

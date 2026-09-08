@@ -56,6 +56,7 @@ class DashboardSettingsPage extends Page implements HasForms, HasTable
             DashboardWidgetPreference::show_upcoming_transactions_table,
             DashboardWidgetPreference::show_portfolio_overview,
             DashboardWidgetPreference::balance_mode,
+            DashboardWidgetPreference::include_budgets_in_balance,
             DashboardWidgetPreference::currency,
         ]));
     }
@@ -105,6 +106,11 @@ class DashboardSettingsPage extends Page implements HasForms, HasTable
                             ->default('EUR')
                             ->maxLength(8)
                             ->required(),
+                        Toggle::make(DashboardWidgetPreference::include_budgets_in_balance)
+                            ->label('Budgets in die Fixkosten-Bilanz einrechnen')
+                            ->helperText('Alle aktiven Budgets mit der Option "In Fixkosten-Bilanz einrechnen" werden als eine zusammengefasste Ausgabe gezählt.')
+                            ->default(true)
+                            ->columnSpanFull(),
                     ]),
             ])
             ->statePath('data');
@@ -194,6 +200,7 @@ class DashboardSettingsPage extends Page implements HasForms, HasTable
             DashboardWidgetPreference::show_upcoming_transactions_table => (bool)($state[DashboardWidgetPreference::show_upcoming_transactions_table] ?? true),
             DashboardWidgetPreference::show_portfolio_overview => (bool)($state[DashboardWidgetPreference::show_portfolio_overview] ?? true),
             DashboardWidgetPreference::balance_mode => $balanceMode,
+            DashboardWidgetPreference::include_budgets_in_balance => (bool)($state[DashboardWidgetPreference::include_budgets_in_balance] ?? true),
             DashboardWidgetPreference::currency => $currency !== '' ? $currency : 'EUR',
         ]);
 

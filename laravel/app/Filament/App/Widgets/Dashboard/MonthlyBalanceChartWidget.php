@@ -39,15 +39,17 @@ class MonthlyBalanceChartWidget extends ChartWidget
             ];
         }
 
+        $includeBudgets = $this->shouldIncludeBudgetsInBalance();
+
         $trend = app(DashboardMetricsService::class)
-            ->getMonthlyBalanceTrend($userId, $this->getDashboardCurrency(), 6);
+            ->getMonthlyBalanceTrend($userId, $this->getDashboardCurrency(), 6, null, $includeBudgets);
 
         $mode = $this->getDashboardBalanceMode();
         $datasets = [];
 
         if (in_array($mode, [DashboardWidgetPreference::BALANCE_MODE_BOTH, DashboardWidgetPreference::BALANCE_MODE_FORECAST], true)) {
             $datasets[] = [
-                'label' => 'Prognose',
+                'label' => $includeBudgets ? 'Prognose (inkl. Budgets)' : 'Prognose',
                 'data' => $trend['forecastBalances'],
                 'borderColor' => '#f59e0b',
                 'backgroundColor' => 'rgba(245, 158, 11, 0.15)',

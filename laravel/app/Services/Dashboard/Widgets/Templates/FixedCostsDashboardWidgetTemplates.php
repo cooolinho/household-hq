@@ -8,6 +8,7 @@ use App\Services\Dashboard\Widgets\CustomDashboardWidgetTemplate;
 use App\Services\DashboardMetricsService;
 use Carbon\CarbonImmutable;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -23,19 +24,26 @@ final class FixedCostsDashboardWidgetTemplates
                 key: 'fixed-cost-monthly-balance',
                 label: 'Monatliche Fixkostenbilanz',
                 type: CustomDashboardWidgetTypeEnum::STAT,
-                configurationKeys: ['currency'],
+                configurationKeys: ['currency', 'includeBudgets'],
                 configurationSchema: fn(): array => [
                     TextInput::make('currency')
                         ->label('Währung')
                         ->default('EUR')
                         ->maxLength(8)
                         ->required(),
+                    Toggle::make('includeBudgets')
+                        ->label('Budgets einrechnen')
+                        ->default(true),
                 ],
-                defaultConfiguration: fn(): array => ['currency' => 'EUR'],
+                defaultConfiguration: fn(): array => ['currency' => 'EUR', 'includeBudgets' => true],
                 dataResolver: function (int $userId, array $configuration): array {
+                    $includeBudgets = (bool)($configuration['includeBudgets'] ?? true);
+
                     $metrics = app(DashboardMetricsService::class)->getMonthlyBalanceData(
                         $userId,
                         (string)$configuration['currency'],
+                        null,
+                        $includeBudgets,
                     );
                     $balance = $metrics['forecast']['balance'];
                     $currency = $metrics['currency'];
@@ -43,12 +51,13 @@ final class FixedCostsDashboardWidgetTemplates
                     return [[
                         'label' => 'Monatliche Bilanz',
                         'value' => self::formatMoney($balance, $currency, true),
-                        'description' => 'Gewichtete aktive Fixkosten',
+                        'description' => 'Gewichtete aktive Fixkosten' . ($includeBudgets ? ' und Budgets' : ''),
                         'color' => $balance < 0 ? 'danger' : 'success',
                     ]];
                 },
                 configurationNormalizer: fn(array $configuration): array => [
                     'currency' => strtoupper(trim((string)$configuration['currency'])) ?: 'EUR',
+                    'includeBudgets' => (bool)($configuration['includeBudgets'] ?? true),
                 ],
             ),
             new CustomDashboardWidgetTemplate(

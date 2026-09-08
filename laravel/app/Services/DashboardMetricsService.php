@@ -2,33 +2,45 @@
 
 namespace App\Services;
 
+use App\Models\DashboardWidgetPreference;
 use App\Models\Document;
 use App\Models\EnergyTracker\MeasurementDevice;
-use App\Models\Enums\FixedCostIntervalEnum;
-use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\BankAccount;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Insurance;
 use App\Models\Financial\Transaction;
 use App\Models\ImportedEmail;
+use App\Services\FixedCost\FixedCostBalanceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 
 class DashboardMetricsService
 {
+    public function __construct(
+        private readonly FixedCostBalanceService $balanceService,
+    ) {
+    }
+
     /**
-     * @return array{currency: string, forecast: array{income: float, expenses: float, balance: float}, actual: array{income: float, expenses: float, balance: float}}
+     * @return array{currency: string, forecast: array{income: float, expenses: float, balance: float, fixedCostExpenses: float, budgetExpenses: float, budgetsIncluded: bool}, actual: array{income: float, expenses: float, balance: float}}
      */
-    public function getMonthlyBalanceData(int $userId, string $currency = 'EUR', ?CarbonImmutable $referenceDate = null): array
-    {
+    public function getMonthlyBalanceData(
+        int              $userId,
+        string           $currency = 'EUR',
+        ?CarbonImmutable $referenceDate = null,
+        ?bool            $includeBudgets = null,
+    ): array {
         $date = $referenceDate ?? CarbonImmutable::today();
         $normalizedCurrency = $this->normalizeCurrency($currency);
 
         return [
             'currency' => $normalizedCurrency,
-            'forecast' => $this->getForecastMonthlySummary($userId),
+            'forecast' => $this->getForecastMonthlySummary(
+                $userId,
+                $normalizedCurrency,
+                $this->resolveIncludeBudgets($userId, $includeBudgets),
+            ),
             'actual' => $this->getActualMonthlySummary($userId, $normalizedCurrency, $date),
         ];
     }
@@ -44,81 +56,27 @@ class DashboardMetricsService
         return $normalized;
     }
 
-    /**
-     * @return array{income: float, expenses: float, balance: float}
-     */
-    private function getForecastMonthlySummary(int $userId): array
+    private function resolveIncludeBudgets(int $userId, ?bool $includeBudgets): bool
     {
-        $fixedCosts = FixedCost::query()
-            ->where(FixedCost::user_id, $userId)
-            ->whereNotNull(FixedCost::next_booking_date)
-            ->get([
-                FixedCost::amount,
-                FixedCost::interval,
-                FixedCost::custom_interval_value,
-                FixedCost::custom_interval_unit,
-            ]);
+        return $includeBudgets ?? (bool)DashboardWidgetPreference::forUser($userId)
+            ->{DashboardWidgetPreference::include_budgets_in_balance};
+    }
 
-        $income = 0.0;
-        $expenses = 0.0;
-
-        foreach ($fixedCosts as $fixedCost) {
-            $amount = (float)$fixedCost->amount;
-            $weightedAmount = abs($amount) * $this->monthlyFactor($fixedCost);
-
-            if ($amount > 0) {
-                $income += $weightedAmount;
-
-                continue;
-            }
-
-            if ($amount < 0) {
-                $expenses += $weightedAmount;
-            }
-        }
+    /**
+     * @return array{income: float, expenses: float, balance: float, fixedCostExpenses: float, budgetExpenses: float, budgetsIncluded: bool}
+     */
+    private function getForecastMonthlySummary(int $userId, string $currency, bool $includeBudgets): array
+    {
+        $balance = $this->balanceService->balanceForUser($userId, $includeBudgets, $currency);
 
         return [
-            'income' => $income,
-            'expenses' => $expenses,
-            'balance' => $income - $expenses,
+            'income' => $balance->monthlyIncome,
+            'expenses' => $balance->monthlyExpenses(),
+            'balance' => $balance->monthlyBalance(),
+            'fixedCostExpenses' => $balance->monthlyFixedCostExpenses,
+            'budgetExpenses' => $balance->monthlyBudgetExpenses,
+            'budgetsIncluded' => $balance->budgetsIncluded,
         ];
-    }
-
-    private function monthlyFactor(FixedCost $fixedCost): float
-    {
-        $interval = (string)$fixedCost->{FixedCost::interval};
-
-        if ($interval === FixedCostIntervalEnum::CUSTOM->name) {
-            return $this->customMonthlyFactor($fixedCost);
-        }
-
-        return match ($interval) {
-            'WEEKLY' => 52 / 12,
-            'TWO_WEEKS' => 26 / 12,
-            'MONTHLY' => 1.0,
-            'TWO_MONTHS' => 6 / 12,
-            'QUARTERLY' => 4 / 12,
-            'HALF_YEARLY' => 2 / 12,
-            'YEARLY' => 1 / 12,
-            default => 1.0,
-        };
-    }
-
-    private function customMonthlyFactor(FixedCost $fixedCost): float
-    {
-        $value = $fixedCost->{FixedCost::custom_interval_value};
-        $unit = FixedCostIntervalUnitEnum::tryFrom((string)$fixedCost->{FixedCost::custom_interval_unit});
-
-        if (!is_int($value) || $value < 1 || $unit === null) {
-            throw new InvalidArgumentException('Custom-Fixkostenintervalle benötigen einen positiven Wert und eine gültige Einheit.');
-        }
-
-        return match ($unit) {
-            FixedCostIntervalUnitEnum::DAY => 365.25 / 12 / $value,
-            FixedCostIntervalUnitEnum::WEEK => 52 / 12 / $value,
-            FixedCostIntervalUnitEnum::MONTH => 1 / $value,
-            FixedCostIntervalUnitEnum::YEAR => 1 / (12 * $value),
-        };
     }
 
     /**
@@ -163,15 +121,24 @@ class DashboardMetricsService
     /**
      * @return array{labels: array<int, string>, forecastBalances: array<int, float>, actualBalances: array<int, float>, currency: string}
      */
-    public function getMonthlyBalanceTrend(int $userId, string $currency = 'EUR', int $months = 6, ?CarbonImmutable $referenceDate = null): array
-    {
+    public function getMonthlyBalanceTrend(
+        int              $userId,
+        string           $currency = 'EUR',
+        int              $months = 6,
+        ?CarbonImmutable $referenceDate = null,
+        ?bool            $includeBudgets = null,
+    ): array {
         $months = max(1, $months);
         $date = $referenceDate ?? CarbonImmutable::today();
         $normalizedCurrency = $this->normalizeCurrency($currency);
         $startMonth = $date->startOfMonth()->subMonths($months - 1);
         $endMonth = $date->endOfMonth();
 
-        $forecastSummary = $this->getForecastMonthlySummary($userId);
+        $forecastSummary = $this->getForecastMonthlySummary(
+            $userId,
+            $normalizedCurrency,
+            $this->resolveIncludeBudgets($userId, $includeBudgets),
+        );
 
         $transactions = $this->applyCurrencyFilter(
             Transaction::query()

@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property float $amount
  * @property string $currency
  * @property BudgetPeriodEnum $period
+ * @property bool $include_in_balance
  * @property bool $include_subcategories
  * @property int $warning_threshold
  * @property int $critical_threshold
@@ -62,6 +63,8 @@ class Budget extends Model
     const string currency = 'currency';
 
     const string period = 'period';
+
+    const string include_in_balance = 'include_in_balance';
 
     const string include_subcategories = 'include_subcategories';
 
@@ -106,6 +109,7 @@ class Budget extends Model
         self::icon => BudgetIconEnum::SHOPPING_CART->name,
         self::currency => self::DEFAULT_CURRENCY,
         self::period => BudgetPeriodEnum::MONTHLY->name,
+        self::include_in_balance => true,
         self::include_subcategories => true,
         self::warning_threshold => self::DEFAULT_WARNING_THRESHOLD,
         self::critical_threshold => self::DEFAULT_CRITICAL_THRESHOLD,
@@ -123,6 +127,7 @@ class Budget extends Model
         self::amount,
         self::currency,
         self::period,
+        self::include_in_balance,
         self::include_subcategories,
         self::warning_threshold,
         self::critical_threshold,
@@ -150,6 +155,19 @@ class Budget extends Model
             ->where(self::active, true)
             ->orderBy(self::sort)
             ->orderBy(self::id);
+    }
+
+    /**
+     * Aktive Budgets, die als eine zusammengefasste Ausgabe in die Fixkosten-Bilanz einfließen.
+     *
+     * @param Builder<self> $query
+     * @return Builder<self>
+     */
+    public function scopeIncludedInBalanceForUser(Builder $query, int $userId): Builder
+    {
+        return $query
+            ->activeForUser($userId)
+            ->where(self::include_in_balance, true);
     }
 
     /**
@@ -193,6 +211,7 @@ class Budget extends Model
             self::icon => BudgetIconEnum::class,
             self::amount => 'float',
             self::period => BudgetPeriodEnum::class,
+            self::include_in_balance => 'boolean',
             self::include_subcategories => 'boolean',
             self::warning_threshold => 'integer',
             self::critical_threshold => 'integer',

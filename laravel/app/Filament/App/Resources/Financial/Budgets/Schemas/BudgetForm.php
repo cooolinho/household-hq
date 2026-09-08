@@ -68,6 +68,11 @@ class BudgetForm
                             ->options(BudgetPeriodEnum::options())
                             ->default(BudgetPeriodEnum::default())
                             ->required(),
+                        Toggle::make(Budget::include_in_balance)
+                            ->label('In Fixkosten-Bilanz einrechnen')
+                            ->helperText('Alle aktiven Budgets mit dieser Option werden als eine zusammengefasste Ausgabe in der Fixkosten-Bilanz berücksichtigt. Quartals- und Jahresbudgets werden dafür auf einen Monatswert umgerechnet.')
+                            ->default(true)
+                            ->columnSpanFull(),
                     ]),
 
                 Section::make('Transaktionskategorien')

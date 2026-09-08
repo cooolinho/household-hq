@@ -7,6 +7,7 @@ use App\Filament\App\Resources\Financial\Budgets\Pages\EditBudget;
 use App\Filament\App\Resources\Financial\Budgets\Pages\ListBudgets;
 use App\Filament\App\Resources\Financial\Budgets\Pages\ViewBudget;
 use App\Filament\App\Resources\Financial\Budgets\RelationManagers\TransactionsRelationManager;
+use App\Filament\App\Resources\Financial\FixedCosts\Widgets\FixedCostBalanceWidget;
 use App\Models\Enums\BankAccountTypeEnum;
 use App\Models\Enums\BudgetIconEnum;
 use App\Models\Enums\BudgetPeriodEnum;
@@ -62,6 +63,33 @@ class BudgetResourceTest extends TestCase
         self::assertSame(BudgetIconEnum::SHOPPING_CART, $budget->icon);
         self::assertSame(BudgetPeriodEnum::MONTHLY, $budget->period);
         self::assertSame([$this->category->id], $budget->transactionCategories->pluck(TransactionCategory::id)->all());
+    }
+
+    public function test_a_budget_can_be_flagged_for_the_fixed_cost_balance(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(CreateBudget::class)
+            ->fillForm([
+                Budget::name => 'Lebensmittel',
+                Budget::amount => 300,
+                Budget::period => BudgetPeriodEnum::MONTHLY->name,
+                Budget::include_in_balance => true,
+                Budget::belongs_to_many_transaction_categories => [$this->category->id],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $budget = Budget::query()->firstOrFail();
+
+        self::assertTrue($budget->include_in_balance);
+    }
+
+    public function test_the_budget_overview_renders_the_balance_header_widget(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ListBudgets::class)
+            ->assertOk()
+            ->assertSeeLivewire(FixedCostBalanceWidget::class);
     }
 
     public function test_user_can_edit_a_budget(): void

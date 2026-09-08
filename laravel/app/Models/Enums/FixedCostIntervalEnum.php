@@ -34,4 +34,21 @@ enum FixedCostIntervalEnum
             self::CUSTOM => 'Benutzerdefiniert',
         };
     }
+
+    /**
+     * Buchungen pro Jahr. null für CUSTOM, weil dafür die Werte am Datensatz nötig sind.
+     */
+    public function occurrencesPerYear(): ?float
+    {
+        return match ($this) {
+            self::WEEKLY => 52.0,
+            self::TWO_WEEKS => 26.0,
+            self::MONTHLY => 12.0,
+            self::TWO_MONTHS => 6.0,
+            self::QUARTERLY => 4.0,
+            self::HALF_YEARLY => 2.0,
+            self::YEARLY => 1.0,
+            self::CUSTOM => null,
+        };
+    }
 }

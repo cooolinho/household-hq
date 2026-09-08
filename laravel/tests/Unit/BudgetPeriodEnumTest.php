@@ -55,4 +55,18 @@ class BudgetPeriodEnumTest extends TestCase
             'YEARLY' => 'Jährlich',
         ], BudgetPeriodEnum::options());
     }
+
+    public function test_occurrences_per_year_matches_the_calendar_period(): void
+    {
+        self::assertSame(12.0, BudgetPeriodEnum::MONTHLY->occurrencesPerYear());
+        self::assertSame(4.0, BudgetPeriodEnum::QUARTERLY->occurrencesPerYear());
+        self::assertSame(1.0, BudgetPeriodEnum::YEARLY->occurrencesPerYear());
+    }
+
+    public function test_monthly_factor_normalizes_the_limit_to_a_month(): void
+    {
+        self::assertSame(1.0, BudgetPeriodEnum::MONTHLY->monthlyFactor());
+        self::assertEqualsWithDelta(1 / 3, BudgetPeriodEnum::QUARTERLY->monthlyFactor(), 0.0000001);
+        self::assertEqualsWithDelta(1 / 12, BudgetPeriodEnum::YEARLY->monthlyFactor(), 0.0000001);
+    }
 }

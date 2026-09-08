@@ -27,6 +27,21 @@ enum BudgetPeriodEnum
         };
     }
 
+    public function occurrencesPerYear(): float
+    {
+        return match ($this) {
+            self::MONTHLY => 12.0,
+            self::QUARTERLY => 4.0,
+            self::YEARLY => 1.0,
+        };
+    }
+
+    /** Faktor zur Umrechnung des Budgetlimits auf einen Monatswert (1, 1/3, 1/12). */
+    public function monthlyFactor(): float
+    {
+        return $this->occurrencesPerYear() / 12.0;
+    }
+
     public function periodEnd(CarbonImmutable $reference): CarbonImmutable
     {
         return (match ($this) {

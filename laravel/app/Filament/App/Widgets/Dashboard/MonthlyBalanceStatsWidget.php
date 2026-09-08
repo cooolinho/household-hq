@@ -28,7 +28,7 @@ class MonthlyBalanceStatsWidget extends StatsOverviewWidget
         }
 
         $metrics = app(DashboardMetricsService::class)
-            ->getMonthlyBalanceData($userId, $this->getDashboardCurrency());
+            ->getMonthlyBalanceData($userId, $this->getDashboardCurrency(), null, $this->shouldIncludeBudgetsInBalance());
 
         $currency = $metrics['currency'];
         $forecast = $metrics['forecast'];
@@ -39,12 +39,18 @@ class MonthlyBalanceStatsWidget extends StatsOverviewWidget
 
         if (in_array($balanceMode, [DashboardWidgetPreference::BALANCE_MODE_BOTH, DashboardWidgetPreference::BALANCE_MODE_FORECAST], true)) {
             $stats[] = Stat::make('Prognose Bilanz', $this->formatMoney($forecast['balance'], $currency, true))
-                ->description('Monat auf Basis aktiver Fixkosten')
+                ->description('Monat auf Basis aktiver Fixkosten' . ($forecast['budgetsIncluded'] ? ' und Budgets' : ''))
                 ->color($forecast['balance'] < 0 ? 'danger' : 'success');
 
             $stats[] = Stat::make('Prognose Ausgaben', $this->formatMoney($forecast['expenses'], $currency))
-                ->description('Gewichtete Monatsausgaben aus Fixkosten')
+                ->description('Gewichtete Monatsausgaben aus Fixkosten' . ($forecast['budgetsIncluded'] ? ' und Budgets' : ''))
                 ->color('danger');
+
+            if ($forecast['budgetsIncluded'] && $forecast['budgetExpenses'] > 0) {
+                $stats[] = Stat::make('Geplante Budgets', $this->formatMoney($forecast['budgetExpenses'], $currency))
+                    ->description('Auf den Monat umgerechnet')
+                    ->color('warning');
+            }
         }
 
         if (in_array($balanceMode, [DashboardWidgetPreference::BALANCE_MODE_BOTH, DashboardWidgetPreference::BALANCE_MODE_ACTUAL], true)) {

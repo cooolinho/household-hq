@@ -3,6 +3,7 @@
 namespace App\Filament\App\Resources\Financial\Budgets\Pages;
 
 use App\Filament\App\Resources\Financial\Budgets\BudgetResource;
+use App\Filament\App\Resources\Financial\FixedCosts\Widgets\FixedCostBalanceWidget;
 use App\Models\Financial\Budget;
 use App\Services\Budget\BudgetCalculation;
 use App\Services\Budget\BudgetCalculationService;
@@ -45,5 +46,19 @@ class ListBudgets extends Page
             CreateAction::make()
                 ->label('Budget anlegen'),
         ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            FixedCostBalanceWidget::make([
+                'heading' => 'Bilanz zum Monatsende',
+            ]),
+        ];
+    }
+
+    public function getHeaderWidgetsColumns(): int|array
+    {
+        return 1;
     }
 }

@@ -21,4 +21,15 @@ enum FixedCostIntervalUnitEnum
             self::YEAR => 'Jahr',
         };
     }
+
+    /** Wiederholungen pro Jahr für genau eine Einheit. */
+    public function occurrencesPerYear(): float
+    {
+        return match ($this) {
+            self::DAY => 365.25,
+            self::WEEK => 52.0,
+            self::MONTH => 12.0,
+            self::YEAR => 1.0,
+        };
+    }
 }

@@ -74,6 +74,7 @@ class SettingsPagesPersistenceTest extends TestCase
             ->set('data.' . DashboardWidgetPreference::show_upcoming_transactions_table, false)
             ->set('data.' . DashboardWidgetPreference::show_portfolio_overview, true)
             ->set('data.' . DashboardWidgetPreference::balance_mode, DashboardWidgetPreference::BALANCE_MODE_BOTH)
+            ->set('data.' . DashboardWidgetPreference::include_budgets_in_balance, false)
             ->set('data.' . DashboardWidgetPreference::currency, 'eur')
             ->call('save')
             ->assertHasNoErrors();
@@ -85,6 +86,7 @@ class SettingsPagesPersistenceTest extends TestCase
             DashboardWidgetPreference::show_upcoming_transactions_table => 0,
             DashboardWidgetPreference::show_portfolio_overview => 1,
             DashboardWidgetPreference::balance_mode => DashboardWidgetPreference::BALANCE_MODE_BOTH,
+            DashboardWidgetPreference::include_budgets_in_balance => 0,
             DashboardWidgetPreference::currency => 'EUR',
         ]);
     }

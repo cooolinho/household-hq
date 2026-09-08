@@ -31,5 +31,10 @@ trait UsesDashboardPreferences
     {
         return (string)($this->getDashboardPreferences()?->balance_mode ?? DashboardWidgetPreference::BALANCE_MODE_BOTH);
     }
+
+    protected function shouldIncludeBudgetsInBalance(): bool
+    {
+        return (bool)($this->getDashboardPreferences()?->{DashboardWidgetPreference::include_budgets_in_balance} ?? true);
+    }
 }
 

@@ -2,9 +2,11 @@
 
 namespace Tests\Unit;
 
+use App\Models\Enums\BudgetPeriodEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
 use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\BankAccount;
+use App\Models\Financial\Budget;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\Transaction;
 use App\Models\User;
@@ -135,5 +137,64 @@ class DashboardMetricsServiceTest extends TestCase
         $this->assertSame(120.0, round($data['forecast']['income'], 2));
         $this->assertSame(round($expectedExpenses, 2), round($data['forecast']['expenses'], 2));
         $this->assertSame(round(120 - $expectedExpenses, 2), round($data['forecast']['balance'], 2));
+    }
+
+    public function test_forecast_monthly_balance_includes_flagged_budgets_when_enabled(): void
+    {
+        $user = User::factory()->create();
+
+        FixedCost::query()->create([
+            FixedCost::user_id => $user->id,
+            FixedCost::name => 'Miete',
+            FixedCost::amount => -700,
+            FixedCost::interval => FixedCostIntervalEnum::MONTHLY->name,
+            FixedCost::next_booking_date => '2026-08-15',
+        ]);
+
+        Budget::query()->create([
+            Budget::user_id => $user->id,
+            Budget::name => 'Lebensmittel',
+            Budget::amount => 300,
+            Budget::period => BudgetPeriodEnum::MONTHLY->name,
+            Budget::active => true,
+            Budget::include_in_balance => true,
+        ]);
+
+        $data = app(DashboardMetricsService::class)
+            ->getMonthlyBalanceData($user->id, 'EUR', CarbonImmutable::parse('2026-08-10'), true);
+
+        $this->assertSame(1000.0, $data['forecast']['expenses']);
+        $this->assertSame(300.0, $data['forecast']['budgetExpenses']);
+        $this->assertTrue($data['forecast']['budgetsIncluded']);
+    }
+
+    public function test_forecast_monthly_balance_can_exclude_budgets(): void
+    {
+        $user = User::factory()->create();
+
+        FixedCost::query()->create([
+            FixedCost::user_id => $user->id,
+            FixedCost::name => 'Miete',
+            FixedCost::amount => -700,
+            FixedCost::interval => FixedCostIntervalEnum::MONTHLY->name,
+            FixedCost::next_booking_date => '2026-08-15',
+        ]);
+
+        Budget::query()->create([
+            Budget::user_id => $user->id,
+            Budget::name => 'Lebensmittel',
+            Budget::amount => 300,
+            Budget::period => BudgetPeriodEnum::MONTHLY->name,
+            Budget::active => true,
+            Budget::include_in_balance => true,
+        ]);
+
+        $data = app(DashboardMetricsService::class)
+            ->getMonthlyBalanceData($user->id, 'EUR', CarbonImmutable::parse('2026-08-10'), false);
+
+        // Der rohe Budgetbetrag bleibt informativ erhalten; nur die Summe (expenses/balance) lässt ihn außen vor.
+        $this->assertSame(700.0, $data['forecast']['expenses']);
+        $this->assertSame(300.0, $data['forecast']['budgetExpenses']);
+        $this->assertFalse($data['forecast']['budgetsIncluded']);
     }
 }
