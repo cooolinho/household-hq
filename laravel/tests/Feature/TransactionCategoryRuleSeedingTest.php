@@ -49,6 +49,23 @@ class TransactionCategoryRuleSeedingTest extends TestCase
         }
     }
 
+    public function test_every_seeded_rule_is_an_include_rule(): void
+    {
+        $this->seed(TransactionCategorySeeder::class);
+
+        $types = TransactionCategoryRule::query()
+            ->whereNull(TransactionCategoryRule::user_id)
+            ->pluck(TransactionCategoryRule::type)
+            ->unique();
+
+        self::assertNotEmpty($types);
+        self::assertSame(
+            [TransactionCategoryRule::TYPE_INCLUDE],
+            $types->values()->all(),
+            'Geseedete Systemregeln müssen ausschließlich Include-Regeln sein, niemals Blacklist-Regeln.',
+        );
+    }
+
     public function test_every_seeded_rule_has_a_unique_key(): void
     {
         $this->seed(TransactionCategorySeeder::class);

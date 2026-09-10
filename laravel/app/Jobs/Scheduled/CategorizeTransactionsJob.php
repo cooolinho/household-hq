@@ -24,13 +24,15 @@ class CategorizeTransactionsJob implements ShouldQueue
         $totalProcessed = 0;
         $totalCategorized = 0;
         $totalSkipped = 0;
+        $totalRemoved = 0;
 
-        User::query()->each(function (User $user) use ($service, &$totalProcessed, &$totalCategorized, &$totalSkipped): void {
+        User::query()->each(function (User $user) use ($service, &$totalProcessed, &$totalCategorized, &$totalSkipped, &$totalRemoved): void {
             $results = $service->categorizeUncategorized($user->id);
 
             $totalProcessed += $results['processed'];
             $totalCategorized += $results['categorized'];
             $totalSkipped += $results['skipped'];
+            $totalRemoved += $results['removed'];
         });
 
         Log::channel('database')->info('Transaktionskategorisierung wurde ausgeführt.', [
@@ -39,6 +41,7 @@ class CategorizeTransactionsJob implements ShouldQueue
                 'processed' => $totalProcessed,
                 'categorized' => $totalCategorized,
                 'skipped' => $totalSkipped,
+                'removed' => $totalRemoved,
             ],
         ]);
     }

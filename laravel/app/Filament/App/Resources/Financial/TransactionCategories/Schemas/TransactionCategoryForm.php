@@ -15,9 +15,14 @@ use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class TransactionCategoryForm
 {
+    private const string BLACKLIST_HELPER_TEXT = 'Greift eine dieser Regeln, wird die Kategorie garantiert nicht '
+    . 'zugeordnet — auch wenn eine Systemregel passt. Bereits bestehende Zuordnungen dieser Kategorie werden '
+    . 'beim nächsten Kategorisierungslauf entfernt, auch manuell gesetzte.';
+
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
@@ -32,7 +37,11 @@ class TransactionCategoryForm
                 ->default(true)
                 ->disabled(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false),
 
-            self::makeManagedRulesRepeater(),
+            self::makeIncludeRulesRepeater(),
+
+            self::makeExcludeRulesRepeater(),
+
+            self::makeUserBlacklistRulesRepeater(),
 
             self::makeUserExtensionRulesRepeater(),
 
@@ -102,30 +111,106 @@ class TransactionCategoryForm
             ->dehydrated(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false);
     }
 
-    private static function makeManagedRulesRepeater(): Repeater
+    private static function makeIncludeRulesRepeater(): Repeater
     {
-        return Repeater::make(TransactionCategory::has_many_rules)
-            ->label('Regeln')
-            ->relationship()
-            ->addActionLabel('Regel hinzufügen')
+        return self::makeRelationshipRulesRepeater(
+            statePath: TransactionCategory::has_many_rules,
+            type: TransactionCategoryRule::TYPE_INCLUDE,
+            label: 'Regeln',
+            addActionLabel: 'Regel hinzufügen',
+            helperText: null,
+        );
+    }
+
+    private static function makeExcludeRulesRepeater(): Repeater
+    {
+        return self::makeRelationshipRulesRepeater(
+            statePath: 'blacklist_rules',
+            type: TransactionCategoryRule::TYPE_EXCLUDE,
+            label: 'Blacklist-Regeln',
+            addActionLabel: 'Blacklist-Regel hinzufügen',
+            helperText: self::BLACKLIST_HELPER_TEXT,
+        );
+    }
+
+    /**
+     * Regel-Repeater, die am `rules`-Relationship der Kategorie hängen (eigene, nicht-globale
+     * Kategorien). Include- und Exclude-Regeln teilen sich dieselbe Tabelle, werden hier aber über
+     * `type` sauber getrennt: die Query wird auf den jeweiligen Typ gefiltert, neu angelegte
+     * Zeilen bekommen den Typ beim Erstellen mitgegeben.
+     */
+    private static function makeRelationshipRulesRepeater(
+        string  $statePath,
+        string  $type,
+        string  $label,
+        string  $addActionLabel,
+        ?string $helperText,
+    ): Repeater
+    {
+        $repeater = Repeater::make($statePath)
+            ->label($label)
+            ->relationship(
+                TransactionCategory::has_many_rules,
+                modifyQueryUsing: fn(Builder $query): Builder => $query->where(TransactionCategoryRule::type, $type),
+            )
+            ->mutateRelationshipDataBeforeCreateUsing(fn(array $data): array => [
+                ...$data,
+                TransactionCategoryRule::type => $type,
+            ])
+            ->addActionLabel($addActionLabel)
             ->collapsible()
             ->columnSpanFull()
-            ->itemLabel(fn(array $state): string => 'Regel (' . ($state[TransactionCategoryRule::operator] ?? 'AND') . ')')
+            ->itemLabel(fn(array $state): string => $label . ' (' . ($state[TransactionCategoryRule::operator] ?? 'AND') . ')')
             ->schema(self::getRuleSchema(withRelationshipCriteria: true))
             ->columns(1)
             ->visible(fn(?TransactionCategory $record): bool => $record === null || !$record->isGlobal())
             ->dehydrated(fn(?TransactionCategory $record): bool => $record === null || !$record->isGlobal());
+
+        if ($helperText !== null) {
+            $repeater->helperText($helperText);
+        }
+
+        return $repeater;
     }
 
     private static function makeUserExtensionRulesRepeater(): Repeater
     {
-        return Repeater::make('user_extension_rules')
-            ->label('Eigene Zusatzregeln')
-            ->helperText('Diese Regeln ergänzen die globalen Regeln nur für deinen Account.')
-            ->addActionLabel('Zusatzregel hinzufügen')
+        return self::makeUserRulesRepeater(
+            statePath: 'user_extension_rules',
+            label: 'Eigene Zusatzregeln',
+            addActionLabel: 'Zusatzregel hinzufügen',
+            helperText: 'Diese Regeln ergänzen die globalen Regeln nur für deinen Account.',
+        );
+    }
+
+    private static function makeUserBlacklistRulesRepeater(): Repeater
+    {
+        return self::makeUserRulesRepeater(
+            statePath: 'user_blacklist_rules',
+            label: 'Blacklist-Regeln',
+            addActionLabel: 'Blacklist-Regel hinzufügen',
+            helperText: self::BLACKLIST_HELPER_TEXT,
+        );
+    }
+
+    /**
+     * Regel-Repeater für globale Kategorien mit reinem Array-State (kein `->relationship()`) –
+     * die Persistenz übernimmt EditTransactionCategory::syncUserRules().
+     */
+    private static function makeUserRulesRepeater(
+        string $statePath,
+        string $label,
+        string $addActionLabel,
+        string $helperText,
+    ): Repeater
+    {
+        return Repeater::make($statePath)
+            ->label($label)
+            ->helperText($helperText)
+            ->addActionLabel($addActionLabel)
             ->collapsible()
             ->columnSpanFull()
-            ->itemLabel(fn(array $state): string => 'Zusatzregel (' . ($state[TransactionCategoryRule::operator] ?? 'AND') . ')')
+            ->itemLabel(fn(array $state): string => $label . ' (' . ($state[TransactionCategoryRule::operator] ?? 'AND') . ')')
             ->schema(self::getRuleSchema(withRelationshipCriteria: false))
             ->columns(1)
             ->visible(fn(?TransactionCategory $record): bool => $record?->isGlobal() ?? false)

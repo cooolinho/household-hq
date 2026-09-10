@@ -44,7 +44,7 @@ class ManualTransactionCategorizationTest extends TestCase
         $service = app(TransactionCategorizationService::class);
         $results = $service->recategorizeCategorized($user->id);
 
-        self::assertSame(['processed' => 1, 'categorized' => 1, 'skipped' => 0], $results);
+        self::assertSame(['processed' => 1, 'categorized' => 1, 'skipped' => 0, 'removed' => 0], $results);
         $this->assertDatabaseHas('financial_transaction_transaction_category', [
             'transaction_id' => $categorized->id,
             'transaction_category_id' => $existingCategory->id,
@@ -149,7 +149,7 @@ class ManualTransactionCategorizationTest extends TestCase
 
         $results = app(TransactionCategorizationService::class)->categorizeUncategorized($user->id);
 
-        self::assertSame(['processed' => 1, 'categorized' => 1, 'skipped' => 0], $results);
+        self::assertSame(['processed' => 1, 'categorized' => 1, 'skipped' => 0, 'removed' => 0], $results);
         $this->assertDatabaseHas('financial_transaction_transaction_category', [
             'transaction_id' => $alreadyCategorized->id,
             'transaction_category_id' => $category->id,
@@ -183,7 +183,7 @@ class ManualTransactionCategorizationTest extends TestCase
 
         $results = app(TransactionCategorizationService::class)->recategorizeAll($user->id);
 
-        self::assertSame(['processed' => 2, 'categorized' => 1, 'skipped' => 1], $results);
+        self::assertSame(['processed' => 2, 'categorized' => 1, 'skipped' => 1, 'removed' => 0], $results);
         $this->assertDatabaseMissing('financial_transaction_transaction_category', [
             'transaction_id' => $matchingTransaction->id,
             'transaction_category_id' => $obsoleteCategory->id,

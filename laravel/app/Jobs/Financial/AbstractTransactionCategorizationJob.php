@@ -42,7 +42,7 @@ abstract class AbstractTransactionCategorizationJob implements ShouldQueue
     }
 
     /**
-     * @param array{processed: int, categorized: int, skipped: int} $results
+     * @param array{processed: int, categorized: int, skipped: int, removed: int} $results
      */
     protected function notifyCompleted(array $results): void
     {
@@ -58,10 +58,11 @@ abstract class AbstractTransactionCategorizationJob implements ShouldQueue
         Notification::make()
             ->title(sprintf('%s abgeschlossen', $this->variantLabel()))
             ->body(sprintf(
-                'Verarbeitet: %d, kategorisiert: %d, übersprungen: %d.',
+                'Verarbeitet: %d, kategorisiert: %d, übersprungen: %d, entfernt: %d.',
                 $results['processed'],
                 $results['categorized'],
                 $results['skipped'],
+                $results['removed'],
             ))
             ->success()
             ->sendToDatabase($user);

@@ -16,7 +16,7 @@ class TransactionCategorizationService
     /**
      * Kategorisiert alle nicht kategorisierten Transaktionen eines Users.
      *
-     * @return array{processed: int, categorized: int, skipped: int}
+     * @return array{processed: int, categorized: int, skipped: int, removed: int}
      */
     public function categorizeUncategorized(int $userId): array
     {
@@ -37,7 +37,7 @@ class TransactionCategorizationService
     /**
      * Ergänzt passende Kategorien bei bereits kategorisierten Transaktionen.
      *
-     * @return array{processed: int, categorized: int, skipped: int}
+     * @return array{processed: int, categorized: int, skipped: int, removed: int}
      */
     public function recategorizeCategorized(int $userId): array
     {
@@ -58,7 +58,7 @@ class TransactionCategorizationService
     /**
      * Entfernt alle Zuordnungen und kategorisiert sämtliche Transaktionen neu.
      *
-     * @return array{processed: int, categorized: int, skipped: int}
+     * @return array{processed: int, categorized: int, skipped: int, removed: int}
      */
     public function recategorizeAll(int $userId): array
     {
@@ -111,18 +111,27 @@ class TransactionCategorizationService
     /**
      * @param Collection<int, Transaction> $transactions
      * @param Collection<int, TransactionCategory> $categories
-     * @return array{processed: int, categorized: int, skipped: int}
+     * @return array{processed: int, categorized: int, skipped: int, removed: int}
      */
     private function categorizeTransactions(Collection $transactions, Collection $categories): array
     {
         $processed = 0;
         $categorized = 0;
         $skipped = 0;
+        $removed = 0;
 
         foreach ($transactions as $transaction) {
-            $matchingCategories = $this->matchTransaction($transaction, $categories);
+            $resolved = $this->resolveCategories($transaction, $categories);
+            $matchingCategories = $resolved['matched'];
+            $excludedCategories = $resolved['excluded'];
 
             $processed++;
+
+            if ($excludedCategories->isNotEmpty()) {
+                $removed += $transaction->transactionCategories()->detach(
+                    $excludedCategories->pluck(TransactionCategory::id)->toArray()
+                );
+            }
 
             if ($matchingCategories->isEmpty()) {
                 $skipped++;
@@ -136,15 +145,15 @@ class TransactionCategorizationService
             $categorized++;
         }
 
-        return compact('processed', 'categorized', 'skipped');
+        return compact('processed', 'categorized', 'skipped', 'removed');
     }
 
     /**
-     * @return array{processed: int, categorized: int, skipped: int}
+     * @return array{processed: int, categorized: int, skipped: int, removed: int}
      */
     private function emptyResults(): array
     {
-        return ['processed' => 0, 'categorized' => 0, 'skipped' => 0];
+        return ['processed' => 0, 'categorized' => 0, 'skipped' => 0, 'removed' => 0];
     }
 
     /**
@@ -155,25 +164,65 @@ class TransactionCategorizationService
      */
     public function matchTransaction(Transaction $transaction, Collection $categories): Collection
     {
-        return $categories->filter(function (TransactionCategory $category) use ($transaction): bool {
-            $userId = (int)$transaction->user_id;
+        return $this->resolveCategories($transaction, $categories)['matched'];
+    }
+
+    /**
+     * Ermittelt pro Kategorie, ob sie einer Transaktion zugeordnet werden soll ("matched") oder
+     * durch eine Blacklist-Regel explizit ausgeschlossen ist ("excluded"). Blacklist-Regeln werden
+     * zuerst geprüft und wirken als Veto für die gesamte Kategorie – Include-Regeln werden dann
+     * gar nicht mehr ausgewertet.
+     *
+     * @param Collection<int, TransactionCategory> $categories
+     * @return array{matched: Collection<int, TransactionCategory>, excluded: Collection<int, TransactionCategory>}
+     */
+    private function resolveCategories(Transaction $transaction, Collection $categories): array
+    {
+        $matched = new Collection();
+        $excluded = new Collection();
+
+        $userId = (int)$transaction->user_id;
+
+        foreach ($categories as $category) {
             $activeRules = $category->rules->filter(
                 fn(TransactionCategoryRule $r) => $this->isRuleActiveForUser($r, $userId)
             );
 
-            if ($activeRules->isEmpty()) {
-                return false;
-            }
+            [$excludeRules, $includeRules] = $activeRules->partition(
+                fn(TransactionCategoryRule $r) => $r->isExclude()
+            );
 
-            // Eine Kategorie matched, wenn mindestens eine Regel matched (OR zwischen Regeln)
-            foreach ($activeRules as $rule) {
+            $isExcluded = false;
+
+            foreach ($excludeRules as $rule) {
                 if ($this->evaluateRule($transaction, $rule)) {
-                    return true;
+                    $isExcluded = true;
+
+                    break;
                 }
             }
 
-            return false;
-        })->values();
+            if ($isExcluded) {
+                $excluded->push($category);
+
+                continue;
+            }
+
+            if ($includeRules->isEmpty()) {
+                continue;
+            }
+
+            // Eine Kategorie matched, wenn mindestens eine Regel matched (OR zwischen Regeln)
+            foreach ($includeRules as $rule) {
+                if ($this->evaluateRule($transaction, $rule)) {
+                    $matched->push($category);
+
+                    break;
+                }
+            }
+        }
+
+        return ['matched' => $matched->values(), 'excluded' => $excluded->values()];
     }
 
     private function isRuleActiveForUser(TransactionCategoryRule $rule, int $userId): bool

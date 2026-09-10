@@ -34,27 +34,21 @@ class EditTransactionCategory extends EditRecord
 
         $userId = (int)auth()->id();
 
-        $data['user_extension_rules'] = $this->record->rules()
+        $userRules = $this->record->rules()
             ->where(TransactionCategoryRule::user_id, $userId)
             ->with(TransactionCategoryRule::has_many_criteria)
-            ->get()
-            ->map(function (TransactionCategoryRule $rule): array {
-                return [
-                    TransactionCategoryRule::operator => $rule->operator,
-                    TransactionCategoryRule::active => (bool)$rule->active,
-                    TransactionCategoryRule::has_many_criteria => $rule->criteria
-                        ->map(function (TransactionCategoryCriterion $criterion): array {
-                            return [
-                                TransactionCategoryCriterion::field => $criterion->field,
-                                TransactionCategoryCriterion::operator => $criterion->operator,
-                                TransactionCategoryCriterion::value => $criterion->value,
-                                TransactionCategoryCriterion::value_secondary => $criterion->value_secondary,
-                                TransactionCategoryCriterion::case_sensitive => (bool)$criterion->case_sensitive,
-                            ];
-                        })
-                        ->toArray(),
-                ];
-            })
+            ->get();
+
+        $data['user_extension_rules'] = $userRules
+            ->reject(fn(TransactionCategoryRule $rule): bool => $rule->isExclude())
+            ->map(fn(TransactionCategoryRule $rule): array => $this->mapRuleToFormData($rule))
+            ->values()
+            ->toArray();
+
+        $data['user_blacklist_rules'] = $userRules
+            ->filter(fn(TransactionCategoryRule $rule): bool => $rule->isExclude())
+            ->map(fn(TransactionCategoryRule $rule): array => $this->mapRuleToFormData($rule))
+            ->values()
             ->toArray();
 
         $globalRules = $this->record->rules()
@@ -87,17 +81,43 @@ class EditTransactionCategory extends EditRecord
         return $data;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapRuleToFormData(TransactionCategoryRule $rule): array
+    {
+        return [
+            TransactionCategoryRule::operator => $rule->operator,
+            TransactionCategoryRule::active => (bool)$rule->active,
+            TransactionCategoryRule::has_many_criteria => $rule->criteria
+                ->map(function (TransactionCategoryCriterion $criterion): array {
+                    return [
+                        TransactionCategoryCriterion::field => $criterion->field,
+                        TransactionCategoryCriterion::operator => $criterion->operator,
+                        TransactionCategoryCriterion::value => $criterion->value,
+                        TransactionCategoryCriterion::value_secondary => $criterion->value_secondary,
+                        TransactionCategoryCriterion::case_sensitive => (bool)$criterion->case_sensitive,
+                    ];
+                })
+                ->toArray(),
+        ];
+    }
+
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         /** @var TransactionCategory $record */
         if (!$record->isGlobal()) {
-            unset($data['user_extension_rules'], $data['global_rule_settings']);
+            unset($data['user_extension_rules'], $data['user_blacklist_rules'], $data['global_rule_settings']);
 
             return parent::handleRecordUpdate($record, $data);
         }
 
         DB::transaction(function () use ($record, $data): void {
-            $this->syncUserExtensionRules($record, $data['user_extension_rules'] ?? []);
+            $this->syncUserRules(
+                $record,
+                $data['user_extension_rules'] ?? [],
+                $data['user_blacklist_rules'] ?? [],
+            );
             $this->syncGlobalRuleSettings($record, $data['global_rule_settings'] ?? []);
         });
 
@@ -105,9 +125,14 @@ class EditTransactionCategory extends EditRecord
     }
 
     /**
-     * @param array<int, array<string, mixed>> $rulesData
+     * Ersetzt alle eigenen Regeln (Zusatz- und Blacklist-Regeln) des Users an dieser Kategorie.
+     * Beide Listen teilen sich dieselbe Löschung, damit sie sich beim Speichern nicht gegenseitig
+     * überschreiben.
+     *
+     * @param array<int, array<string, mixed>> $includeRulesData
+     * @param array<int, array<string, mixed>> $excludeRulesData
      */
-    private function syncUserExtensionRules(TransactionCategory $record, array $rulesData): void
+    private function syncUserRules(TransactionCategory $record, array $includeRulesData, array $excludeRulesData): void
     {
         $userId = (int)auth()->id();
 
@@ -115,9 +140,19 @@ class EditTransactionCategory extends EditRecord
             ->where(TransactionCategoryRule::user_id, $userId)
             ->delete();
 
+        $this->createUserRules($record, $userId, $includeRulesData, TransactionCategoryRule::TYPE_INCLUDE);
+        $this->createUserRules($record, $userId, $excludeRulesData, TransactionCategoryRule::TYPE_EXCLUDE);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rulesData
+     */
+    private function createUserRules(TransactionCategory $record, int $userId, array $rulesData, string $type): void
+    {
         foreach ($rulesData as $ruleData) {
             $rule = $record->rules()->create([
                 TransactionCategoryRule::user_id => $userId,
+                TransactionCategoryRule::type => $type,
                 TransactionCategoryRule::operator => $ruleData[TransactionCategoryRule::operator] ?? TransactionCategoryRule::OPERATOR_AND,
                 TransactionCategoryRule::active => (bool)($ruleData[TransactionCategoryRule::active] ?? true),
             ]);

@@ -6,6 +6,7 @@ use App\Filament\App\Resources\Financial\TransactionCategories\Actions\CreateSub
 use App\Filament\App\Resources\Financial\TransactionCategories\Actions\MoveCategoryAction;
 use App\Filament\App\Resources\Financial\TransactionCategories\Actions\ViewCategoryTransactionsAction;
 use App\Models\Financial\TransactionCategory;
+use App\Models\Financial\TransactionCategoryRule;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -59,21 +60,17 @@ class TransactionCategoriesTable
 
                 TextColumn::make(TransactionCategory::has_many_rules . '_count')
                     ->label('Regeln')
-                    ->state(function (TransactionCategory $record): int {
-                        $query = $record->rules();
-
-                        if ($record->isGlobal()) {
-                            $query->where(function ($query) {
-                                $query->whereNull(TransactionCategory::user_id)
-                                    ->orWhere(TransactionCategory::user_id, auth()->id());
-                            });
-                        }
-
-                        return $query->count();
-                    })
+                    ->state(fn(TransactionCategory $record): int => self::countRules($record, TransactionCategoryRule::TYPE_INCLUDE))
                     ->badge()
                     ->color('info')
                     ->toggleable(),
+
+                TextColumn::make(TransactionCategory::has_many_rules . '_exclude_count')
+                    ->label('Blacklist')
+                    ->state(fn(TransactionCategory $record): int => self::countRules($record, TransactionCategoryRule::TYPE_EXCLUDE))
+                    ->badge()
+                    ->color('danger')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make(TransactionCategory::user_id)
                     ->label('Quelle')
@@ -119,5 +116,19 @@ class TransactionCategoriesTable
                     MoveCategoryAction::make(),
                 ]),
             ]);
+    }
+
+    private static function countRules(TransactionCategory $record, string $type): int
+    {
+        $query = $record->rules()->where(TransactionCategoryRule::type, $type);
+
+        if ($record->isGlobal()) {
+            $query->where(function ($query) {
+                $query->whereNull(TransactionCategoryRule::user_id)
+                    ->orWhere(TransactionCategoryRule::user_id, auth()->id());
+            });
+        }
+
+        return $query->count();
     }
 }

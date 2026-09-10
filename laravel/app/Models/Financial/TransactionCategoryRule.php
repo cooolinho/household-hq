@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $transaction_category_id
  * @property int|null $user_id
  * @property string|null $key  Stabiler Slug systemseitig geseedeter Regeln (null = manuell angelegt)
+ * @property string $type  include|exclude (Blacklist)
  * @property string $operator  AND|OR
  * @property bool $active
  * @property Carbon|null $created_at
@@ -35,11 +36,15 @@ class TransactionCategoryRule extends Model
     const string OPERATOR_AND = 'AND';
     const string OPERATOR_OR = 'OR';
 
+    const string TYPE_INCLUDE = 'include';
+    const string TYPE_EXCLUDE = 'exclude';
+
     // columns
     const string id = 'id';
     const string transaction_category_id = 'transaction_category_id';
     const string user_id = 'user_id';
     const string key = 'key';
+    const string type = 'type';
     const string operator = 'operator';
     const string active = 'active';
     const string created_at = Model::CREATED_AT;
@@ -57,6 +62,7 @@ class TransactionCategoryRule extends Model
         self::transaction_category_id,
         self::user_id,
         self::key,
+        self::type,
         self::operator,
         self::active,
     ];
@@ -64,6 +70,15 @@ class TransactionCategoryRule extends Model
     protected $casts = [
         self::active => 'boolean',
     ];
+
+    /**
+     * Blacklist-Regel: verhindert die Zuordnung der Kategorie, wenn sie matched (Veto, wird vor
+     * den Include-Regeln geprüft). Wird ausschließlich von Usern angelegt, nie vom Seeder.
+     */
+    public function isExclude(): bool
+    {
+        return $this->type === self::TYPE_EXCLUDE;
+    }
 
     public function category(): BelongsTo
     {
