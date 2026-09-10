@@ -15,14 +15,20 @@ use Illuminate\Support\Facades\Log;
  * Zentrale Service-Klasse für das Matching von Transaktionen zu Fixkosten.
  *
  * Score-Aufbau (Option A – betrag-schwer):
- *   Betrag:  max. 60 Punkte  – exakte oder nahe Übereinstimmung, gleiche Vorzeichen
- *   Text:    max. 30 Punkte  – Ähnlichkeit von fixedCost.name ↔ payer/purpose
- *   Datum:   max. 10 Punkte  – Nähe zum nächsten Buchungsdatum
+ *   Betrag:    max. 60 Punkte              – exakte oder nahe Übereinstimmung, gleiche Vorzeichen
+ *   Text:      max. 30 Punkte              – Ähnlichkeit von fixedCost.name ↔ payer/purpose
+ *   Datum:     max. 10 Punkte              – Nähe zum nächsten Buchungsdatum
+ *   Kategorie: max. matching_category_weight Punkte – nur aktiv, wenn Fixkosten UND Transaktion
+ *              Transaktions-Kategorien haben; Betrag/Text/Datum werden dafür anteilig herunterskaliert
+ *              (siehe calculateScore()), damit Fixkosten ohne Kategorie-Verknüpfung unverändert bewertet werden.
  *
  * Verhalten:
  *   - Score >= threshold UND nur EIN Kandidat    → automatisch verknüpfen
- *   - Score >= threshold UND mehrere Gleichstände → Vorschlag erzeugen (manuell entscheiden)
+ *   - Score >= threshold UND mehrere Gleichstände → Vorschlag erzeugen (manuell entscheiden), außer ein
+ *     einzelner Kandidat hat eine direkt übereinstimmende Kategorie → dieser gewinnt den Gleichstand
  *   - Score < threshold                           → nichts tun (skipped)
+ *   - Kategorie-Mismatch (matching_category_mismatch_blocks_auto_link) verhindert den Auto-Link eines sonst
+ *     eindeutigen Treffers → Vorschlag statt automatischer Verknüpfung
  */
 readonly class TransactionFixedCostMatchingService
 {
@@ -75,6 +81,7 @@ readonly class TransactionFixedCostMatchingService
         Transaction::query()
             ->where(Transaction::user_id, $userId)
             ->whereNull(Transaction::fixed_cost_id)
+            ->with(Transaction::belongs_to_many_transaction_categories)
             ->chunkById(100, function (Collection $transactions) use (&$results) {
                 foreach ($transactions as $transaction) {
                     $outcome = $this->matchTransaction($transaction);
@@ -98,6 +105,7 @@ readonly class TransactionFixedCostMatchingService
 
         $fixedCosts = FixedCost::query()
             ->where(FixedCost::user_id, $transaction->user_id)
+            ->with(FixedCost::belongs_to_many_transaction_categories)
             ->get();
 
         if ($fixedCosts->isEmpty()) {
@@ -144,10 +152,30 @@ readonly class TransactionFixedCostMatchingService
         // Alle Kandidaten mit dem Top-Score (Gleichstand-Prüfung)
         $topMatches = $scored->filter(fn($s) => abs((float)$s['score'] - $topScore) < 0.001)->values();
 
+        if ($topMatches->count() > 1) {
+            // Bei Gleichstand gewinnt ein einzelner Kandidat mit direkter Kategorie-Übereinstimmung
+            $categoryPreferred = $topMatches
+                ->filter(fn(array $match) => $this->hasDirectCategoryMatch($transaction, $match['fixedCost']))
+                ->values();
+
+            if ($categoryPreferred->count() === 1) {
+                $topMatches = $categoryPreferred;
+            }
+        }
+
         if ($topMatches->count() === 1) {
-            // Eindeutiger Treffer → automatisch verknüpfen
             /** @var FixedCost $fixedCost */
             $fixedCost = $topMatches->first()['fixedCost'];
+
+            // Kategorie-Mismatch verhindert den Auto-Link eines sonst eindeutigen Treffers
+            if ($this->settings->matching_category_mismatch_blocks_auto_link
+                && $this->hasCategoryMismatch($transaction, $fixedCost)) {
+                $this->createSuggestions($transaction, $topMatches);
+
+                return 'suggestion_created';
+            }
+
+            // Eindeutiger Treffer → automatisch verknüpfen
             $transaction->update([Transaction::fixed_cost_id => $fixedCost->id]);
             $this->learningService->learnFromAutoLink($transaction, $fixedCost, $topScore);
 
@@ -162,12 +190,26 @@ readonly class TransactionFixedCostMatchingService
 
     /**
      * Berechnet den kombinierten Score (0–100) für ein Transaction/FixedCost-Paar.
+     *
+     * Ist die Kategorie-Komponente aktiv (Fixkosten UND Transaktion haben Kategorien), wird der
+     * Betrag/Text/Datum-Anteil auf (100 - matching_category_weight) heruntergerechnet, damit der
+     * Gesamtscore weiterhin maximal 100 erreicht. Ohne Kategorie-Verknüpfung bleibt der Score unverändert.
      */
     public function calculateScore(Transaction $transaction, FixedCost $fixedCost): float
     {
-        return $this->calculateAmountScore($transaction, $fixedCost)
+        $baseScore = $this->calculateAmountScore($transaction, $fixedCost)
             + $this->calculateTextScore($transaction, $fixedCost)
             + $this->calculateDateScore($transaction, $fixedCost);
+
+        $categoryScore = $this->calculateCategoryScore($transaction, $fixedCost);
+
+        if ($categoryScore === null) {
+            return $baseScore;
+        }
+
+        $weight = (float)$this->settings->matching_category_weight;
+
+        return round($baseScore * (100 - $weight) / 100 + $categoryScore, 2);
     }
 
     // -------------------------------------------------------------------------
@@ -301,9 +343,89 @@ readonly class TransactionFixedCostMatchingService
         };
     }
 
+    /**
+     * Kategorie-Score: max. matching_category_weight Punkte.
+     * Nur aktiv, wenn sowohl die Fixkosten-Position als auch die Transaktion Transaktions-Kategorien
+     * haben – sonst null (Komponente inaktiv, Score bleibt wie ohne Kategorie-Verknüpfung).
+     */
+    private function calculateCategoryScore(Transaction $transaction, FixedCost $fixedCost): ?float
+    {
+        $transactionCategoryIds = $this->getTransactionCategoryIds($transaction);
+        if ($transactionCategoryIds === []) {
+            return null;
+        }
+
+        $directCategoryIds = $fixedCost->getDirectCategoryIds();
+        if ($directCategoryIds === []) {
+            return null;
+        }
+
+        $weight = (float)$this->settings->matching_category_weight;
+
+        // Direkter Treffer → volles Gewicht
+        if (array_intersect($transactionCategoryIds, $directCategoryIds) !== []) {
+            return $weight;
+        }
+
+        // Treffer nur über eine Unterkategorie → reduziertes Gewicht
+        if ($fixedCost->include_subcategories
+            && array_intersect($transactionCategoryIds, $fixedCost->getMatchingCategoryIds()) !== []) {
+            return round($weight * 0.7, 2);
+        }
+
+        return 0.0;
+    }
+
     // -------------------------------------------------------------------------
     // Interne Hilfsmethoden
     // -------------------------------------------------------------------------
+
+    /**
+     * @return array<int>
+     */
+    private function getTransactionCategoryIds(Transaction $transaction): array
+    {
+        $categories = $transaction->relationLoaded(Transaction::belongs_to_many_transaction_categories)
+            ? $transaction->transactionCategories
+            : $transaction->transactionCategories()->get();
+
+        return $categories
+            ->map(static fn($category): int => (int)$category->getKey())
+            ->values()
+            ->all();
+    }
+
+    /**
+     * True, wenn Fixkosten UND Transaktion Kategorien haben, sich diese aber nicht überschneiden.
+     */
+    private function hasCategoryMismatch(Transaction $transaction, FixedCost $fixedCost): bool
+    {
+        $transactionCategoryIds = $this->getTransactionCategoryIds($transaction);
+        if ($transactionCategoryIds === []) {
+            return false;
+        }
+
+        $fixedCostCategoryIds = $fixedCost->getMatchingCategoryIds();
+        if ($fixedCostCategoryIds === []) {
+            return false;
+        }
+
+        return array_intersect($transactionCategoryIds, $fixedCostCategoryIds) === [];
+    }
+
+    /**
+     * True, wenn die Transaktion eine der direkt (ohne Unterkategorien) verknüpften Kategorien der
+     * Fixkosten-Position trägt.
+     */
+    private function hasDirectCategoryMatch(Transaction $transaction, FixedCost $fixedCost): bool
+    {
+        $transactionCategoryIds = $this->getTransactionCategoryIds($transaction);
+        if ($transactionCategoryIds === []) {
+            return false;
+        }
+
+        return array_intersect($transactionCategoryIds, $fixedCost->getDirectCategoryIds()) !== [];
+    }
 
     /**
      * Erzeugt Matching-Vorschläge für Gleichstands-Kandidaten.

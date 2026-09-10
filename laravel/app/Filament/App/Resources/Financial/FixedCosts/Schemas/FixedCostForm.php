@@ -9,6 +9,7 @@ use App\Models\Enums\FixedCostIntervalUnitEnum;
 use App\Models\Financial\FixedCost;
 use App\Models\Financial\FixedCostCategory;
 use App\Models\Financial\Insurance;
+use App\Models\Financial\TransactionCategory;
 use App\Rules\FixedCostAmountNotZeroRule;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -17,6 +18,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -49,6 +51,13 @@ class FixedCostForm
                 ->columnSpanFull()
                 ->columns(2)
                 ->schema(self::getSectionInsuranceSchema()),
+
+            Section::make('transaction_categories')
+                ->heading('Transaktions-Kategorien')
+                ->description('Hilft dem automatischen Matching, Transaktionen schneller und sicherer dieser Fixkosten-Position zuzuordnen.')
+                ->columnSpanFull()
+                ->columns(2)
+                ->schema(self::getSectionTransactionCategoriesSchema()),
 
             Section::make('interval')
                 ->heading(false)
@@ -111,6 +120,35 @@ class FixedCostForm
                 ->numeric()
                 ->rule(new FixedCostAmountNotZeroRule),
             self::getBelongsToCategorySelect(),
+        ];
+    }
+
+    private static function getSectionTransactionCategoriesSchema(): array
+    {
+        return [
+            Select::make(FixedCost::belongs_to_many_transaction_categories)
+                ->label('Kategorien')
+                ->relationship(titleAttribute: TransactionCategory::name)
+                ->multiple()
+                ->preload()
+                ->searchable()
+                ->options(fn(): array => TransactionCategory::query()
+                    ->where(TransactionCategory::active, true)
+                    ->visibleForUser((int)auth()->id())
+                    ->with(TransactionCategory::belongs_to_parent)
+                    ->get()
+                    ->sortBy(fn(TransactionCategory $category): string => $category->getFullNameAttribute())
+                    ->mapWithKeys(fn(TransactionCategory $category): array => [
+                        $category->getKey() => $category->getFullNameAttribute(),
+                    ])
+                    ->all())
+                ->placeholder('Keine Kategorien verknüpft')
+                ->columnSpanFull(),
+            Toggle::make(FixedCost::include_subcategories)
+                ->label('Unterkategorien einbeziehen')
+                ->helperText('Bei einer Hauptkategorie zählen auch Transaktionen ihrer Unterkategorien für das Matching.')
+                ->default(true)
+                ->columnSpanFull(),
         ];
     }
 

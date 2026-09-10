@@ -45,6 +45,12 @@ class FixedCostsTable
                     ->label('Kategorie')
                     ->badge()
                     ->placeholder('Nicht kategorisiert'),
+                TextColumn::make(FixedCost::belongs_to_many_transaction_categories . '.' . 'name')
+                    ->label('Transaktions-Kategorien')
+                    ->badge()
+                    ->separator(',')
+                    ->placeholder('Keine Kategorien verknüpft')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make(FixedCost::interval)
                     ->label('Intervall')
                     ->badge()

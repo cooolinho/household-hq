@@ -29,6 +29,8 @@ class SettingsPagesPersistenceTest extends TestCase
             ->test(FixedCostSettingsPage::class)
             ->set('data.matching_threshold', 88)
             ->set('data.recurring_window_months', 6)
+            ->set('data.matching_category_weight', 25)
+            ->set('data.matching_category_mismatch_blocks_auto_link', false)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -36,6 +38,8 @@ class SettingsPagesPersistenceTest extends TestCase
 
         $this->assertSame(88, $settings->matching_threshold);
         $this->assertSame(6, $settings->recurring_window_months);
+        $this->assertSame(25, $settings->matching_category_weight);
+        $this->assertFalse($settings->matching_category_mismatch_blocks_auto_link);
     }
 
     public function test_reminder_settings_page_saves_values_to_database_settings(): void

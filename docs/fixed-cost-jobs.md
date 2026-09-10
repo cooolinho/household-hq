@@ -21,6 +21,12 @@ This document describes the fixed cost date updater and reminder jobs.
 - The job skips reminders that already fired for the current booking date.
 - The job aborts immediately when reminders are globally disabled in config.
 - Matching now learns from accepted/rejected suggestions and high-confidence auto-links.
+- A fixed cost can be linked to one or more transaction categories (`FixedCost::transactionCategories`, optionally
+  including subcategories via `include_subcategories`). When both the fixed cost and the transaction have
+  categories, this becomes an additional scoring component (weighted by `matching_category_weight`) and can block
+  an otherwise unique auto-link when the categories don't overlap (`matching_category_mismatch_blocks_auto_link`) -
+  a suggestion is created for manual review instead. Fixed costs without linked categories are matched exactly as
+  before.
 
 ## Configuration
 
@@ -33,6 +39,8 @@ Add these variables to `.env`:
 - `FIXED_COST_MATCHING_TIME=02:00`
 - `FIXED_COST_MATCHING_LEARNING_AUTO_MIN_SCORE=90`
 - `FIXED_COST_MATCHING_LEARNING_REJECT_BLOCK_THRESHOLD=2`
+- `matching_category_weight=15` (0-40, admin panel setting) - how much a matching transaction category contributes to the score
+- `matching_category_mismatch_blocks_auto_link=true` (admin panel setting) - block an auto-link when categories don't overlap
 - `FIXED_COST_RECURRING_SUGGESTIONS_ENABLED=true`
 - `FIXED_COST_RECURRING_SUGGESTIONS_TIME=03:00`
 - `FIXED_COST_RECURRING_SUGGESTIONS_MIN_OCCURRENCES=3`

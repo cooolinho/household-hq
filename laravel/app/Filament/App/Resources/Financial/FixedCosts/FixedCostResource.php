@@ -46,7 +46,7 @@ class FixedCostResource extends Resource
             ->modifyQueryUsing(function ($query) {
                 $query
                     ->where(FixedCost::user_id, auth()->id())
-                    ->with(FixedCost::belongs_to_category);
+                    ->with([FixedCost::belongs_to_category, FixedCost::belongs_to_many_transaction_categories]);
             });
     }
 

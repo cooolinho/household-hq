@@ -21,6 +21,11 @@ class FixedCostInfolist
                     ->label('Kategorie')
                     ->badge()
                     ->placeholder('Nicht kategorisiert'),
+                TextEntry::make(FixedCost::belongs_to_many_transaction_categories . '.name')
+                    ->label('Transaktions-Kategorien')
+                    ->badge()
+                    ->separator(',')
+                    ->placeholder('Keine Kategorien verknüpft'),
                 TextEntry::make(FixedCost::interval)
                     ->badge()
                     ->formatStateUsing(fn(FixedCost $record): string => self::formatInterval($record)),

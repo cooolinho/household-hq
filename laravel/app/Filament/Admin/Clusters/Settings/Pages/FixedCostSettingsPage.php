@@ -129,6 +129,17 @@ class FixedCostSettingsPage extends Page implements HasForms
                             ->minValue(0)
                             ->maxValue(100)
                             ->required(),
+                        TextInput::make('matching_category_weight')
+                            ->label('Kategorie-Gewicht')
+                            ->helperText('Wie stark eine übereinstimmende Transaktions-Kategorie den Matching-Score beeinflusst (0-40).')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(40)
+                            ->required(),
+                        Toggle::make('matching_category_mismatch_blocks_auto_link')
+                            ->label('Kategorie-Mismatch blockiert Auto-Link')
+                            ->columnSpanFull()
+                            ->helperText('Verhindert die automatische Verknüpfung, wenn Fixkosten und Transaktion unterschiedliche Kategorien haben - stattdessen wird ein Vorschlag erzeugt.'),
                     ]),
                 Section::make('Recurring')
                     ->columns(2)
@@ -205,6 +216,8 @@ class FixedCostSettingsPage extends Page implements HasForms
         $settings->matching_learning_reject_block_threshold = (float)$state['matching_learning_reject_block_threshold'];
         $settings->matching_learning_rule_confidence_min = (int)$state['matching_learning_rule_confidence_min'];
         $settings->matching_learning_amount_tolerance_percent = (int)$state['matching_learning_amount_tolerance_percent'];
+        $settings->matching_category_weight = (int)$state['matching_category_weight'];
+        $settings->matching_category_mismatch_blocks_auto_link = (bool)$state['matching_category_mismatch_blocks_auto_link'];
         $settings->recurring_enabled = (bool)$state['recurring_enabled'];
         $settings->recurring_schedule_time = (string)$state['recurring_schedule_time'];
         $settings->recurring_min_occurrences = (int)$state['recurring_min_occurrences'];
