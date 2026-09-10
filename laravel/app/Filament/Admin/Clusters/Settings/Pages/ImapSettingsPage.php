@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\App\Clusters\Settings\Pages;
+namespace App\Filament\Admin\Clusters\Settings\Pages;
 
-use App\Filament\App\Clusters\Settings\SettingsCluster;
+use App\Filament\Admin\Clusters\Settings\SettingsCluster;
 use App\Settings\ImapImportSettings;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -21,7 +21,7 @@ class ImapSettingsPage extends Page implements HasForms
     protected static ?string $cluster = SettingsCluster::class;
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-envelope';
     public ?array $data = [];
-    protected string $view = 'filament.app.clusters.settings.pages.imap-settings-page';
+    protected string $view = 'filament.admin.clusters.settings.pages.imap-settings-page';
 
     public static function getNavigationLabel(): string
     {

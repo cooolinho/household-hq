@@ -2,15 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Admin\Clusters\Settings\Pages\FixedCostSettingsPage;
+use App\Filament\Admin\Clusters\Settings\Pages\ImapSettingsPage;
+use App\Filament\Admin\Clusters\Settings\Pages\ReminderSettingsPage;
 use App\Filament\App\Clusters\Settings\Pages\DashboardSettingsPage;
-use App\Filament\App\Clusters\Settings\Pages\FixedCostSettingsPage;
-use App\Filament\App\Clusters\Settings\Pages\ImapSettingsPage;
-use App\Filament\App\Clusters\Settings\Pages\ReminderSettingsPage;
 use App\Models\DashboardWidgetPreference;
 use App\Models\User;
 use App\Settings\FixedCostSettings;
 use App\Settings\ImapImportSettings;
 use App\Settings\ReminderSettings;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -21,7 +22,11 @@ class SettingsPagesPersistenceTest extends TestCase
 
     public function test_fixed_cost_settings_page_saves_values_to_database_settings(): void
     {
-        Livewire::test(FixedCostSettingsPage::class)
+        Filament::setCurrentPanel('admin');
+        $admin = User::factory()->admin()->create();
+
+        Livewire::actingAs($admin)
+            ->test(FixedCostSettingsPage::class)
             ->set('data.matching_threshold', 88)
             ->set('data.recurring_window_months', 6)
             ->call('save')
@@ -35,7 +40,11 @@ class SettingsPagesPersistenceTest extends TestCase
 
     public function test_reminder_settings_page_saves_values_to_database_settings(): void
     {
-        Livewire::test(ReminderSettingsPage::class)
+        Filament::setCurrentPanel('admin');
+        $admin = User::factory()->admin()->create();
+
+        Livewire::actingAs($admin)
+            ->test(ReminderSettingsPage::class)
             ->set('data.enabled', false)
             ->set('data.default_run_at_time', '09:30')
             ->set('data.catch_up_hours', 12)
@@ -51,7 +60,11 @@ class SettingsPagesPersistenceTest extends TestCase
 
     public function test_imap_settings_page_saves_values_to_database_settings(): void
     {
-        Livewire::test(ImapSettingsPage::class)
+        Filament::setCurrentPanel('admin');
+        $admin = User::factory()->admin()->create();
+
+        Livewire::actingAs($admin)
+            ->test(ImapSettingsPage::class)
             ->set('data.enabled', false)
             ->set('data.schedule_minutes', 22)
             ->call('save')
@@ -91,4 +104,3 @@ class SettingsPagesPersistenceTest extends TestCase
         ]);
     }
 }
-
