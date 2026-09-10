@@ -207,11 +207,23 @@ class TransactionCategorizationService
 
         // AND
         if ($rule->operator === TransactionCategoryRule::OPERATOR_AND) {
-            return array_all($criteria, fn($criterion) => $this->evaluateCriterion($transaction, $criterion));
+            foreach ($criteria as $criterion) {
+                if (!$this->evaluateCriterion($transaction, $criterion)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // OR
-        return array_any($criteria, fn($criterion) => $this->evaluateCriterion($transaction, $criterion));
+        foreach ($criteria as $criterion) {
+            if ($this->evaluateCriterion($transaction, $criterion)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
