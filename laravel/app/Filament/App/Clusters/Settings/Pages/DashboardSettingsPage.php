@@ -57,6 +57,7 @@ class DashboardSettingsPage extends Page implements HasForms, HasTable
             DashboardWidgetPreference::show_portfolio_overview,
             DashboardWidgetPreference::balance_mode,
             DashboardWidgetPreference::include_budgets_in_balance,
+            DashboardWidgetPreference::period_start_day,
             DashboardWidgetPreference::currency,
         ]));
     }
@@ -111,6 +112,14 @@ class DashboardSettingsPage extends Page implements HasForms, HasTable
                             ->helperText('Alle aktiven Budgets mit der Option "In Fixkosten-Bilanz einrechnen" werden als eine zusammengefasste Ausgabe gezählt.')
                             ->default(true)
                             ->columnSpanFull(),
+                        TextInput::make(DashboardWidgetPreference::period_start_day)
+                            ->label('Periodenstart-Tag')
+                            ->helperText('1 = Kalendermonat. Bei 25 läuft die Periode vom 25. bis zum 24. des Folgemonats (z.B. wenn das Gehalt nicht zum Monatsende kommt).')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(31)
+                            ->default(1)
+                            ->required(),
                     ]),
             ])
             ->statePath('data');
@@ -201,6 +210,7 @@ class DashboardSettingsPage extends Page implements HasForms, HasTable
             DashboardWidgetPreference::show_portfolio_overview => (bool)($state[DashboardWidgetPreference::show_portfolio_overview] ?? true),
             DashboardWidgetPreference::balance_mode => $balanceMode,
             DashboardWidgetPreference::include_budgets_in_balance => (bool)($state[DashboardWidgetPreference::include_budgets_in_balance] ?? true),
+            DashboardWidgetPreference::period_start_day => max(1, min(31, (int)($state[DashboardWidgetPreference::period_start_day] ?? 1))),
             DashboardWidgetPreference::currency => $currency !== '' ? $currency : 'EUR',
         ]);
 

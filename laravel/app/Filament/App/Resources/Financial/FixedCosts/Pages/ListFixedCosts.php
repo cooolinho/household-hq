@@ -5,6 +5,7 @@ namespace App\Filament\App\Resources\Financial\FixedCosts\Pages;
 use App\Filament\App\Pages\FixedCostStatisticsPage;
 use App\Filament\App\Resources\Financial\FixedCosts\FixedCostResource;
 use App\Filament\App\Resources\Financial\FixedCosts\Widgets\FixedCostBalanceWidget;
+use App\Filament\App\Resources\Financial\FixedCosts\Widgets\FixedCostLiquidityWidget;
 use App\Filament\App\Resources\Financial\FixedCosts\Widgets\FixedCostsExpensesTableWidget;
 use App\Filament\App\Resources\Financial\FixedCosts\Widgets\FixedCostsIncomeTableWidget;
 use App\Filament\App\Resources\Financial\FixedCosts\Widgets\FixedCostUpcomingBookingsWidget;
@@ -43,6 +44,7 @@ class ListFixedCosts extends ListRecords
     {
         return [
             FixedCostBalanceWidget::class,
+            FixedCostLiquidityWidget::class,
             FixedCostWeeklyOverviewWidget::class,
             FixedCostUpcomingBookingsWidget::class,
             FixedCostsIncomeTableWidget::class,

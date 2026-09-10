@@ -153,6 +153,37 @@ class FixedCostSettingsPage extends Page implements HasForms
                             ->maxValue(100)
                             ->required(),
                     ]),
+                Section::make('Buchungstermine')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('booking_date_suggestions_enabled')
+                            ->label('Buchungstermin-Vorschläge aktiviert')
+                            ->columnSpanFull()
+                            ->helperText('Aktiviert die Erkennung abweichender Buchungstermine anhand zugeordneter Transaktionen.'),
+                        TextInput::make('booking_date_schedule_time')
+                            ->label('Job (HH:MM)')
+                            ->helperText('Tägliche Uhrzeit für die Erkennung von Buchungstermin-Abweichungen.')
+                            ->required()
+                            ->rule('date_format:H:i'),
+                        TextInput::make('booking_date_min_deviation_days')
+                            ->label('Min. Abweichung (Tage)')
+                            ->helperText('Ab dieser Abweichung des Monatstags wird ein Vorschlag erzeugt.')
+                            ->numeric()
+                            ->minValue(1)
+                            ->required(),
+                        TextInput::make('booking_date_window_months')
+                            ->label('Fenster (Monate)')
+                            ->helperText('Wie viele Monate rückwirkend für die Auswertung berücksichtigt werden.')
+                            ->numeric()
+                            ->minValue(1)
+                            ->required(),
+                        TextInput::make('booking_date_min_occurrences')
+                            ->label('Min. Transaktionen')
+                            ->helperText('Mindestanzahl zugeordneter Transaktionen, bevor ein Vorschlag erzeugt wird.')
+                            ->numeric()
+                            ->minValue(1)
+                            ->required(),
+                    ]),
             ])
             ->statePath('data');
     }
@@ -179,6 +210,11 @@ class FixedCostSettingsPage extends Page implements HasForms
         $settings->recurring_min_occurrences = (int)$state['recurring_min_occurrences'];
         $settings->recurring_window_months = (int)$state['recurring_window_months'];
         $settings->recurring_amount_tolerance_percent = (int)$state['recurring_amount_tolerance_percent'];
+        $settings->booking_date_suggestions_enabled = (bool)$state['booking_date_suggestions_enabled'];
+        $settings->booking_date_schedule_time = (string)$state['booking_date_schedule_time'];
+        $settings->booking_date_min_deviation_days = (int)$state['booking_date_min_deviation_days'];
+        $settings->booking_date_window_months = (int)$state['booking_date_window_months'];
+        $settings->booking_date_min_occurrences = (int)$state['booking_date_min_occurrences'];
         $settings->save();
 
         Notification::make()

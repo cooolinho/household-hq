@@ -8,7 +8,7 @@ use App\Models\Financial\TransactionCategory;
 use App\Models\Financial\TransactionCategoryCriterion;
 use App\Models\Financial\TransactionCategoryRule;
 use App\Models\Financial\TransactionCategoryRuleUserSetting;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class TransactionCategorizationService
@@ -205,24 +205,13 @@ class TransactionCategorizationService
             return false;
         }
 
+        // AND
         if ($rule->operator === TransactionCategoryRule::OPERATOR_AND) {
-            foreach ($criteria as $criterion) {
-                if (!$this->evaluateCriterion($transaction, $criterion)) {
-                    return false;
-                }
-            }
-
-            return true;
+            return array_all($criteria, fn($criterion) => $this->evaluateCriterion($transaction, $criterion));
         }
 
         // OR
-        foreach ($criteria as $criterion) {
-            if ($this->evaluateCriterion($transaction, $criterion)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($criteria, fn($criterion) => $this->evaluateCriterion($transaction, $criterion));
     }
 
     /**

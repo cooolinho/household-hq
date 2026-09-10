@@ -2,9 +2,9 @@
 
 namespace App\Services\FixedCost;
 
+use App\Models\Financial\BankAccount;
 use App\Models\Financial\Budget;
 use App\Models\Financial\FixedCost;
-use App\Models\Financial\FixedCostCategory;
 use App\Services\FixedCostNextBookingDateCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -273,6 +273,65 @@ final class FixedCostBalanceService
     public function budgetYearlyTotal(int $userId, string $currency = Budget::DEFAULT_CURRENCY): float
     {
         return $this->sumBudgetsYearly($this->balanceRelevantBudgets($userId, $currency));
+    }
+
+    /**
+     * Wie viel Geld ab `asOf` noch auf dem Konto liegen muss, um alle bis `periodEnd`
+     * ausstehenden Fixkosten sicher zu begleichen. Buchungen vor `asOf` (also bereits
+     * erledigte Fixkosten der laufenden Periode) fließen bewusst nicht mehr ein.
+     */
+    public function liquidityRequirement(
+        int             $userId,
+        CarbonImmutable $asOf,
+        CarbonImmutable $periodEnd,
+        bool            $includeBudgets = true,
+        string          $currency = Budget::DEFAULT_CURRENCY,
+    ): FixedCostLiquidityRequirement
+    {
+        $periodStart = $asOf;
+        $bookings = $this->projectedBookings($userId, $asOf, $periodEnd);
+
+        $requiredAmount = abs(array_sum(array_map(
+            fn(ProjectedBooking $b): float => $b->isIncome() ? 0.0 : $b->amount,
+            $bookings,
+        )));
+        $expectedIncome = array_sum(array_map(
+            fn(ProjectedBooking $b): float => $b->isIncome() ? $b->amount : 0.0,
+            $bookings,
+        ));
+
+        $budgetShare = 0.0;
+        if ($includeBudgets) {
+            $totalDays = max(1, $asOf->startOfDay()->diffInDays($periodEnd->startOfDay()) + 1);
+            $daysInMonth = max(1, $asOf->daysInMonth);
+            $budgetShare = $this->budgetMonthlyTotal($userId, $currency) * ($totalDays / $daysInMonth);
+        }
+
+        $bankAccounts = BankAccount::query()
+            ->where(BankAccount::user_id, $userId)
+            ->get([BankAccount::balance, BankAccount::balance_date]);
+
+        $bankBalance = (float)$bankAccounts->sum(fn(BankAccount $account): float => (float)$account->balance);
+        $bankBalanceAsOf = $bankAccounts
+            ->pluck(BankAccount::balance_date)
+            ->filter()
+            ->map(fn($date): CarbonImmutable => CarbonImmutable::parse($date))
+            ->sort()
+            ->first();
+
+        return new FixedCostLiquidityRequirement(
+            periodStart: $periodStart,
+            periodEnd: $periodEnd,
+            asOf: $asOf,
+            requiredAmount: $requiredAmount,
+            expectedIncome: $expectedIncome,
+            budgetShare: $budgetShare,
+            bankBalance: $bankBalance,
+            bankBalanceAsOf: $bankBalanceAsOf,
+            bookings: $bookings,
+            budgetsIncluded: $includeBudgets,
+            currency: strtoupper($currency),
+        );
     }
 
     /**

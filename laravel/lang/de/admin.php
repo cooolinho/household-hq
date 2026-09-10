@@ -188,6 +188,12 @@ return [
             'plural_model_label' => 'Matching-Vorschläge',
         ],
 
+        'booking_date_suggestion' => [
+            'navigation_label' => 'Buchungstermine',
+            'model_label' => 'Buchungstermin-Vorschlag',
+            'plural_model_label' => 'Buchungstermin-Vorschläge',
+        ],
+
         // RecurringTransactionSuggestion / Vorschlag fuer wiederkehrende Transaktionen
         'recurring_transaction_suggestion' => [
             'navigation_label' => 'Wiederkehrende Buchungen',

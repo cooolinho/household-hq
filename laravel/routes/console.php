@@ -2,6 +2,7 @@
 
 use App\Jobs\Scheduled\CheckBudgetThresholdsJob;
 use App\Jobs\Scheduled\FetchImapDocumentsJob;
+use App\Jobs\Scheduled\FixedCostBookingDateSuggestionJob;
 use App\Jobs\Scheduled\FixedCostJob;
 use App\Jobs\Scheduled\FixedCostTransactionMatchingJob;
 use App\Jobs\Scheduled\RecurringTransactionSuggestionDetectionJob;
@@ -50,6 +51,11 @@ if ($fixedCostSettings->matching_enabled) {
 if ($fixedCostSettings->recurring_enabled) {
     Schedule::job(new RecurringTransactionSuggestionDetectionJob())
         ->dailyAt($fixedCostSettings->recurring_schedule_time);
+}
+
+if ($fixedCostSettings->booking_date_suggestions_enabled) {
+    Schedule::job(new FixedCostBookingDateSuggestionJob())
+        ->dailyAt($fixedCostSettings->booking_date_schedule_time);
 }
 
 if ($imapImportSettings->enabled) {

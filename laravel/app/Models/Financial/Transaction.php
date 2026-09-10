@@ -5,6 +5,7 @@ namespace App\Models\Financial;
 use App\Models\CommentableInterface;
 use App\Models\Concerns\HasComments;
 use App\Models\Contracts\Documentables;
+use App\Models\Contracts\FinancialTransactionCategory;
 use App\Models\Document;
 use App\Models\User;
 use Database\Factories\Financial\TransactionFactory;
@@ -157,9 +158,9 @@ class Transaction extends Model implements CommentableInterface
     {
         return $this->belongsToMany(
             TransactionCategory::class,
-            'financial_transaction_transaction_category',
-            'transaction_id',
-            'transaction_category_id'
-        )->withPivot('created_at');
+            FinancialTransactionCategory::PIVOT_TABLE,
+            FinancialTransactionCategory::TRANSACTION_ID,
+            FinancialTransactionCategory::CATEGORY_ID,
+        )->withPivot(FinancialTransactionCategory::CREATED_AT);
     }
 }

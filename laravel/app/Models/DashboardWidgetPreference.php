@@ -17,6 +17,7 @@ class DashboardWidgetPreference extends Model
     const string show_portfolio_overview = 'show_portfolio_overview';
     const string balance_mode = 'balance_mode';
     const string include_budgets_in_balance = 'include_budgets_in_balance';
+    const string period_start_day = 'period_start_day';
     const string currency = 'currency';
     const string created_at = self::CREATED_AT;
     const string updated_at = self::UPDATED_AT;
@@ -37,6 +38,7 @@ class DashboardWidgetPreference extends Model
         self::show_portfolio_overview,
         self::balance_mode,
         self::include_budgets_in_balance,
+        self::period_start_day,
         self::currency,
     ];
 
@@ -57,6 +59,7 @@ class DashboardWidgetPreference extends Model
             self::show_portfolio_overview => true,
             self::balance_mode => self::BALANCE_MODE_BOTH,
             self::include_budgets_in_balance => true,
+            self::period_start_day => 1,
             self::currency => 'EUR',
         ];
     }
@@ -74,6 +77,7 @@ class DashboardWidgetPreference extends Model
             self::show_upcoming_transactions_table => 'boolean',
             self::show_portfolio_overview => 'boolean',
             self::include_budgets_in_balance => 'boolean',
+            self::period_start_day => 'integer',
         ];
     }
 }

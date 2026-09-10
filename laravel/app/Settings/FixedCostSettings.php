@@ -28,6 +28,12 @@ class FixedCostSettings extends Settings
     public int $recurring_window_months;
     public int $recurring_amount_tolerance_percent;
 
+    public bool $booking_date_suggestions_enabled;
+    public string $booking_date_schedule_time;
+    public int $booking_date_min_deviation_days;
+    public int $booking_date_window_months;
+    public int $booking_date_min_occurrences;
+
     public static function group(): string
     {
         return 'fixed_costs';
