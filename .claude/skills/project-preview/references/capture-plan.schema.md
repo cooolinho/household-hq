@@ -49,7 +49,7 @@ use test data or drop the page.
   "base_url": "http://household-hq",
   "viewport": {"width": 1440, "height": 900},
   "color_scheme": "light",
-  "locale": "de-DE",
+  "locale": "en-GB",
   "timezone": "Europe/Berlin",
   "login": {"url": "/app/login", "success_selector": ".fi-sidebar"},
   "discover": {"start_paths": ["/app"], "link_selector": ".fi-sidebar a[href], .fi-topbar a[href]"},
