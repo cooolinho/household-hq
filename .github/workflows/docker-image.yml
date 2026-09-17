@@ -110,7 +110,7 @@ jobs:
 
           curl -fsS http://127.0.0.1:8080/up
           curl -fsS -o /dev/null http://127.0.0.1:8080/app/login
-          docker exec smoke-test supervisorctl status
+          docker exec smoke-test supervisorctl status mysql redis php-fpm nginx horizon scheduler
 
       - name: Smoke test logs
         if: always()
