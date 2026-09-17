@@ -142,7 +142,7 @@ log "Starte php-fpm, nginx, horizon, scheduler"
 supervisorctl start php-fpm nginx horizon scheduler >/dev/null
 
 APP_URL_DISPLAY="${APP_URL:-http://localhost}"
-log "Fertig - Personal Home Portal ist erreichbar unter ${APP_URL_DISPLAY}"
+log "Fertig - Household HQ ist erreichbar unter ${APP_URL_DISPLAY}"
 
 if [ "${DEMO_DATA:-false}" = "true" ]; then
     log "Demo-Login (App-Panel):   user@example.com / secret"

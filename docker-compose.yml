@@ -1,6 +1,6 @@
 services:
-    personal-home-portal:
-        container_name: "personal-home-portal"
+    household-hq:
+        container_name: "household-hq"
         build:
             context: './docker'
             dockerfile: Dockerfile
@@ -24,14 +24,14 @@ services:
             - './logs/supervisord:/var/log/supervisor'
             - './docker/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf'
         networks:
-            - personal_home_portal_network
+            - household_hq_network
         depends_on:
-            - personal-home-portal-db
-            - personal-home-portal-cache
-            - personal-home-portal-mailpit
+            - household-hq-db
+            - household-hq-cache
+            - household-hq-mailpit
 
-    personal-home-portal-db:
-        container_name: "personal-home-portal-db"
+    household-hq-db:
+        container_name: "household-hq-db"
         image: 'mysql/mysql-server:8.0'
         ports:
             - '${FORWARD_DB_PORT:-3306}:3306'
@@ -43,7 +43,7 @@ services:
             MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
         networks:
-            - personal_home_portal_network
+            - household_hq_network
         healthcheck:
             test:
                 - CMD
@@ -53,15 +53,15 @@ services:
             retries: 3
             timeout: 5s
 
-    personal-home-portal-cache:
-        container_name: "personal-home-portal-cache"
+    household-hq-cache:
+        container_name: "household-hq-cache"
         image: 'redis:alpine'
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
-            - 'personal-home-portal-cache:/data'
+            - 'household-hq-cache:/data'
         networks:
-            - personal_home_portal_network
+            - household_hq_network
         healthcheck:
             test:
                 - CMD
@@ -70,19 +70,19 @@ services:
             retries: 3
             timeout: 5s
 
-    personal-home-portal-mailpit:
-        container_name: "personal-home-portal-mailpit"
+    household-hq-mailpit:
+        container_name: "household-hq-mailpit"
         image: 'axllent/mailpit:latest'
         ports:
             - '${FORWARD_MAILPIT_PORT:-1025}:1025'
             - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
         networks:
-            - personal_home_portal_network
+            - household_hq_network
 
 networks:
-    personal_home_portal_network:
+    household_hq_network:
         driver: bridge
 
 volumes:
-    personal-home-portal-cache:
+    household-hq-cache:
         driver: local

@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
 CONF_PATH="${SCRIPT_DIR}/docker/supervisord.conf"
 
-CONTAINER="personal-home-portal"
+CONTAINER="household-hq"
 
 # ─── Colors ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'

@@ -1,4 +1,4 @@
-# AGENTS.md – personal-home-portal
+# AGENTS.md – household-hq
 
 ## Stack
 
@@ -11,27 +11,27 @@
 
 ## All Commands Run Inside Docker
 
-The app container is `personal-home-portal` (see `docker-compose.yml`):
+The app container is `household-hq` (see `docker-compose.yml`):
 
 ```bash
-docker exec -it --user sail personal-home-portal sh -c "php artisan migrate"
-docker exec -it --user sail personal-home-portal sh -c "php artisan test"
-docker exec -it --user sail personal-home-portal sh -c "yarn build"
-docker exec -it --user sail personal-home-portal sh -c "yarn add <package>"
+docker exec -it --user sail household-hq sh -c "php artisan migrate"
+docker exec -it --user sail household-hq sh -c "php artisan test"
+docker exec -it --user sail household-hq sh -c "yarn build"
+docker exec -it --user sail household-hq sh -c "yarn add <package>"
 ```
 
 ## Code Generation – Always Use Artisan Makers
 
 ```bash
 # Model with migration
-docker exec -it --user sail personal-home-portal sh -c "php artisan make:model Department --m"
+docker exec -it --user sail household-hq sh -c "php artisan make:model Department --m"
 
 # Filament resource (simple = modal-based, no separate page)
-docker exec -it --user sail personal-home-portal sh -c "php artisan make:filament-resource Department --simple"
+docker exec -it --user sail household-hq sh -c "php artisan make:filament-resource Department --simple"
 
 # Filament page / widget
-docker exec -it --user sail personal-home-portal sh -c "php artisan make:filament-page ReportsPage"
-docker exec -it --user sail personal-home-portal sh -c "php artisan make:filament-widget StatsOverview"
+docker exec -it --user sail household-hq sh -c "php artisan make:filament-page ReportsPage"
+docker exec -it --user sail household-hq sh -c "php artisan make:filament-widget StatsOverview"
 ```
 
 ## Model Convention
@@ -96,7 +96,7 @@ either tree before adding a third panel.
 | `docs/todos.md`                                         | Phased implementation plan with exact resource/page names                           |
 | `docker-compose.yml`                                    | Service definitions (laravel, mysql, redis, mailpit)                                |
 | `docker-compose.prod.yml`                               | Production setup with Traefik labels and persistent DB/Redis volumes                |
-| `Dockerfile`                                            | All-in-one production image (app + Horizon + scheduler + MySQL + Redis, one container), published to `ghcr.io/cooolinho/personal-home-portal` |
+| `Dockerfile`                                            | All-in-one production image (app + Horizon + scheduler + MySQL + Redis, one container), published to `ghcr.io/cooolinho/household-hq` |
 | `docker/all-in-one/`                                    | Config backing the all-in-one image: `entrypoint.sh`/`bootstrap.sh`, supervisord/nginx/php-fpm/mysql/redis configs |
 | `.github/workflows/docker-image.yml`                    | CI: builds, smoke-tests and publishes the all-in-one image (tag push or manual dispatch) |
 | `docs/docker-image.md`                                  | All-in-one image reference: usage, environment variables, backup/updates            |
@@ -106,12 +106,12 @@ either tree before adding a third panel.
 
 ```bash
 docker-compose build && docker-compose up -d
-docker exec -it personal-home-portal bash -c "chmod -R 777 /var/www/html"
-docker exec -it personal-home-portal bash -c "chown -R sail:sail /var/www/html"
-docker exec -it --user sail personal-home-portal sh -c "sh init.sh"
-docker exec -it --user sail personal-home-portal sh -c "php artisan filament:user --name=Admin --email=admin@example.com --password=secret --panel=app"
+docker exec -it household-hq bash -c "chmod -R 777 /var/www/html"
+docker exec -it household-hq bash -c "chown -R sail:sail /var/www/html"
+docker exec -it --user sail household-hq sh -c "sh init.sh"
+docker exec -it --user sail household-hq sh -c "php artisan filament:user --name=Admin --email=admin@example.com --password=secret --panel=app"
 # filament:user always creates a ROLE_USER; promote it to ROLE_ADMIN to reach /admin:
-docker exec -it --user sail personal-home-portal sh -c "php artisan tinker --execute=\"App\\Models\\User::where('email','admin@example.com')->update(['role'=>'ROLE_ADMIN']);\""
-docker restart personal-home-portal
+docker exec -it --user sail household-hq sh -c "php artisan tinker --execute=\"App\\Models\\User::where('email','admin@example.com')->update(['role'=>'ROLE_ADMIN']);\""
+docker restart household-hq
 # Login (all roles): http://localhost/app/login - admins are redirected to /admin after signing in
 ```

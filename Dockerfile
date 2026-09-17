@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# All-in-One-Image von Personal Home Portal: App (nginx + php-fpm), Horizon,
+# All-in-One-Image von Household HQ: App (nginx + php-fpm), Horizon,
 # Scheduler, MySQL und Redis in einem einzigen Container. Siehe
 # docs/docker-image.md fuer Nutzung, ENV-Referenz und Betriebshinweise.
 #
@@ -53,9 +53,9 @@ ENV APP_VERSION=${APP_VERSION} \
     DEBIAN_FRONTEND=noninteractive \
     TZ=UTC
 
-LABEL org.opencontainers.image.title="Personal Home Portal" \
+LABEL org.opencontainers.image.title="Household HQ" \
       org.opencontainers.image.description="Self-hosted portal for insurances, accounts, contracts and inventory (Laravel + Filament)" \
-      org.opencontainers.image.source="https://github.com/cooolinho/personal-home-portal" \
+      org.opencontainers.image.source="https://github.com/cooolinho/household-hq" \
       org.opencontainers.image.licenses="MIT"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
@@ -153,7 +153,7 @@ RUN composer check-platform-reqs --no-dev --lock \
 
 # Default-ENV: per `docker run -e ...` ueberschreibbar. Vollstaendige
 # Referenz in docs/docker-image.md.
-ENV APP_NAME="Personal Home Portal" \
+ENV APP_NAME="Household HQ" \
     APP_ENV=production \
     APP_DEBUG=false \
     APP_URL=http://localhost:8080 \

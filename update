@@ -6,7 +6,7 @@ ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/.env}"
 LARAVEL_ENV_FILE="${LARAVEL_ENV_FILE:-${SCRIPT_DIR}/laravel/.env}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 CONTAINER_WORKDIR="/var/www/html"
-APP_CONTAINER_NAME="personal-home-portal"
+APP_CONTAINER_NAME="household-hq"
 
 MODE=""
 PULL_CHANGES=true

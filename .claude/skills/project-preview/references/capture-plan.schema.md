@@ -46,7 +46,7 @@ use test data or drop the page.
 
 ```json
 {
-  "base_url": "http://personal-home-portal",
+  "base_url": "http://household-hq",
   "viewport": {"width": 1440, "height": 900},
   "color_scheme": "light",
   "locale": "de-DE",

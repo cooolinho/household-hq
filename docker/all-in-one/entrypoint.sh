@@ -15,10 +15,10 @@ fail() {
 
 print_help() {
     cat <<'EOF'
-Personal Home Portal - All-in-One Docker Image
+Household HQ - All-in-One Docker Image
 
 Usage:
-  docker run [DOCKER OPTIONS] ghcr.io/cooolinho/personal-home-portal[:TAG] [OPTIONS]
+  docker run [DOCKER OPTIONS] ghcr.io/cooolinho/household-hq[:TAG] [OPTIONS]
 
 Options:
   --demo, --seed-demo   Seed demo users, accounts, insurances and transactions
@@ -30,8 +30,8 @@ Without options the container just starts normally (app + workers + scheduler
 + database + cache). A first argument that does not start with "-" replaces
 the normal startup entirely and is executed as-is, e.g.:
 
-  docker run ... ghcr.io/cooolinho/personal-home-portal bash
-  docker run ... ghcr.io/cooolinho/personal-home-portal php artisan tinker
+  docker run ... ghcr.io/cooolinho/household-hq bash
+  docker run ... ghcr.io/cooolinho/household-hq php artisan tinker
 
 See docs/docker-image.md in the repository for the full environment variable
 reference.

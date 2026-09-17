@@ -1,4 +1,4 @@
-# Personal Home Portal
+# Household HQ
 
 ![Project Preview](docs/project-preview.png)
 
@@ -7,7 +7,7 @@ documents and household inventory - built with Laravel and Filament.
 
 ## 📖 About
 
-Personal Home Portal keeps the paperwork of running a household in one place. Every user has their own private
+Household HQ keeps the paperwork of running a household in one place. Every user has their own private
 data (accounts, transactions, insurances, contracts, ...); admins additionally manage users and global settings
 from a separate panel. See [docs/index.md](docs/index.md) for the full project definition.
 
@@ -44,10 +44,10 @@ file needed. Full reference: [docs/docker-image.md](docs/docker-image.md).
 
 ```bash
 docker run -d \
-  --name personal-home-portal \
+  --name household-hq \
   -p 8080:80 \
-  -v personal-home-portal-data:/data \
-  ghcr.io/cooolinho/personal-home-portal:latest \
+  -v household-hq-data:/data \
+  ghcr.io/cooolinho/household-hq:latest \
   --demo
 ```
 
@@ -62,14 +62,14 @@ For a real deployment, drop `--demo` and set your own admin instead:
 
 ```bash
 docker run -d \
-  --name personal-home-portal \
+  --name household-hq \
   -p 8080:80 \
-  -v personal-home-portal-data:/data \
+  -v household-hq-data:/data \
   -e APP_URL=https://portal.example.com \
   -e ADMIN_EMAIL=admin@example.com \
   -e ADMIN_PASSWORD='change-me-immediately' \
   --stop-timeout 60 \
-  ghcr.io/cooolinho/personal-home-portal:latest
+  ghcr.io/cooolinho/household-hq:latest
 ```
 
 ### Option B: Local development
@@ -79,25 +79,25 @@ hot reload - this is what the [`docker-compose.yml`](docker-compose.yml) in this
 above.
 
 ```bash
-git clone git@github.com:cooolinho/personal-home-portal.git
-cd personal-home-portal
+git clone git@github.com:cooolinho/household-hq.git
+cd household-hq
 cp .env.example .env
 
 docker-compose build
 docker-compose up -d
 
-docker exec -it personal-home-portal bash -c "chmod -R 777 /var/www/html"
-docker exec -it personal-home-portal bash -c "chown -R sail:sail /var/www/html"
-docker exec -it --user sail personal-home-portal sh -c "sh init.sh"
+docker exec -it household-hq bash -c "chmod -R 777 /var/www/html"
+docker exec -it household-hq bash -c "chown -R sail:sail /var/www/html"
+docker exec -it --user sail household-hq sh -c "sh init.sh"
 
 # create your admin account (see Usage below for what this does)
-docker exec -it --user sail personal-home-portal sh -c "php artisan app:create-admin-user"
+docker exec -it --user sail household-hq sh -c "php artisan app:create-admin-user"
 
-docker restart personal-home-portal
+docker restart household-hq
 ```
 
 Open <http://localhost/app/login>. Set your own `LARAVEL_CONTAINER_NAME` in `.env` first if you want a container
-name other than `personal-home-portal`.
+name other than `household-hq`.
 
 ## 📋 Usage
 
@@ -111,7 +111,7 @@ self-signup (new accounts are always regular, unverified users; verify or promot
 ### Creating an administrator
 
 ```bash
-docker exec -it --user sail personal-home-portal sh -c "php artisan app:create-admin-user"
+docker exec -it --user sail household-hq sh -c "php artisan app:create-admin-user"
 ```
 
 Prompts for name/e-mail/password (or pass `--name=`, `--email=`, `--password=` non-interactively). Leaves an
@@ -121,10 +121,10 @@ existing account with that e-mail untouched instead of overwriting its password.
 
 ```bash
 # all idempotent demo seeders
-docker exec -it --user sail personal-home-portal sh -c "php artisan db:seed"
+docker exec -it --user sail household-hq sh -c "php artisan db:seed"
 
 # choose a single seeder or a grouped domain (e.g. "Financial") interactively
-docker exec -it --user sail personal-home-portal sh -c "php artisan app:seed-demo-data"
+docker exec -it --user sail household-hq sh -c "php artisan app:seed-demo-data"
 ```
 
 To replace outdated system transaction categories, run the interactive reset command (deletes only system
@@ -132,7 +132,7 @@ categories, or all categories including user-created ones, then re-runs the syst
 existing but lose their deleted category assignments):
 
 ```bash
-docker exec -it --user sail personal-home-portal sh -c "php artisan app:reset-transaction-categories"
+docker exec -it --user sail household-hq sh -c "php artisan app:reset-transaction-categories"
 ```
 
 ### Queue & Horizon
@@ -162,7 +162,7 @@ Admins reach the dashboard from a navigation item in `/admin`, or directly at `/
 ## 📁 Project Structure
 
 ```
-personal-home-portal/
+household-hq/
 ├── Dockerfile                # All-in-one production image (app + workers + MySQL + Redis)
 ├── docker-compose.yml         # Local dev stack (bind-mounted, hot reload)
 ├── docker-compose.prod.yml    # Reference prod compose (Traefik, persistent volumes)

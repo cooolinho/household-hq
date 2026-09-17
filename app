@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${ENV_FILE:-${SCRIPT_DIR}/.env}"
 LARAVEL_ENV_FILE="${LARAVEL_ENV_FILE:-${SCRIPT_DIR}/laravel/.env}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
-DEFAULT_CONTAINER_NAME="personal-home-portal"
+DEFAULT_CONTAINER_NAME="household-hq"
 CONTAINER_WORKDIR="/var/www/html"
 
 RED='\033[0;31m'

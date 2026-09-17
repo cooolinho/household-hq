@@ -77,7 +77,7 @@ jobs:
         with:
           context: .
           platforms: linux/amd64
-          tags: personal-home-portal:smoke-test
+          tags: household-hq:smoke-test
           build-args: APP_VERSION=${{ steps.version.outputs.version }}
           load: true
           cache-from: type=gha
@@ -90,7 +90,7 @@ jobs:
           docker run -d --name smoke-test -p 8080:80 \
             -e ADMIN_EMAIL=smoke@example.com \
             -e ADMIN_PASSWORD=smoke-test-password \
-            personal-home-portal:smoke-test --demo
+            household-hq:smoke-test --demo
 
           echo "Warte auf 'healthy'..."
           status="starting"

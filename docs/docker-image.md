@@ -1,6 +1,6 @@
 # Docker Image
 
-Personal Home Portal ships as a single, self-contained Docker image: the app, Horizon, the scheduler, MySQL and
+Household HQ ships as a single, self-contained Docker image: the app, Horizon, the scheduler, MySQL and
 Redis all run inside **one container**. There is no compose file for it and none is needed - a single `docker run`
 is enough, optionally seeded with demo data. This complements, but does not replace, the local development setup
 described in the [main README](../README.md) (`docker-compose.yml`), which stays a separate, bind-mounted, hot-reloading
@@ -27,7 +27,7 @@ and `DB_PASSWORD` (see [Secrets](#secrets)).
 
 ## Tags
 
-Images are published to [GHCR](https://ghcr.io) as `ghcr.io/cooolinho/personal-home-portal`:
+Images are published to [GHCR](https://ghcr.io) as `ghcr.io/cooolinho/household-hq`:
 
 - `YYYY.M.D` (e.g. `2026.9.17`) - a specific release, built the day it was cut. A second release on the same day
   gets a `.N` suffix (e.g. `2026.9.17.2`).
@@ -39,10 +39,10 @@ Built for `linux/amd64` and `linux/arm64`.
 
 ```bash
 docker run -d \
-  --name personal-home-portal \
+  --name household-hq \
   -p 8080:80 \
-  -v personal-home-portal-data:/data \
-  ghcr.io/cooolinho/personal-home-portal:latest \
+  -v household-hq-data:/data \
+  ghcr.io/cooolinho/household-hq:latest \
   --demo
 ```
 
@@ -55,21 +55,21 @@ insurances, fixed costs and more on first start. Open <http://localhost:8080/app
 | Admin (`/admin`, `/horizon`) | `admin@example.com` | `secret` |
 
 The container takes up to a minute or two on its very first start (MySQL initializes its data directory, then
-migrations and seeders run) - `docker logs -f personal-home-portal` shows progress, and `docker ps` shows `healthy`
+migrations and seeders run) - `docker logs -f household-hq` shows progress, and `docker ps` shows `healthy`
 once `/up` responds.
 
 ## Production use (no demo data)
 
 ```bash
 docker run -d \
-  --name personal-home-portal \
+  --name household-hq \
   -p 8080:80 \
-  -v personal-home-portal-data:/data \
+  -v household-hq-data:/data \
   -e APP_URL=https://portal.example.com \
   -e ADMIN_EMAIL=admin@example.com \
   -e ADMIN_PASSWORD='change-me-immediately' \
   --stop-timeout 60 \
-  ghcr.io/cooolinho/personal-home-portal:latest
+  ghcr.io/cooolinho/household-hq:latest
 ```
 
 Without `--demo`/`DEMO_DATA`, only the global system data is seeded (insurance, fixed-cost and transaction
@@ -82,7 +82,7 @@ Without `ADMIN_EMAIL`/`ADMIN_PASSWORD` and without `--demo`, the container start
 afterwards with:
 
 ```bash
-docker exec -it personal-home-portal php artisan app:create-admin-user
+docker exec -it household-hq php artisan app:create-admin-user
 ```
 
 ## Environment variables
@@ -91,7 +91,7 @@ All have sane defaults baked into the image; override with `-e` as needed.
 
 | Variable | Default | Notes |
 |---|---|---|
-| `APP_NAME` | `Personal Home Portal` | |
+| `APP_NAME` | `Household HQ` | |
 | `APP_ENV` | `production` | |
 | `APP_DEBUG` | `false` | Never enable on a public deployment |
 | `APP_URL` | `http://localhost:8080` | Set to the externally reachable URL |
@@ -125,11 +125,11 @@ directories, `storage/app` (uploaded documents, avatars, inventory images, ...),
 Updating is pulling the new image and recreating the container with the **same volume**:
 
 ```bash
-docker pull ghcr.io/cooolinho/personal-home-portal:latest
-docker stop --timeout 60 personal-home-portal
-docker rm personal-home-portal
-docker run -d --name personal-home-portal -p 8080:80 -v personal-home-portal-data:/data \
-  ghcr.io/cooolinho/personal-home-portal:latest
+docker pull ghcr.io/cooolinho/household-hq:latest
+docker stop --timeout 60 household-hq
+docker rm household-hq
+docker run -d --name household-hq -p 8080:80 -v household-hq-data:/data \
+  ghcr.io/cooolinho/household-hq:latest
 ```
 
 Migrations (including the [spatie/laravel-settings](https://spatie.be/docs/laravel-settings/v3/introduction) ones)
@@ -140,37 +140,37 @@ of `latest` for a deployment where you want to control exactly when updates happ
 
 ```bash
 # Database
-docker exec personal-home-portal sh -c \
+docker exec household-hq sh -c \
   'mysqldump --single-transaction -uroot --socket=/run/mysqld/mysqld.sock "$DB_DATABASE"' > backup.sql
 
 # Everything (database dump + uploaded files, logs, secrets)
-docker run --rm -v personal-home-portal-data:/data -v "$PWD":/backup alpine \
-  tar czf /backup/personal-home-portal-data.tar.gz -C /data .
+docker run --rm -v household-hq-data:/data -v "$PWD":/backup alpine \
+  tar czf /backup/household-hq-data.tar.gz -C /data .
 ```
 
 Restore the volume by extracting the tarball back into a fresh, empty volume before starting the container, or
-replay `backup.sql` with `docker exec -i personal-home-portal mysql --socket=/run/mysqld/mysqld.sock -uroot "$DB_DATABASE" < backup.sql`.
+replay `backup.sql` with `docker exec -i household-hq mysql --socket=/run/mysqld/mysqld.sock -uroot "$DB_DATABASE" < backup.sql`.
 
 ## Useful commands
 
 ```bash
 # Follow logs
-docker logs -f personal-home-portal
+docker logs -f household-hq
 
 # Run an artisan command
-docker exec -it personal-home-portal php artisan tinker
+docker exec -it household-hq php artisan tinker
 
 # Create (or re-check) the administrator account
-docker exec -it personal-home-portal php artisan app:create-admin-user
+docker exec -it household-hq php artisan app:create-admin-user
 
 # Seed demo data into an already-running container (idempotent, safe to repeat)
-docker exec -it personal-home-portal php artisan db:seed
+docker exec -it household-hq php artisan db:seed
 
 # Check what supervisord is running
-docker exec personal-home-portal supervisorctl status
+docker exec household-hq supervisorctl status
 
 # Open a shell instead of the normal startup
-docker run --rm -it ghcr.io/cooolinho/personal-home-portal:latest bash
+docker run --rm -it ghcr.io/cooolinho/household-hq:latest bash
 ```
 
 ## Reverse proxy
@@ -186,7 +186,7 @@ docker run -d \
   --label 'traefik.enable=true' \
   --label 'traefik.http.routers.portal.rule=Host(`portal.example.com`)' \
   --label 'traefik.http.services.portal.loadbalancer.server.port=80' \
-  ... ghcr.io/cooolinho/personal-home-portal:latest
+  ... ghcr.io/cooolinho/household-hq:latest
 ```
 
 `TRUSTED_PROXIES='*'` trusts any proxy IP; use a comma-separated list of the proxy's actual IPs instead when
@@ -195,8 +195,8 @@ possible.
 ## Building locally
 
 ```bash
-docker build -t personal-home-portal .
-docker buildx build --platform linux/amd64,linux/arm64 -t personal-home-portal .   # multi-arch
+docker build -t household-hq .
+docker buildx build --platform linux/amd64,linux/arm64 -t household-hq .   # multi-arch
 ```
 
 The build context is the repository root (the [`Dockerfile`](../Dockerfile) copies from `laravel/`), so it must be

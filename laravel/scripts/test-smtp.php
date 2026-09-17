@@ -20,7 +20,7 @@ if (empty($sender)) {
 
 $subject = sprintf('[SMTP-Test] %s', now()->format('Y-m-d H:i:s'));
 $body = implode("\n", [
-    'Das ist eine automatische SMTP-Testmail aus personal-home-portal.',
+    'Das ist eine automatische SMTP-Testmail aus household-hq.',
     sprintf('Zeitpunkt: %s', now()->toDateTimeString()),
     sprintf('Empfaenger: %s', $recipient),
     sprintf('Sender (mail.from.address): %s', $sender),
