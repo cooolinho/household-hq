@@ -91,11 +91,16 @@ either tree before adding a third panel.
 | `laravel/app/Support/PanelRouter.php`                   | Maps a user to their panel id/URL (login redirect, `/` redirect)                    |
 | `update`                                                | `./update dev\|prod` deploy script: pull, rebuild, reconcile supervisor programs, composer/yarn, migrate, restart Horizon |
 | `supervisor.sh`                                         | Interactive control for Supervisor processes (`php`, `horizon`, `scheduler`)        |
-| `docker/supervisord.conf`                               | Runtime process definitions for app server, Horizon, and scheduler                  |
+| `docker/supervisord.conf`                               | Runtime process definitions for app server, Horizon, and scheduler (dev image)      |
 | `docs/index.md`                                         | Full domain documentation (roles, billing formula, workflow)                        |
 | `docs/todos.md`                                         | Phased implementation plan with exact resource/page names                           |
 | `docker-compose.yml`                                    | Service definitions (laravel, mysql, redis, mailpit)                                |
 | `docker-compose.prod.yml`                               | Production setup with Traefik labels and persistent DB/Redis volumes                |
+| `Dockerfile`                                            | All-in-one production image (app + Horizon + scheduler + MySQL + Redis, one container), published to `ghcr.io/cooolinho/personal-home-portal` |
+| `docker/all-in-one/`                                    | Config backing the all-in-one image: `entrypoint.sh`/`bootstrap.sh`, supervisord/nginx/php-fpm/mysql/redis configs |
+| `.github/workflows/docker-image.yml`                    | CI: builds, smoke-tests and publishes the all-in-one image (tag push or manual dispatch) |
+| `docs/docker-image.md`                                  | All-in-one image reference: usage, environment variables, backup/updates            |
+| `laravel/app/Console/Commands/CreateAdminUserCommand.php` | `php artisan app:create-admin-user` - creates one admin, leaves an existing account with that e-mail untouched |
 
 ## First-Run Setup
 
