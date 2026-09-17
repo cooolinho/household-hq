@@ -1,5 +1,7 @@
 # Personal Home Portal
 
+![Project Preview](docs/project-preview.png)
+
 ## 1. clone repository
 ```bash
 # main branch
