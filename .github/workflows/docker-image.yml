@@ -47,12 +47,12 @@ jobs:
           set -euo pipefail
 
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            VERSION="${INPUT_VERSION:-$(date -u +%Y.%-m.%-d)}"
+            VERSION="${INPUT_VERSION:-v$(date -u +%Y.%-m.%-d)}"
           else
             VERSION="${GITHUB_REF_NAME}"
           fi
 
-          if ! [[ "$VERSION" =~ ^[0-9]{4}\.(1[0-2]|[1-9])\.(3[01]|[12][0-9]|[1-9])(\.[0-9]+)?$ ]]; then
+          if ! [[ "$VERSION" =~ ^v[0-9]{4}\.(1[0-2]|[1-9])\.(3[01]|[12][0-9]|[1-9])(\.[0-9]+)?$ ]]; then
             echo "::error::Ungueltiges Versionsformat: '${VERSION}' (erwartet YYYY.M.D oder YYYY.M.D.N, z.B. 2026.9.17)"
             exit 1
           fi
