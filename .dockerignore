@@ -1,0 +1,56 @@
+# Build-Kontext fuer das All-in-One-Image (Dockerfile liegt im Repo-Root,
+# die eigentliche App unter laravel/). Alles hier drin darf NIE ins Image
+# gelangen - insbesondere .env-Dateien und lokale Uploads aus der Dev-Umgebung.
+.git
+.github
+.idea
+.claude
+.vscode
+logs
+docs
+mixpost
+
+# Diese README/Docs-Assets werden fuer das Image nicht gebraucht.
+*.md
+
+# Dev-/Compose-spezifisch, im Image irrelevant.
+docker-compose*.yml
+docker/Dockerfile
+docker/php.ini
+docker/start-container
+docker/supervisord.conf
+app
+update
+supervisor.sh
+
+# .env-Dateien nie in ein Image backen - egal wo im Baum.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Von den Build-Stages selbst erzeugt bzw. lokal vorhanden - werden frisch im
+# jeweiligen Build-Stage installiert/gebaut, nicht vom Host uebernommen.
+laravel/vendor
+laravel/node_modules
+laravel/laravel
+laravel/public/build
+laravel/public/hot
+laravel/public/storage
+laravel/public/*/filament
+laravel/storage/*.key
+laravel/storage/app/*
+!laravel/storage/app/.gitignore
+laravel/storage/framework/cache/data/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/testing/*
+laravel/storage/framework/views/*
+laravel/storage/logs/*
+!laravel/storage/**/.gitignore
+laravel/bootstrap/cache/*.php
+laravel/tests
+laravel/.phpunit.result.cache
+laravel/.idea
+laravel/.fleet
+laravel/.vscode
+laravel/.zed
+laravel/.nova

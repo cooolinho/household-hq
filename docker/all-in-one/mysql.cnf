@@ -1,0 +1,22 @@
+# Wird nach /etc/mysql/mysql.conf.d/zz-portal.cnf kopiert. Ubuntus
+# /etc/mysql/my.cnf laedt !includedir /etc/mysql/mysql.conf.d/ alphabetisch -
+# "zz-" sortiert nach dem Paket-eigenen "mysqld.cnf" und gewinnt damit.
+[mysqld]
+# /data wird als Volume gemountet, damit die Datenbank Container-Neustarts
+# und Image-Updates uebersteht (siehe VOLUME /data im Dockerfile).
+datadir = /data/mysql
+socket = /run/mysqld/mysqld.sock
+pid-file = /run/mysqld/mysqld.pid
+
+# Nur containerintern erreichbar - der Container veroeffentlicht Port 3306
+# bewusst nicht, die App verbindet sich ueber 127.0.0.1.
+bind-address = 127.0.0.1
+skip-name-resolve
+
+# Einzelcontainer ohne Replikation: Binlog und Performance Schema kosten nur
+# Speicher/Platz, ohne dass sie hier einen Zweck erfuellen.
+disable_log_bin
+performance_schema = OFF
+
+[client]
+socket = /run/mysqld/mysqld.sock
