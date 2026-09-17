@@ -6,6 +6,7 @@ use App\Models\CommentableInterface;
 use App\Models\Concerns\HasComments;
 use App\Models\Concerns\HasReminders;
 use App\Models\Contracts\Documentables;
+use App\Models\Contracts\FinancialFixedCostTransactionCategory;
 use App\Models\Document;
 use App\Models\Enums\FixedCostEndsModeEnum;
 use App\Models\Enums\FixedCostIntervalEnum;
@@ -13,6 +14,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
@@ -29,6 +31,7 @@ use Spatie\Tags\HasTags;
  * @property string $notes
  * @property float $amount
  * @property int|null $category_id
+ * @property bool $include_subcategories
  * @property FixedCostIntervalEnum $interval
  * @property FixedCostEndsModeEnum $ends_mode
  * @property Carbon|null $ends_date
@@ -49,6 +52,7 @@ use Spatie\Tags\HasTags;
  * @property Collection|Document[] $documents
  * @property Insurance|null $insurance
  * @property Collection|Transaction[] $transactions
+ * @property Collection|TransactionCategory[] $transactionCategories
  * @property Collection|TransactionMatchingSuggestion[] $matchingSuggestions
  * @property Collection|FixedCostMatchingRule[] $matchingRules
  * @property Collection|FixedCostBookingDateSuggestion[] $bookingDateSuggestions
@@ -77,6 +81,8 @@ class FixedCost extends Model implements CommentableInterface
     const string category = 'category';
 
     const string category_id = 'category_id';
+
+    const string include_subcategories = 'include_subcategories';
 
     const string interval = 'interval';
 
@@ -115,6 +121,8 @@ class FixedCost extends Model implements CommentableInterface
 
     const string has_many_booking_date_suggestions = 'bookingDateSuggestions';
 
+    const string belongs_to_many_transaction_categories = 'transactionCategories';
+
     const string has_many_reminders = 'reminders';
 
     const string belongs_to_user = 'user';
@@ -133,6 +141,7 @@ class FixedCost extends Model implements CommentableInterface
         self::notes,
         self::amount,
         self::category_id,
+        self::include_subcategories,
         self::interval,
         self::custom_interval_value,
         self::custom_interval_unit,
@@ -148,6 +157,7 @@ class FixedCost extends Model implements CommentableInterface
 
     protected $casts = [
         self::amount => 'decimal:2',
+        self::include_subcategories => 'boolean',
         self::custom_interval_value => 'integer',
         self::ends_date => 'date',
         self::extended_date => 'date',
@@ -204,5 +214,57 @@ class FixedCost extends Model implements CommentableInterface
             FixedCostBookingDateSuggestion::class,
             FixedCostBookingDateSuggestion::fixed_cost_id,
         );
+    }
+
+    public function transactionCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            TransactionCategory::class,
+            FinancialFixedCostTransactionCategory::PIVOT_TABLE,
+            FinancialFixedCostTransactionCategory::FIXED_COST_ID,
+            FinancialFixedCostTransactionCategory::CATEGORY_ID,
+        );
+    }
+
+    /**
+     * IDs der direkt verknüpften Kategorien, ohne Unterkategorien.
+     *
+     * @return list<int>
+     */
+    public function getDirectCategoryIds(): array
+    {
+        $categories = $this->relationLoaded(self::belongs_to_many_transaction_categories)
+            ? $this->transactionCategories
+            : $this->transactionCategories()->get();
+
+        return $categories
+            ->map(static fn(TransactionCategory $category): int => (int)$category->getKey())
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Alle Kategorie-IDs, die diese Fixkosten-Position beim Transaktions-Matching berücksichtigt.
+     * Bei include_subcategories werden die Unterkategorien der verknüpften Kategorien ergänzt.
+     *
+     * @return list<int>
+     */
+    public function getMatchingCategoryIds(): array
+    {
+        $categories = $this->relationLoaded(self::belongs_to_many_transaction_categories)
+            ? $this->transactionCategories
+            : $this->transactionCategories()->get();
+
+        $categoryIds = [];
+
+        foreach ($categories as $category) {
+            $categoryIds[] = (int)$category->getKey();
+
+            if ($this->include_subcategories) {
+                $categoryIds = [...$categoryIds, ...$category->getDescendantIds()];
+            }
+        }
+
+        return array_values(array_unique($categoryIds));
     }
 }

@@ -18,6 +18,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -103,9 +104,15 @@ class ImportCSVFileAction
 
             $bankAccount->updateBalance();
 
-            FixedCostTransactionMatchingJob::dispatch();
+            // Kategorisierung muss vor dem Fixkosten-Matching laufen, damit die Kategorie-Komponente
+            // des Matchings frisch importierte Transaktionen berücksichtigen kann. Ein Chain garantiert
+            // die Reihenfolge, ein einfaches Dispatch hintereinander tut das unter Horizon/Redis nicht.
+            Bus::chain([
+                new CategorizeTransactionsJob(),
+                new FixedCostTransactionMatchingJob(),
+            ])->dispatch();
+
             RecurringTransactionSuggestionDetectionJob::dispatch();
-            CategorizeTransactionsJob::dispatch();
             RefreshTransactionStatisticsJob::dispatch();
         };
     }

@@ -1,0 +1,172 @@
+name: Docker Image
+
+# Baut das All-in-One-Image (Dockerfile im Repo-Root) und veroeffentlicht es
+# nach ghcr.io - entweder durch das Pushen eines Versions-Tags (YYYY.M.D,
+# optional ".N" fuer ein zweites Release am selben Tag) oder manuell ueber
+# "Run workflow". Siehe docs/docker-image.md fuer den Nutzungs-/Release-Ablauf.
+on:
+  push:
+    tags:
+      - '[0-9][0-9][0-9][0-9].[0-9]*.[0-9]*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (YYYY.M.D oder YYYY.M.D.N) - leer laesst das heutige Datum (UTC) verwenden'
+        required: false
+        type: string
+
+# Ein zweiter Lauf wartet, statt einen laufenden Image-Push abzubrechen -
+# ein abgebrochener Multi-Arch-Push koennte ein halb veroeffentlichtes
+# Manifest hinterlassen.
+concurrency:
+  group: docker-image-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Build, test and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Nimmt bei einem Tag-Push den Tag-Namen, bei "Run workflow" den Input
+      # (oder das heutige Datum) und prueft beides gegen das erwartete Format.
+      # Der Input laeuft ausschliesslich ueber env - nie direkt in ${{ }}
+      # innerhalb des Skripts, um Script-Injection ueber den Eingabewert
+      # auszuschliessen.
+      - name: Determine release version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="${INPUT_VERSION:-$(date -u +%Y.%-m.%-d)}"
+          else
+            VERSION="${GITHUB_REF_NAME}"
+          fi
+
+          if ! [[ "$VERSION" =~ ^[0-9]{4}\.(1[0-2]|[1-9])\.(3[01]|[12][0-9]|[1-9])(\.[0-9]+)?$ ]]; then
+            echo "::error::Ungueltiges Versionsformat: '${VERSION}' (erwartet YYYY.M.D oder YYYY.M.D.N, z.B. 2026.9.17)"
+            exit 1
+          fi
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] \
+              && git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "::error::Tag ${VERSION} existiert bereits. Fuer ein zweites Release am selben Tag z.B. ${VERSION}.2 angeben."
+            exit 1
+          fi
+
+          echo "Version: ${VERSION}"
+          echo "version=${VERSION}" >>"$GITHUB_OUTPUT"
+
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+
+      # amd64-Vorabbau (ohne Push) + Funktionstest mit Demo-Daten. Erst wenn
+      # der Container tatsaechlich healthy wird und antwortet, geht es zum
+      # echten, langsameren Multi-Arch-Push weiter.
+      - name: Build amd64 image for smoke test
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          tags: personal-home-portal:smoke-test
+          build-args: APP_VERSION=${{ steps.version.outputs.version }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+
+          docker run -d --name smoke-test -p 8080:80 \
+            -e ADMIN_EMAIL=smoke@example.com \
+            -e ADMIN_PASSWORD=smoke-test-password \
+            personal-home-portal:smoke-test --demo
+
+          echo "Warte auf 'healthy'..."
+          status="starting"
+          for _ in $(seq 1 60); do
+            status="$(docker inspect -f '{{.State.Health.Status}}' smoke-test 2>/dev/null || echo "starting")"
+            if [ "$status" = "healthy" ] || [ "$status" = "unhealthy" ]; then
+              break
+            fi
+            sleep 5
+          done
+
+          if [ "$status" != "healthy" ]; then
+            echo "::error::Container wurde nicht healthy (Status: ${status})."
+            docker logs smoke-test
+            exit 1
+          fi
+
+          curl -fsS http://127.0.0.1:8080/up
+          curl -fsS -o /dev/null http://127.0.0.1:8080/app/login
+          docker exec smoke-test supervisorctl status
+
+      - name: Smoke test logs
+        if: always()
+        run: docker logs smoke-test || true
+
+      - name: Smoke test cleanup
+        if: always()
+        run: docker rm -f smoke-test || true
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.licenses=MIT
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: APP_VERSION=${{ steps.version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Legt bei "Run workflow" auch den Git-Tag an (gh release create tut das
+      # automatisch fuer einen noch nicht existierenden Tag-Namen). Bei einem
+      # Tag-Push existiert der Tag bereits - hier wird nur noch die Release-
+      # Seite mit generierten Notes ergaenzt.
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$VERSION" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release ${VERSION} existiert bereits, ueberspringe."
+          else
+            gh release create "$VERSION" \
+              --repo "${{ github.repository }}" \
+              --target "$GITHUB_SHA" \
+              --title "$VERSION" \
+              --generate-notes
+          fi

@@ -22,6 +22,9 @@ class FixedCostSettings extends Settings
     public int $matching_learning_rule_confidence_min;
     public int $matching_learning_amount_tolerance_percent;
 
+    public int $matching_category_weight;
+    public bool $matching_category_mismatch_blocks_auto_link;
+
     public bool $recurring_enabled;
     public string $recurring_schedule_time;
     public int $recurring_min_occurrences;
