@@ -15,6 +15,7 @@ use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 
 class TransactionCategoryForm
@@ -273,10 +274,30 @@ class TransactionCategoryForm
                     ->label(fn(Get $get): string => $get(TransactionCategoryCriterion::operator) === TransactionCategoryCriterion::OP_BETWEEN
                         ? 'Von (Mindestwert)'
                         : 'Wert')
+                    ->numeric(fn(Get $get): bool => in_array(
+                        $get(TransactionCategoryCriterion::field),
+                        TransactionCategoryCriterion::getNumericFields(),
+                        true
+                    ))
+                    ->suffix(fn(Get $get): string => in_array(
+                        $get(TransactionCategoryCriterion::field),
+                        TransactionCategoryCriterion::getNumericFields(),
+                        true
+                    ) ? 'EUR' : '')
                     ->required(),
 
                 TextInput::make(TransactionCategoryCriterion::value_secondary)
                     ->label('Bis (Maximalwert)')
+                    ->numeric(fn(Get $get): bool => in_array(
+                        $get(TransactionCategoryCriterion::field),
+                        TransactionCategoryCriterion::getNumericFields(),
+                        true
+                    ))
+                    ->suffix(fn(Get $get): string => in_array(
+                        $get(TransactionCategoryCriterion::field),
+                        TransactionCategoryCriterion::getNumericFields(),
+                        true
+                    ) ? 'EUR' : '')
                     ->visible(fn(Get $get): bool => $get(TransactionCategoryCriterion::operator) === TransactionCategoryCriterion::OP_BETWEEN)
                     ->required(fn(Get $get): bool => $get(TransactionCategoryCriterion::operator) === TransactionCategoryCriterion::OP_BETWEEN),
 

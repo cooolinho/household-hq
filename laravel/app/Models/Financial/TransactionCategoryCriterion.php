@@ -116,6 +116,14 @@ class TransactionCategoryCriterion extends Model
         ];
     }
 
+    /** @return string[] */
+    public static function getDateFields(): array
+    {
+        return [
+            self::FIELD_DATE,
+        ];
+    }
+
     public function rule(): BelongsTo
     {
         return $this->belongsTo(TransactionCategoryRule::class, self::transaction_category_rule_id);
