@@ -15,7 +15,6 @@ use App\Services\TransactionsCSVReaderService;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Bus;
@@ -24,7 +23,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ImportCSVFileAction
 {
-    const string INPUT_FIELD_PROFILE = 'profile';
     const string INPUT_FIELD_FILE = 'file';
 
     public static function make(BankAccount $bankAccount)
@@ -43,16 +41,7 @@ class ImportCSVFileAction
      */
     private static function getSchema(): array
     {
-        $profiles = CSVImportProfile::query()
-            ->orderBy(CSVImportProfile::name)
-            ->pluck(CSVImportProfile::name, CSVImportProfile::id)
-            ->toArray();
-
         return [
-            Select::make(self::INPUT_FIELD_PROFILE)
-                ->label('Import Profile')
-                ->required()
-                ->options($profiles),
             FileUpload::make(self::INPUT_FIELD_FILE)
                 ->label('CSV File')
                 ->required()
@@ -71,9 +60,22 @@ class ImportCSVFileAction
         return function (array $data) use ($bankAccount) {
             $storage = Storage::disk(AppConfig::FILESYSTEM_TRANSACTION_IMPORT);
             $file = $data[self::INPUT_FIELD_FILE];
-            $profileID = $data[self::INPUT_FIELD_PROFILE];
 
-            $profile = CSVImportProfile::query()->find($profileID);
+            $profile = $bankAccount->csvProfile ?? CSVImportProfile::query()->find($bankAccount->csv_profile_id);
+
+            if (!$profile instanceof CSVImportProfile) {
+                Log::error('Missing CSV import profile for bank account import', [
+                    'bank_account_id' => $bankAccount->id,
+                    'csv_profile_id' => $bankAccount->csv_profile_id,
+                ]);
+                Notification::make()
+                    ->title('Error importing transactions.')
+                    ->danger()
+                    ->body('Kein gültiges Importprofil für dieses Bankkonto zugewiesen.')
+                    ->send();
+
+                return;
+            }
 
             try {
                 $csvFile = app(TransactionsCSVReaderService::class)
@@ -81,7 +83,7 @@ class ImportCSVFileAction
             } catch (TransactionsImportException $e) {
                 Log::error('Error importing transactions: ' . $e->getMessage(), [
                     'bank_account_id' => $bankAccount->id,
-                    'profile_id' => $profileID,
+                    'profile_id' => $profile->id,
                     'file' => $file,
                 ]);
                 Notification::make()

@@ -5,6 +5,7 @@ namespace App\Filament\App\Resources\Financial\BankAccounts\Schemas;
 use App\Filament\App\Resources\Tags\TagResource;
 use App\Models\Enums\BankAccountTypeEnum;
 use App\Models\Financial\BankAccount;
+use App\Models\Financial\CSVImportProfile;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -28,6 +29,15 @@ class BankAccountForm
                             ->options(BankAccountTypeEnum::options())
                             ->searchable()
                             ->placeholder('Select type')
+                            ->required(),
+                        Select::make(BankAccount::csv_profile_id)
+                            ->label('CSV-Profil')
+                            ->relationship(
+                                name: BankAccount::belongs_to_csv_profile,
+                                titleAttribute: CSVImportProfile::name,
+                            )
+                            ->searchable()
+                            ->preload()
                             ->required(),
                     ]),
 

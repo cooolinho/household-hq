@@ -26,7 +26,7 @@ class MatchingSuggestionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
     protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::BANKS;
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 80;
 
     public static function getNavigationLabel(): string
     {
