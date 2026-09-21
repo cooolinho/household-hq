@@ -1,6 +1,6 @@
 services:
     household-hq:
-        container_name: "household-hq"
+        container_name: "${CONTAINER_NAME_APP:-household-hq}"
         build:
             context: './docker'
             dockerfile: Dockerfile
@@ -31,7 +31,7 @@ services:
             - household-hq-mailpit
 
     household-hq-db:
-        container_name: "household-hq-db"
+        container_name: "${CONTAINER_NAME_DB:-household-hq-db}"
         image: 'mysql/mysql-server:8.0'
         ports:
             - '${FORWARD_DB_PORT:-3306}:3306'
@@ -45,16 +45,12 @@ services:
         networks:
             - household_hq_network
         healthcheck:
-            test:
-                - CMD
-                - mysqladmin
-                - ping
-                - "-p${MYSQL_PASSWORD}"
+            test: ["CMD", "mysqladmin", "ping", "-p${MYSQL_PASSWORD}"]
             retries: 3
             timeout: 5s
 
     household-hq-cache:
-        container_name: "household-hq-cache"
+        container_name: "${CONTAINER_NAME_CACHE:-household-hq-cache}"
         image: 'redis:alpine'
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
@@ -63,15 +59,12 @@ services:
         networks:
             - household_hq_network
         healthcheck:
-            test:
-                - CMD
-                - redis-cli
-                - ping
+            test: ["CMD", "redis-cli", "ping"]
             retries: 3
             timeout: 5s
 
     household-hq-mailpit:
-        container_name: "household-hq-mailpit"
+        container_name: "${CONTAINER_NAME_MAILPIT:-household-mailpit}"
         image: 'axllent/mailpit:latest'
         ports:
             - '${FORWARD_MAILPIT_PORT:-1025}:1025'
