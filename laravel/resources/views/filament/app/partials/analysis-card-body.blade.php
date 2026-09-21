@@ -23,7 +23,7 @@
                 x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('chart', 'filament/widgets') }}"
                 x-data="chart({
                     cachedData: @js($chartData),
-                    options: @js($data->chartType === 'bar' ? ['plugins' => ['legend' => ['display' => true]], 'scales' => ['x' => ['stacked' => false], 'y' => ['stacked' => false]]] : []),
+                    options: @js($data->chartType === 'bar' ? ['plugins' => ['legend' => ['display' => true]], 'scales' => ['x' => ['stacked' => false], 'y' => ['stacked' => false]]] : (object) []),
                     type: @js($chartType),
                 })"
                 class="ph-analysis-card__chart"
