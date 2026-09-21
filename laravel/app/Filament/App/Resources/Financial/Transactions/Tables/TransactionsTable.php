@@ -4,6 +4,7 @@ namespace App\Filament\App\Resources\Financial\Transactions\Tables;
 
 use App\Filament\App\Resources\Financial\Transactions\Actions\CategorizeTransactionAction;
 use App\Filament\App\Resources\Financial\Transactions\Actions\CreateFixedCostAction;
+use App\Filament\App\Resources\Financial\Transactions\Actions\TagTransactionAction;
 use App\Filament\App\Resources\Financial\Transactions\Actions\UploadTransactionDocumentAction;
 use App\Filament\App\Resources\Financial\Transactions\TransactionResource;
 use App\Models\Financial\FixedCost;
@@ -234,11 +235,13 @@ class TransactionsTable
                                 ])),
                             CreateFixedCostAction::make(),
                             CategorizeTransactionAction::make(),
+                            TagTransactionAction::make(),
                             UploadTransactionDocumentAction::make(),
                         ]),
                     UploadTransactionDocumentAction::make(),
                     CreateFixedCostAction::make(),
                     CategorizeTransactionAction::make(),
+                    TagTransactionAction::make(),
                 ]),
             ])
             ->toolbarActions([
