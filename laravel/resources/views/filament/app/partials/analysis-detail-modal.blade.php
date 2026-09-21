@@ -24,11 +24,11 @@
                 wire:ignore
                 x-load
                 x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('chart', 'filament/widgets') }}"
-{{--                x-data="chart({--}}
-{{--                    cachedData: @js($detailChartData),--}}
-{{--                    options: @js($detailChartType === 'bar' ? ['plugins' => ['legend' => ['display' => true]], 'scales' => ['x' => ['stacked' => false], 'y' => ['stacked' => false]]] : []),--}}
-{{--                    type: @js($detailChartType),--}}
-{{--                })"--}}
+                x-data="chart({
+                    cachedData: @js($detailChartData),
+                    options: @js($detailChartType === 'bar' ? ['plugins' => ['legend' => ['display' => true]], 'scales' => ['x' => ['stacked' => false], 'y' => ['stacked' => false]]] : (object) []),
+                    type: @js($detailChartType),
+                })"
                 class="ph-analysis-detail__chart"
                 data-chart-type="{{ $detailChartType }}"
             >

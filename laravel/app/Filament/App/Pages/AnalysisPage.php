@@ -10,6 +10,7 @@ use App\Services\Analysis\DTO\AnalysisCardData;
 use App\Services\Analysis\DTO\AnalysisDetailData;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -63,7 +64,7 @@ class AnalysisPage extends Page
         }
 
         return AnalysisCard::query()
-            ->activeForUser((int) $userId)
+            ->activeForUser((int)$userId)
             ->get();
     }
 
@@ -86,9 +87,92 @@ class AnalysisPage extends Page
      */
     protected function getHeaderActions(): array
     {
-        return [
-            $this->createCardAction(),
-        ];
+        $actions = [];
+
+        // Show "reactivate" action only when the user has inactive cards.
+        if (Auth::id() !== null && AnalysisCard::query()
+                ->where(AnalysisCard::user_id, Auth::id())
+                ->where(AnalysisCard::is_active, false)
+                ->exists()) {
+            $actions[] = $this->reactivateCardsAction();
+        }
+
+        $actions[] = $this->createCardAction();
+
+        return $actions;
+    }
+
+    public function reactivateCardsAction(): Action
+    {
+        return Action::make('reactivateCards')
+            ->label('Ausgeblendete Karten')
+            ->icon(Heroicon::OutlinedEye)
+            ->color('gray')
+            ->modalHeading('Ausgeblendete Karten wieder aktivieren')
+            ->modalWidth('xl')
+            ->modalSubmitActionLabel('Aktivieren')
+            ->schema($this->reactivateCardsFormSchema())
+            ->visible(fn(): bool => AnalysisCard::query()
+                ->where(AnalysisCard::user_id, Auth::id())
+                ->where(AnalysisCard::is_active, false)
+                ->exists())
+            ->action(function (array $data): void {
+                $selected = [];
+
+                foreach ($data as $key => $value) {
+                    if (str_starts_with($key, 'card_') && $value) {
+                        $selected[] = (int)substr($key, 5);
+                    }
+                }
+
+                if ($selected === []) {
+                    Notification::make()
+                        ->warning()
+                        ->title('Keine Karten ausgewählt.')
+                        ->send();
+
+                    return;
+                }
+
+                AnalysisCard::query()
+                    ->whereIn(AnalysisCard::id, $selected)
+                    ->where(AnalysisCard::user_id, Auth::id())
+                    ->update([AnalysisCard::is_active => true]);
+
+                Notification::make()
+                    ->success()
+                    ->title('Karten wieder aktiviert.')
+                    ->send();
+            });
+    }
+
+    /**
+     * @return array<int, \Filament\Forms\Components\Component>
+     */
+    private function reactivateCardsFormSchema(): array
+    {
+        $userId = Auth::id();
+
+        if ($userId === null) {
+            return [];
+        }
+
+        $inactive = AnalysisCard::query()
+            ->where(AnalysisCard::user_id, $userId)
+            ->where(AnalysisCard::is_active, false)
+            ->orderBy(AnalysisCard::sort)
+            ->get();
+
+        $components = [];
+
+        foreach ($inactive as $card) {
+            $components[] = Toggle::make('card_' . $card->getKey())
+                ->label((string)$card->{AnalysisCard::title})
+                ->default(false)
+                ->columnSpanFull();
+        }
+
+        return $components;
     }
 
     /**
@@ -103,6 +187,13 @@ class AnalysisPage extends Page
             ->modalHeading('Neue Auswertungs-Karte')
             ->modalSubmitActionLabel('Anlegen')
             ->schema($this->cardFormSchema())
+            ->fillForm(function (): array {
+                return [
+                    AnalysisCard::sort => AnalysisCard::query()
+                            ->where(AnalysisCard::user_id, Auth::id())
+                            ->max(AnalysisCard::sort) + 1,
+                ];
+            })
             ->action(function (array $data): void {
                 $userId = Auth::id();
 
@@ -110,12 +201,14 @@ class AnalysisPage extends Page
                     abort(403);
                 }
 
-                AnalysisCard::query()->create($this->prepareCardData($data, (int) $userId));
+                AnalysisCard::query()->create($this->prepareCardData($data, (int)$userId));
 
                 Notification::make()
                     ->success()
                     ->title('Auswertungs-Karte angelegt.')
                     ->send();
+
+                $this->redirect(AnalysisPage::getUrl());
             });
     }
 
@@ -127,7 +220,7 @@ class AnalysisPage extends Page
             ->modalHeading('Auswertungs-Karte bearbeiten')
             ->modalSubmitActionLabel('Speichern')
             ->fillForm(function (array $arguments): array {
-                $card = $this->findOwnedCard((int) ($arguments['cardId'] ?? 0));
+                $card = $this->findOwnedCard((int)($arguments['cardId'] ?? 0));
 
                 return [
                     AnalysisCard::title => $card->{AnalysisCard::title},
@@ -142,13 +235,15 @@ class AnalysisPage extends Page
             })
             ->schema($this->cardFormSchema())
             ->action(function (array $data, array $arguments): void {
-                $card = $this->findOwnedCard((int) ($arguments['cardId'] ?? 0));
-                $card->update($this->prepareCardData($data, (int) $card->{AnalysisCard::user_id}));
+                $card = $this->findOwnedCard((int)($arguments['cardId'] ?? 0));
+                $card->update($this->prepareCardData($data, (int)$card->{AnalysisCard::user_id}));
 
                 Notification::make()
                     ->success()
                     ->title('Auswertungs-Karte gespeichert.')
                     ->send();
+
+                $this->redirect(AnalysisPage::getUrl());
             });
     }
 
@@ -162,7 +257,7 @@ class AnalysisPage extends Page
             ->modalHeading('Karte löschen?')
             ->modalDescription('Die Auswertungs-Karte wird unwiderruflich gelöscht.')
             ->action(function (array $arguments): void {
-                $card = $this->findOwnedCard((int) ($arguments['cardId'] ?? 0));
+                $card = $this->findOwnedCard((int)($arguments['cardId'] ?? 0));
                 $card->delete();
 
                 Notification::make()
@@ -177,11 +272,11 @@ class AnalysisPage extends Page
         return Action::make('detailCard')
             ->label('Mehr...')
             ->icon(Heroicon::OutlinedArrowsPointingOut)
-            ->modalHeading(fn (array $arguments): string => $this->findOwnedCard((int) ($arguments['cardId'] ?? 0))->{AnalysisCard::title})
+            ->modalHeading(fn(array $arguments): string => $this->findOwnedCard((int)($arguments['cardId'] ?? 0))->{AnalysisCard::title})
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Schließen')
             ->modalContent(function (array $arguments) {
-                $card = $this->findOwnedCard((int) ($arguments['cardId'] ?? 0));
+                $card = $this->findOwnedCard((int)($arguments['cardId'] ?? 0));
                 $detail = $this->getDetailData($card);
 
                 return view('filament.app.partials.analysis-detail-modal', [
@@ -198,7 +293,8 @@ class AnalysisPage extends Page
             ->label('Nach oben')
             ->icon(Heroicon::OutlinedArrowUp)
             ->action(function (array $arguments): void {
-                $this->swapSort((int) ($arguments['cardId'] ?? 0), direction: -1);
+                $this->swapSort((int)($arguments['cardId'] ?? 0), direction: -1);
+                $this->setSortOrders();
             });
     }
 
@@ -208,7 +304,8 @@ class AnalysisPage extends Page
             ->label('Nach unten')
             ->icon(Heroicon::OutlinedArrowDown)
             ->action(function (array $arguments): void {
-                $this->swapSort((int) ($arguments['cardId'] ?? 0), direction: 1);
+                $this->swapSort((int)($arguments['cardId'] ?? 0), direction: 1);
+                $this->setSortOrders();
             });
     }
 
@@ -258,21 +355,16 @@ class AnalysisPage extends Page
                         ])
                         ->default(AnalysisCard::WIDTH_HALF)
                         ->required(),
-                    TextInput::make(AnalysisCard::sort)
-                        ->label('Sortierung')
-                        ->numeric()
-                        ->minValue(0)
-                        ->default(0)
-                        ->required(),
+                    Hidden::make(AnalysisCard::sort),
                     Toggle::make(AnalysisCard::is_active)
                         ->label('Aktiv')
                         ->default(true),
                 ]),
             Section::make('Modul-Konfiguration')
                 ->columns(2)
-                ->schema(fn (Get $get): array => $this->moduleConfigSchema($get(AnalysisCard::module)))
+                ->schema(fn(Get $get): array => $this->moduleConfigSchema($get(AnalysisCard::module)))
                 ->statePath(AnalysisCard::configuration)
-                ->visible(fn (Get $get): bool => filled($get(AnalysisCard::module))),
+                ->visible(fn(Get $get): bool => filled($get(AnalysisCard::module))),
         ];
     }
 
@@ -285,7 +377,7 @@ class AnalysisPage extends Page
             return [];
         }
 
-        $module = AnalysisModuleEnum::tryFrom((string) $moduleName);
+        $module = AnalysisModuleEnum::tryFrom((string)$moduleName);
 
         if ($module === null) {
             return [];
@@ -295,27 +387,27 @@ class AnalysisPage extends Page
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
     private function prepareCardData(array $data, int $userId): array
     {
-        $moduleName = (string) ($data[AnalysisCard::module] ?? '');
+        $moduleName = (string)($data[AnalysisCard::module] ?? '');
         $module = AnalysisModuleEnum::tryFrom($moduleName);
 
         if ($module === null) {
             abort(422, 'Unbekanntes Modul.');
         }
 
-        $title = trim((string) ($data[AnalysisCard::title] ?? ''));
+        $title = trim((string)($data[AnalysisCard::title] ?? ''));
 
         if ($title === '') {
             abort(422, 'Ein Titel ist erforderlich.');
         }
 
-        $width = (string) ($data[AnalysisCard::width] ?? AnalysisCard::WIDTH_HALF);
+        $width = (string)($data[AnalysisCard::width] ?? AnalysisCard::WIDTH_HALF);
 
-        if (! in_array($width, [
+        if (!in_array($width, [
             AnalysisCard::WIDTH_SMALL,
             AnalysisCard::WIDTH_HALF,
             AnalysisCard::WIDTH_FULL_GRID,
@@ -334,8 +426,8 @@ class AnalysisPage extends Page
             AnalysisCard::module => $module,
             AnalysisCard::configuration => $this->registry()->normalize($module, $configuration),
             AnalysisCard::width => $width,
-            AnalysisCard::sort => max(0, (int) ($data[AnalysisCard::sort] ?? 0)),
-            AnalysisCard::is_active => (bool) ($data[AnalysisCard::is_active] ?? true),
+            AnalysisCard::sort => max(0, (int)($data[AnalysisCard::sort] ?? 0)),
+            AnalysisCard::is_active => (bool)($data[AnalysisCard::is_active] ?? true),
         ];
     }
 
@@ -362,17 +454,17 @@ class AnalysisPage extends Page
     private function swapSort(int $cardId, int $direction): void
     {
         $card = $this->findOwnedCard($cardId);
-        $userId = (int) $card->{AnalysisCard::user_id};
+        $userId = (int)$card->{AnalysisCard::user_id};
 
         $neighbor = AnalysisCard::query()
             ->where(AnalysisCard::user_id, $userId)
             ->when(
                 $direction < 0,
-                fn ($q) => $q
+                fn($q) => $q
                     ->where(AnalysisCard::sort, '<', $card->{AnalysisCard::sort})
                     ->orderByDesc(AnalysisCard::sort)
                     ->orderByDesc(AnalysisCard::id),
-                fn ($q) => $q
+                fn($q) => $q
                     ->where(AnalysisCard::sort, '>', $card->{AnalysisCard::sort})
                     ->orderBy(AnalysisCard::sort)
                     ->orderBy(AnalysisCard::id),
@@ -386,10 +478,10 @@ class AnalysisPage extends Page
                 ->where(AnalysisCard::id, '!=', $card->getKey())
                 ->when(
                     $direction < 0,
-                    fn ($q) => $q
+                    fn($q) => $q
                         ->where(AnalysisCard::id, '<', $card->getKey())
                         ->orderByDesc(AnalysisCard::id),
-                    fn ($q) => $q
+                    fn($q) => $q
                         ->where(AnalysisCard::id, '>', $card->getKey())
                         ->orderBy(AnalysisCard::id),
                 )
@@ -400,8 +492,8 @@ class AnalysisPage extends Page
             return;
         }
 
-        $cardSort = (int) $card->{AnalysisCard::sort};
-        $neighborSort = (int) $neighbor->{AnalysisCard::sort};
+        $cardSort = (int)$card->{AnalysisCard::sort};
+        $neighborSort = (int)$neighbor->{AnalysisCard::sort};
 
         // Bei gleichen Sort-Werten tauschen wir auf cardId-Basis und setzen unterschiedliche Werte.
         if ($cardSort === $neighborSort) {
@@ -424,5 +516,20 @@ class AnalysisPage extends Page
     private function registry(): AnalysisModuleRegistry
     {
         return app(AnalysisModuleRegistry::class);
+    }
+
+    private function setSortOrders(): void
+    {
+        $analysisCards = AnalysisCard::query()
+            ->where(AnalysisCard::user_id, Auth::id())
+            ->orderBy(AnalysisCard::sort)
+            ->orderBy(AnalysisCard::id)
+            ->get();
+
+        $sort = 1;
+        foreach ($analysisCards as $card) {
+            $card->{AnalysisCard::sort} = $sort++;
+            $card->save();
+        }
     }
 }
