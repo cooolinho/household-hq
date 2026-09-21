@@ -53,9 +53,9 @@ class BankAccountSeeder extends Seeder
         $this->createBankAccount($user, $profile);
     }
 
-    private function createBankAccount(User $user, CSVImportProfile $profile): BankAccount
+    private function createBankAccount(User $user, CSVImportProfile $profile): void
     {
-        return BankAccount::query()->firstOrCreate(
+        BankAccount::query()->firstOrCreate(
             [
                 BankAccount::user_id => $user->getKey(),
                 BankAccount::name => 'Main Account',
@@ -73,9 +73,9 @@ class BankAccountSeeder extends Seeder
         );
     }
 
-    private function createCSVImportProfile(): void
+    private function createCSVImportProfile(): CSVImportProfile
     {
-        CSVImportProfile::query()
+        return CSVImportProfile::query()
             ->firstOrCreate(
                 [
                     CSVImportProfile::name => 'Default Import Profile',

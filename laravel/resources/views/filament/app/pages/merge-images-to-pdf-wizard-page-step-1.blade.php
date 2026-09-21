@@ -23,11 +23,17 @@
         </label>
 
         <label
+                x-data="{ dragOver: false }"
+                x-on:dragover.prevent="dragOver = true"
+                x-on:dragleave.prevent="dragOver = false"
+                x-on:drop.prevent="$refs.dropInput.files = $event.dataTransfer.files; $refs.dropInput.dispatchEvent(new Event('change', { bubbles: true })); dragOver = false;"
+                :class="{
+                    'border-primary-500 bg-primary-50 dark:bg-primary-500/20': dragOver,
+                    'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50': !dragOver,
+                }"
                 class="flex flex-col items-center justify-center w-full h-40 cursor-pointer
-                   rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600
-                   bg-gray-50 dark:bg-gray-800/50
+                   rounded-xl border-2 border-dashed
                    hover:border-primary-400 dark:hover:border-primary-500
-                   hover:bg-primary-50 dark:hover:bg-primary-500/10
                    transition-colors"
         >
             <div class="flex flex-col items-center gap-2 pointer-events-none">
@@ -42,6 +48,8 @@
             </div>
 
             <input
+                    id="drop-input"
+                    x-ref="dropInput"
                     type="file"
                     wire:model="uploadedImages"
                     multiple

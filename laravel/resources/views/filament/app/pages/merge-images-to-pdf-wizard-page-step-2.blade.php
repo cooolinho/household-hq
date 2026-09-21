@@ -27,7 +27,7 @@
         {{-- Sortierliste --}}
         <div
                 x-data="{ dragging: null }"
-                class="space-y-2"
+                class="space-y-4"
         >
             @foreach($this->orderedImages as $index => $img)
                 <div
@@ -47,85 +47,88 @@
                         'opacity-40 ring-2 ring-inset ring-primary-500': dragging === {{ $index }},
                         'ring-2 ring-inset ring-primary-300 dark:ring-primary-700': dragging !== null && dragging !== {{ $index }}
                     }"
-                        class="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700
-                           bg-white dark:bg-gray-900 p-3 cursor-move select-none transition-all"
+                        class="rounded-xl border border-gray-200 dark:border-gray-700
+                           bg-white dark:bg-gray-900 cursor-move select-none transition-all overflow-hidden"
                 >
-                    {{-- Drag-Handle --}}
-                    <div class="shrink-0 text-gray-300 dark:text-gray-600 pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M7 2a2 2 0 11.001 4.001A2 2 0 017 2zm0 6a2 2 0 11.001 4.001A2 2 0 017 8zm0 6a2 2 0 11.001 4.001A2 2 0 017 14zm6-12a2 2 0 11.001 4.001A2 2 0 0113 2zm0 6a2 2 0 11.001 4.001A2 2 0 0113 8zm0 6a2 2 0 11.001 4.001A2 2 0 0113 14z"/>
-                        </svg>
+                    {{-- Header-Leiste --}}
+                    <div class="flex items-center gap-3 px-3 py-2 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                        {{-- Drag-Handle --}}
+                        <div class="shrink-0 text-gray-400 dark:text-gray-500 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M7 2a2 2 0 11.001 4.001A2 2 0 017 2zm0 6a2 2 0 11.001 4.001A2 2 0 017 8zm0 6a2 2 0 11.001 4.001A2 2 0 017 14zm6-12a2 2 0 11.001 4.001A2 2 0 0113 2zm0 6a2 2 0 11.001 4.001A2 2 0 0113 8zm0 6a2 2 0 11.001 4.001A2 2 0 0113 14z"/>
+                            </svg>
+                        </div>
+
+                        {{-- Seiten-Badge & Dateiname --}}
+                        <div class="flex items-center gap-2 flex-1 min-w-0">
+                            <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                Seite {{ $index + 1 }} / {{ count($this->orderedImages) }}
+                            </span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {{ $img['name'] }}
+                            </span>
+                        </div>
+
+                        {{-- Steuerelemente --}}
+                        <div class="flex items-center gap-1 shrink-0">
+                            {{-- Nach oben --}}
+                            <button
+                                    type="button"
+                                    wire:click="moveUp({{ $index }})"
+                                    {{ $index === 0 ? 'disabled' : '' }}
+                                    class="p-1.5 rounded text-gray-500 dark:text-gray-400
+                                       hover:bg-gray-200 dark:hover:bg-gray-700
+                                       disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    title="Nach oben"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+                                </svg>
+                            </button>
+
+                            {{-- Nach unten --}}
+                            <button
+                                    type="button"
+                                    wire:click="moveDown({{ $index }})"
+                                    {{ $index === count($this->orderedImages) - 1 ? 'disabled' : '' }}
+                                    class="p-1.5 rounded text-gray-500 dark:text-gray-400
+                                       hover:bg-gray-200 dark:hover:bg-gray-700
+                                       disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    title="Nach unten"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            {{-- Entfernen --}}
+                            <button
+                                    type="button"
+                                    wire:click="removeImage({{ $index }})"
+                                    wire:confirm="Dieses Bild aus der Liste entfernen?"
+                                    class="p-1.5 rounded text-danger-500 dark:text-danger-400
+                                       hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-colors"
+                                    title="Entfernen"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
-                    {{-- Vorschau-Thumbnail --}}
-                    <div class="shrink-0 w-14 h-14 overflow-hidden rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    {{-- Vorschau-Bild in voller Breite --}}
+                    <div class="flex justify-center p-3 bg-gray-100 dark:bg-gray-950/50">
                         <img
                                 src="{{ route('app.scan-temp-preview', ['filename' => $img['filename']]) }}"
                                 alt="{{ $img['name'] }}"
-                                class="max-w-full max-h-full object-contain"
+                                class="max-w-full max-h-[500px] w-auto object-contain rounded shadow-sm"
                                 loading="lazy"
                                 draggable="false"
                         />
-                    </div>
-
-                    {{-- Seiteninfo & Name --}}
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                            {{ $img['name'] }}
-                        </p>
-                        <p class="text-xs text-gray-400 dark:text-gray-500">
-                            Seite {{ $index + 1 }} von {{ count($this->orderedImages) }}
-                        </p>
-                    </div>
-
-                    {{-- Steuerelemente --}}
-                    <div class="flex items-center gap-1 shrink-0">
-                        {{-- Nach oben --}}
-                        <button
-                                type="button"
-                                wire:click="moveUp({{ $index }})"
-                                {{ $index === 0 ? 'disabled' : '' }}
-                                class="p-1.5 rounded text-gray-500 dark:text-gray-400
-                                   hover:bg-gray-100 dark:hover:bg-gray-800
-                                   disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                title="Nach oben"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
-                            </svg>
-                        </button>
-
-                        {{-- Nach unten --}}
-                        <button
-                                type="button"
-                                wire:click="moveDown({{ $index }})"
-                                {{ $index === count($this->orderedImages) - 1 ? 'disabled' : '' }}
-                                class="p-1.5 rounded text-gray-500 dark:text-gray-400
-                                   hover:bg-gray-100 dark:hover:bg-gray-800
-                                   disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                title="Nach unten"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-
-                        {{-- Entfernen --}}
-                        <button
-                                type="button"
-                                wire:click="removeImage({{ $index }})"
-                                wire:confirm="Dieses Bild aus der Liste entfernen?"
-                                class="p-1.5 rounded text-danger-500 dark:text-danger-400
-                                   hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-colors"
-                                title="Entfernen"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                 stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
                     </div>
                 </div>
             @endforeach
