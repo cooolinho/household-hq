@@ -199,13 +199,13 @@ docker build -t household-hq .
 docker buildx build --platform linux/amd64,linux/arm64 -t household-hq .   # multi-arch
 ```
 
-The build context is the repository root (the [`Dockerfile`](../Dockerfile) copies from `laravel/`), so it must be
+The build context is the repository root (the [`Dockerfile`](../docker/all-in-one/Dockerfile) copies from `laravel/`), so it must be
 run from there. There's no separate build argument required for a plain build; `APP_VERSION` (used only for the
 `org.opencontainers.image.version` label and the startup banner) defaults to `dev`.
 
 ## Releases
 
-Handled by [`.github/workflows/docker-image.yml`](../.github/workflows/docker-image.yml), which builds, smoke-tests
+Handled by [`.github/workflows/docker-all-in-one.yml`](../.github/workflows/docker-all-in-one.yml), which builds, smoke-tests
 (boots the image with `--demo` and checks it becomes healthy) and pushes both the versioned tag and `latest`:
 
 - **Manually:** Actions -> *Docker Image* -> *Run workflow*. Leave the version field empty to use today's date

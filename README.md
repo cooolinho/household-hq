@@ -163,10 +163,12 @@ Admins reach the dashboard from a navigation item in `/admin`, or directly at `/
 
 ```
 household-hq/
-├── Dockerfile                # All-in-one production image (app + workers + MySQL + Redis)
 ├── docker-compose.yml         # Local dev stack (bind-mounted, hot reload)
 ├── docker-compose.prod.yml    # Reference prod compose (Traefik, persistent volumes)
-├── docker/                    # Dev image (Sail-based); docker/all-in-one/ backs the Dockerfile above
+├── docker/                    # Environment-specific Docker configurations
+│   ├── all-in-one/            #   Community all-in-one Docker image setup (app + MySQL + Redis)
+│   ├── production/            #   Production app Dockerfile and supervisor config
+│   └── development/           #   Dev image (Sail-based) and supervisord.conf
 ├── laravel/                   # The Laravel/Filament application
 │   ├── app/                   #   Models, Filament resources/pages/widgets, jobs, services, console commands
 │   ├── database/              #   Migrations, factories, seeders, settings migrations
@@ -175,7 +177,7 @@ household-hq/
 │   └── tests/                 #   PHPUnit feature/unit tests
 ├── docs/                      # Project documentation (see below)
 ├── app, update, supervisor.sh # Dev helper scripts
-└── .github/workflows/         # CI: builds/tests/publishes the Docker image
+└── .github/workflows/         # CI: builds/tests/publishes All-in-One and Production Docker images
 ```
 
 ## 📚 Documentation

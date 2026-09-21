@@ -2,7 +2,7 @@ services:
     household-hq:
         container_name: "${CONTAINER_NAME_APP:-household-hq}"
         build:
-            context: './docker'
+            context: './docker/development'
             dockerfile: Dockerfile
             args:
                 WWWGROUP: "${WWWGROUP}"
@@ -22,7 +22,7 @@ services:
             - './laravel:/var/www/html'
             - './logs/laravel:/var/www/html/storage/logs'
             - './logs/supervisord:/var/log/supervisor'
-            - './docker/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf'
+            - './docker/development/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf'
         networks:
             - household_hq_network
         depends_on:

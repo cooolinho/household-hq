@@ -6,7 +6,7 @@ set -euo pipefail
 # ─── Configuration ────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
-CONF_PATH="${SCRIPT_DIR}/docker/supervisord.conf"
+CONF_PATH="${SCRIPT_DIR}/docker/development/supervisord.conf"
 
 CONTAINER="household-hq"
 

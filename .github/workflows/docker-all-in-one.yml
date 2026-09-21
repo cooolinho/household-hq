@@ -1,6 +1,6 @@
-name: Docker Image
+name: Docker All-in-One Image
 
-# Baut das All-in-One-Image (Dockerfile im Repo-Root) und veroeffentlicht es
+# Baut das All-in-One-Image (docker/all-in-one/Dockerfile) und veroeffentlicht es
 # nach ghcr.io - entweder durch das Pushen eines Versions-Tags (YYYY.M.D,
 # optional ".N" fuer ein zweites Release am selben Tag) oder manuell ueber
 # "Run workflow". Siehe docs/docker-image.md fuer den Nutzungs-/Release-Ablauf.
@@ -76,6 +76,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          file: docker/all-in-one/Dockerfile
           platforms: linux/amd64
           tags: household-hq:smoke-test
           build-args: APP_VERSION=${{ steps.version.outputs.version }}
@@ -142,6 +143,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          file: docker/all-in-one/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

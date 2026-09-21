@@ -151,13 +151,13 @@ update_stack() {
     reconcile_supervisor_programs
 }
 
-# docker/supervisord.conf is bind-mounted, so an edited file (e.g. the
+# docker/development/supervisord.conf is bind-mounted, so an edited file (e.g. the
 # worker -> horizon swap in this change) is visible inside the container
 # immediately - but supervisord itself only acts on it once told to. Without
 # this, `compose up -d` (no --build, as in prod) leaves the OLD program set
 # running until the container is next recreated from scratch.
 reconcile_supervisor_programs() {
-    log_step "Reconciling supervisor programs with docker/supervisord.conf"
+    log_step "Reconciling supervisor programs with docker/development/supervisord.conf"
 
     wait_for_supervisor_socket
 
