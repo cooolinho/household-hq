@@ -3,6 +3,7 @@
 namespace App\Models\Financial;
 
 use App\Models\Enums\BankAccountTypeEnum;
+use App\Models\Financial\CSVImportProfile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,12 +25,14 @@ use Spatie\Tags\HasTags;
  * @property float|null $balance
  * @property Carbon|null $balance_date
  * @property BankAccountTypeEnum|null $type
+ * @property int $csv_profile_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * Relations
  * @property User $user
  * @property Transaction[] $transactions
+ * @property CSVImportProfile $csvProfile
  */
 class BankAccount extends Model
 {
@@ -55,6 +58,9 @@ class BankAccount extends Model
     const string belongs_to_user = 'user';
     const string has_many_transactions = 'transactions';
     const string morph_to_many_tags = 'tags';
+    const string belongs_to_csv_profile = 'csvProfile';
+
+    const string csv_profile_id = 'csv_profile_id';
 
     protected $table = self::TABLE;
     protected $fillable = [
@@ -67,6 +73,7 @@ class BankAccount extends Model
         self::balance,
         self::balance_date,
         self::type,
+        self::csv_profile_id,
     ];
 
     protected $casts = [
@@ -82,6 +89,11 @@ class BankAccount extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class, Transaction::bank_account_id);
+    }
+
+    public function csvProfile(): BelongsTo
+    {
+        return $this->belongsTo(CSVImportProfile::class, self::csv_profile_id);
     }
 
     public function updateBalance(): self

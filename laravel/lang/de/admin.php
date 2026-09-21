@@ -146,6 +146,9 @@ return [
             'navigation_label' => 'Bank-Konten',
             'model_label' => 'Bank-Konto',
             'plural_model_label' => 'Bank-Konten',
+            'action' => [
+                'csv_import' => 'CSV-Import Profile öffnen',
+            ],
         ],
 
         // CSVImportProfile / CSV-Importprofil

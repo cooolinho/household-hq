@@ -82,6 +82,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     const string has_many_custom_dashboard_user_widgets = 'customDashboardUserWidgets';
     const string has_many_budgets = 'budgets';
     const string has_many_goals = 'goals';
+    const string has_many_analysis_cards = 'analysisCards';
 
     protected $table = self::TABLE;
 
@@ -193,5 +194,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function goals(): HasMany
     {
         return $this->hasMany(Goal::class, Goal::user_id);
+    }
+
+    public function analysisCards(): HasMany
+    {
+        return $this->hasMany(AnalysisCard::class, AnalysisCard::user_id);
     }
 }

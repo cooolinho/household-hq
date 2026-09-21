@@ -49,11 +49,11 @@ class BankAccountSeeder extends Seeder
             return;
         }
 
-        $this->createBankAccount($user);
-        $this->createCSVImportProfile();
+        $profile = $this->createCSVImportProfile();
+        $this->createBankAccount($user, $profile);
     }
 
-    private function createBankAccount(User $user): BankAccount
+    private function createBankAccount(User $user, CSVImportProfile $profile): BankAccount
     {
         return BankAccount::query()->firstOrCreate(
             [
@@ -68,6 +68,7 @@ class BankAccountSeeder extends Seeder
                 BankAccount::bank_name => 'Test Bank',
                 BankAccount::balance_date => now()->subMonths(6)->startOfMonth(),
                 BankAccount::type => BankAccountTypeEnum::GIRO->name,
+                BankAccount::csv_profile_id => $profile->id,
             ],
         );
     }

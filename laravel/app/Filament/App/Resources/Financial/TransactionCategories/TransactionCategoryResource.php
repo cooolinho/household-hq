@@ -22,7 +22,7 @@ class TransactionCategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
     protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::BANKS;
-    protected static ?int $navigationSort = 45;
+    protected static ?int $navigationSort = 75;
 
     public static function getNavigationLabel(): string
     {

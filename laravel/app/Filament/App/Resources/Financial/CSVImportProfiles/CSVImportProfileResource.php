@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Resources\Financial\CSVImportProfiles;
 
+use App\Filament\App\Resources\Financial\BankAccounts\BankAccountResource;
 use App\Filament\App\Resources\Financial\CSVImportProfiles\Pages\CreateCSVImportProfile;
 use App\Filament\App\Resources\Financial\CSVImportProfiles\Pages\EditCSVImportProfile;
 use App\Filament\App\Resources\Financial\CSVImportProfiles\Pages\ListCSVImportProfiles;
@@ -22,6 +23,7 @@ class CSVImportProfileResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
     protected static string|null|\UnitEnum $navigationGroup = NavigationGroup::BANKS;
     protected static ?int $navigationSort = 20;
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function getNavigationLabel(): string
     {
