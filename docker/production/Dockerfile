@@ -84,6 +84,8 @@ RUN mkdir -p /var/www/.home \
     && chown www-data:www-data /var/www/.home \
     && usermod --home /var/www/.home --shell /bin/bash www-data
 
+RUN usermod -a -G 1000 www-data || true
+
 COPY --from=vendor /usr/bin/composer /usr/local/bin/composer
 
 COPY docker/all-in-one/php.ini /etc/php/8.5/cli/conf.d/99-portal.ini
@@ -98,8 +100,9 @@ COPY laravel/ ./
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R u+rwX,g+rX storage bootstrap/cache
+RUN mkdir -p /var/www/html/storage/{app,logs,broadcasting,framework,stickiness} \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
 RUN composer check-platform-reqs --no-dev --lock \
     && DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan package:discover --ansi \

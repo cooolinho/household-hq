@@ -1,11 +1,12 @@
 services:
     household-hq:
         container_name: "${CONTAINER_NAME_APP:-household-hq}"
-        image: "${APP_IMAGE:-ghcr.io/cooolinho/household-hq:production}"
+        image: "${APP_IMAGE:-ghcr.io/cooolinho/household-hq-production:latest}"
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         environment:
-            WWWUSER: "${WWWUSER}"
+            WWWUSER: "${WWWUSER:-www-data}"
+            WWWGROUP: "${WWWGROUP:-www-data}"
         labels:
             - "traefik.enable=true"
             - "traefik.docker.network=docker_lan_network"
