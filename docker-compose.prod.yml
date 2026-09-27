@@ -8,16 +8,16 @@ services:
             WWWUSER: "${WWWUSER:-www-data}"
             WWWGROUP: "${WWWGROUP:-www-data}"
         labels:
-            - "traefik.enable=true"
-            - "traefik.docker.network=docker_lan_network"
-            - "traefik.http.routers.household.rule=Host(`household.docker.lan`)"
-            - "traefik.http.routers.household.entrypoints=web"
-            - "traefik.http.services.household.loadbalancer.server.port=80"
+            - "traefik.enable=${TRAEFIK_ENABLED:-true}"
+            - "traefik.docker.network=${DOCKER_NETWORK}"
+            - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.rule=Host(`${TRAEFIK_SERVICE_NAME}.${TRAEFIK_DOMAIN}`)"
+            - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.entrypoints=web"
+            - "traefik.http.services.${TRAEFIK_SERVICE_NAME}.loadbalancer.server.port=${TRAEFIK_PORT:-80}"
         volumes:
             - '${STORAGE_PATH:-/var/lib/household-hq/storage}:/var/www/html/storage'
             - '${ENV_FILE:-./laravel/.env}:/var/www/html/.env'
         networks:
-            - docker_lan_network
+            - target_network
         depends_on:
             - household-hq-db
             - household-hq-cache
@@ -40,7 +40,7 @@ services:
         volumes:
             - 'household-hq-db:/var/lib/mysql'
         networks:
-            - docker_lan_network
+            - target_network
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-p${MYSQL_PASSWORD}"]
             retries: 3
@@ -52,14 +52,15 @@ services:
         volumes:
             - 'household-hq-cache:/data'
         networks:
-            - docker_lan_network
+            - target_network
         healthcheck:
             test: ["CMD", "redis-cli", "ping"]
             retries: 3
             timeout: 5s
 
 networks:
-    docker_lan_network:
+    target_network:
+        name: "${DOCKER_NETWORK:?Please set DOCKER_NETWORK in .env to the name of your project's Docker network.}"
         external: true
 
 volumes:
