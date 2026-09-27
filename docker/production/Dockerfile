@@ -84,6 +84,8 @@ RUN mkdir -p /var/www/.home \
     && chown www-data:www-data /var/www/.home \
     && usermod --home /var/www/.home --shell /bin/bash www-data
 
+RUN mkdir -p /var/log/supervisor
+
 RUN usermod -a -G 1000 www-data || true
 
 COPY --from=vendor /usr/bin/composer /usr/local/bin/composer
@@ -93,6 +95,13 @@ COPY docker/all-in-one/php.ini /etc/php/8.5/fpm/conf.d/99-portal.ini
 COPY docker/all-in-one/php-fpm-www.conf /etc/php/8.5/fpm/pool.d/www.conf
 COPY docker/all-in-one/nginx.conf /etc/nginx/sites-available/default
 COPY docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# nginx.conf, php.ini und php-fpm-www.conf (aus docker/all-in-one/, geteilt mit
+# dem All-in-One-Image) schreiben ihre Logs allesamt nach /data/logs. Dieses
+# Image hat kein /data-Volume, das Verzeichnis muss also im Image selbst
+# angelegt werden - fuer www-data beschreibbar, weil nginx/php-fpm ihre Worker
+# darauf absenken (root oeffnet die Logdateien beim Start selbst).
+RUN mkdir -p /data/logs && chown www-data:www-data /data/logs
 
 WORKDIR /var/www/html
 

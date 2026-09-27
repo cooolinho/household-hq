@@ -15,6 +15,7 @@ services:
             - "traefik.http.services.household.loadbalancer.server.port=80"
         volumes:
             - '${STORAGE_PATH:-/var/lib/household-hq/storage}:/var/www/html/storage'
+            - '${ENV_FILE:-./laravel/.env}:/var/www/html/.env'
         networks:
             - docker_lan_network
         depends_on:
