@@ -24,3 +24,9 @@ yarn-error.log
 public/*/filament
 
 .yarn/
+
+# Laravel Boost (generated)
+/boost.json
+/.mcp.json
+/.claude/skills/
+/AGENTS.md

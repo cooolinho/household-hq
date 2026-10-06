@@ -19,6 +19,7 @@
         "spatie/laravel-tags": "^4.12"
     },
     "require-dev": {
+        "laravel/boost": "^2.10",
         "laravel/pail": "^1.2",
         "laravel/pint": "^1.29",
         "mockery/mockery": "^1.6",
