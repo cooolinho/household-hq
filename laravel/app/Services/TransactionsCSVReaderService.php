@@ -108,6 +108,18 @@ class TransactionsCSVReaderService
 
     private function loadHeader($handle): void
     {
+        for ($i = 0; $i < $this->offsetHeader; $i++) {
+            if (fgetcsv(
+                    $handle,
+                    0,
+                    $this->delimiter,
+                    $this->enclosure,
+                    $this->escape
+                ) === false) {
+                return;
+            }
+        }
+
         $header = fgetcsv(
             $handle,
             0,
@@ -123,7 +135,6 @@ class TransactionsCSVReaderService
 
     private function loadRecords($handle): void
     {
-        $offset = 0;
         while (($line = fgetcsv(
                 $handle,
                 0,
@@ -131,10 +142,6 @@ class TransactionsCSVReaderService
                 $this->enclosure,
                 $this->escape
             )) !== false) {
-            if ($offset < $this->offsetHeader) {
-                $offset++;
-                continue;
-            }
 
             $date = $this->getDate($line);
             $amount = $this->getAmount($line);

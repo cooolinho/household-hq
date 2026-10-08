@@ -16,6 +16,7 @@ use Database\Seeders\Financial\InsuranceCategorySeeder;
 use Database\Seeders\Financial\InsuranceSeeder;
 use Database\Seeders\Financial\TransactionCategorySeeder;
 use Database\Seeders\Financial\TransactionSeeder;
+use Database\Seeders\Financial\VRBankCSVImportProfileSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -42,6 +43,7 @@ class DatabaseSeeder extends Seeder
             EnergyTrackerSeeder::class,
             MeasurementDeviceContractSeeder::class,
             BankAccountSeeder::class,
+            VRBankCSVImportProfileSeeder::class,
             InsuranceCategorySeeder::class,
             InsuranceSeeder::class,
             FixedCostCategorySeeder::class,
