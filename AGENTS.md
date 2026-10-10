@@ -93,6 +93,7 @@ either tree before adding a third panel.
 | `supervisor.sh`                                         | Interactive control for Supervisor processes (`php`, `horizon`, `scheduler`)        |
 | `docker/supervisord.conf`                               | Runtime process definitions for app server, Horizon, and scheduler (dev image)      |
 | `docs/index.md`                                         | Full domain documentation (roles, billing formula, workflow)                        |
+| `docs/csv-import.md`                                    | CSV-Import-Assistent für Transaktionen: Ablauf, Services (`app/Services/TransactionImport`), Profile, Duplikate, Sicherheit |
 | `docs/todos.md`                                         | Phased implementation plan with exact resource/page names                           |
 | `docker-compose.yml`                                    | Service definitions (laravel, mysql, redis, mailpit)                                |
 | `docker-compose.prod.yml`                               | Production setup with Traefik labels and persistent DB/Redis volumes                |
