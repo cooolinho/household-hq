@@ -113,6 +113,12 @@ RUN mkdir -p /var/www/html/storage/{app,logs,broadcasting,framework,stickiness} 
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
+# public/storage -> storage/app/public (entspricht `artisan storage:link`).
+# Relativ wie im All-in-One-Image, damit der Link auf das zur Laufzeit nach
+# /var/www/html/storage gemountete Verzeichnis zeigt und das Neu-Erzeugen des
+# Containers (z.B. Image-Update) uebersteht.
+RUN ln -sfn ../storage/app/public public/storage
+
 RUN composer check-platform-reqs --no-dev --lock \
     && DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan package:discover --ansi \
     && DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan filament:assets --ansi
